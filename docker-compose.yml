@@ -1,0 +1,43 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: guiajovem
+      MYSQL_DATABASE: guiajovem
+      MYSQL_USER: guiajovem
+      MYSQL_PASSWORD: guiajovem
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pguiajovem"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: ./api
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      NODE_ENV: development
+      DATABASE_URL: "mysql://guiajovem:guiajovem@mysql:3306/guiajovem"
+      JWT_ACCESS_SECRET: troque-este-segredo-de-access-token
+      JWT_REFRESH_SECRET: troque-este-segredo-de-refresh-token
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+      APP_URL: "http://localhost:8080"
+      ADMIN_NOME: "Administrador Guia Jovem"
+      ADMIN_EMAIL: admin@guiajovem.com.br
+      ADMIN_SENHA: troque-esta-senha
+    ports:
+      - "3000:3000"
+
+volumes:
+  mysql_data:
