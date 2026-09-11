@@ -16,6 +16,10 @@ Registro de decisões tomadas durante o desenvolvimento que divergem ou compleme
 
 ## Pendências
 
-| Data | Área | Pendência |
-| --- | --- | --- |
-| 2026-09-11 | Infra (Fase 0) | Validação local do `docker compose up` com Docker Desktop ainda não foi executada (Docker não está disponível no ambiente onde o backend foi desenvolvido). Em 2026-09-11, a migration consolidada foi validada rodando `prisma migrate deploy` + `node prisma/seed.js` (os mesmos comandos do CI) contra um MySQL 8.0.43 real, instalado localmente fora de container, incluindo teste manual do `ON DELETE SET NULL` de `universidade.id_usuario`. Isso confirma o SQL e o fluxo migrate+seed, mas não substitui testar a imagem `mysql:8.0` do Compose, a rede entre contêineres nem o healthcheck. Falta confirmar com `docker compose up` de fato. |
+_Nenhuma pendência em aberto no momento._
+
+## Pendências resolvidas
+
+| Data | Área | Pendência | Resolução |
+| --- | --- | --- | --- |
+| 2026-09-11 | Infra (Fase 0/1) | Validação local do ambiente (migrations + seed) sem Docker Desktop, que não estava disponível no ambiente onde o backend foi desenvolvido | Encerrada em 2026-09-11 pelo usuário: `npm run db:local` rodado com sucesso contra o MySQL 8 nativo do Windows (serviço **MySQL80**, porta 3306) — banco criado, migrations aplicadas, seed carregado e login do admin (`POST /auth/login`) funcionando. O Docker Compose continua documentado no README (`docker compose up`) como opção equivalente, mas deixa de ser bloqueante: a validação local via MySQL80 já cobre o schema, as migrations e o seed contra um MySQL 8 real. |
