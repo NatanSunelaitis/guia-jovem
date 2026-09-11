@@ -5,7 +5,7 @@ info:
     API REST do Guia Jovem: catálogo de universidades, campus, cursos e
     programas de entrada, financiamento e bolsas de estudo. Contrato completo
     em docs/ESPECIFICACAO.md (seção 5) no repositório.
-  version: 0.1.0
+  version: 0.2.0
   contact:
     name: Guia Jovem
 servers:
@@ -14,11 +14,14 @@ servers:
 tags:
   - name: Sistema
     description: Endpoints de infraestrutura da API
+  - name: Auth
+    description: Login, cadastro de aluno, Google, tokens e recuperação de senha (RF07, RF08, RF09)
+  - name: Usuários
+    description: Gestão de usuários, alteração de senha e exclusão de conta (RF11)
 paths:
-  /api/v1/health:
+  /health:
     get:
-      tags:
-        - Sistema
+      tags: [Sistema]
       summary: Verifica se a API está no ar
       responses:
         '200':
@@ -36,12 +39,363 @@ paths:
                         example: ok
                   meta:
                     type: object
+
+  /auth/register/aluno:
+    post:
+      tags: [Auth]
+      summary: Cria uma conta de aluno
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nome, email, senha]
+              properties:
+                nome: { type: string, maxLength: 100 }
+                email: { type: string, format: email, maxLength: 100 }
+                senha: { type: string, minLength: 7, description: 'Mínimo de 7 caracteres' }
+      responses:
+        '201':
+          description: Conta criada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokensResposta' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '409': { $ref: '#/components/responses/Conflito' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login com e-mail e senha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, senha]
+              properties:
+                email: { type: string, format: email }
+                senha: { type: string }
+      responses:
+        '200':
+          description: Login efetuado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokensResposta' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/google:
+    post:
+      tags: [Auth]
+      summary: Login ou cadastro de aluno via Google
+      description: Universidade não pode ser criada via Google; precisa dos dados institucionais.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [idToken]
+              properties:
+                idToken: { type: string }
+      responses:
+        '200':
+          description: Login/cadastro efetuado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokensResposta' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Rotaciona o refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: Novo par de tokens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      accessToken: { type: string }
+                      refreshToken: { type: string }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoga o refresh token informado
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Solicita recuperação de senha
+      description: Sempre responde 200, mesmo se o e-mail não existir (resposta neutra).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: { type: string, format: email }
+      responses:
+        '200':
+          description: Mensagem neutra de sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      mensagem: { type: string }
+                  meta: { type: object }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Redefine a senha a partir do token recebido por e-mail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, novaSenha]
+              properties:
+                token: { type: string }
+                novaSenha: { type: string, minLength: 7 }
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '400':
+          description: Token inválido/expirado ou dados inválidos
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Dados do usuário autenticado
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Usuário autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/UsuarioResumo' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+
+  /usuarios:
+    get:
+      tags: [Usuários]
+      summary: Lista usuários paginados (administrador)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: tipoUsuario
+          schema: { type: string, enum: [A, U, D] }
+        - in: query
+          name: busca
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Usuario' }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '403': { $ref: '#/components/responses/Proibido' }
+    post:
+      tags: [Usuários]
+      summary: Administrador cria um usuário (tipo A ou D)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nome, email, senha, tipoUsuario]
+              properties:
+                nome: { type: string, maxLength: 100 }
+                email: { type: string, format: email }
+                senha: { type: string, minLength: 7 }
+                tipoUsuario: { type: string, enum: [A, D] }
+                cpf: { type: string, minLength: 11, maxLength: 11 }
+      responses:
+        '201':
+          description: Usuário criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Usuario' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '409': { $ref: '#/components/responses/Conflito' }
+
+  /usuarios/{id}:
+    get:
+      tags: [Usuários]
+      summary: Detalhe de um usuário (o próprio ou administrador)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      responses:
+        '200':
+          description: Usuário encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Usuario' }
+                  meta: { type: object }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    patch:
+      tags: [Usuários]
+      summary: Atualiza nome/foto (o próprio) ou tipoUsuario/ativo (administrador)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome: { type: string, maxLength: 100 }
+                fotoUrl: { type: string, format: uri }
+                tipoUsuario: { type: string, enum: [A, D] }
+                ativo: { type: boolean }
+      responses:
+        '200':
+          description: Usuário atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Usuario' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Usuários]
+      summary: Exclui permanentemente a conta (o próprio ou administrador)
+      description: >
+        Anonimiza avaliações e sugestões deixadas (id_usuario vira NULL).
+        Se for tipo U, a universidade correspondente vai para status=I.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirmacao: { type: string, example: EXCLUIR }
+                senhaAtual: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /usuarios/{id}/senha:
+    patch:
+      tags: [Usuários]
+      summary: Altera a própria senha
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UsuarioId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [senhaAtual, novaSenha, confirmacao]
+              properties:
+                senhaAtual: { type: string }
+                novaSenha: { type: string, minLength: 7 }
+                confirmacao: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '403': { $ref: '#/components/responses/Proibido' }
+
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+  parameters:
+    UsuarioId:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer }
   schemas:
     Erro:
       type: object
@@ -49,11 +403,92 @@ components:
         error:
           type: object
           properties:
-            code:
-              type: string
-            message:
-              type: string
+            code: { type: string }
+            message: { type: string }
             details:
               type: array
-              items:
+              items: { type: object }
+    Paginacao:
+      type: object
+      properties:
+        page: { type: integer }
+        pageSize: { type: integer }
+        total: { type: integer }
+        totalPages: { type: integer }
+    Usuario:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        email: { type: string }
+        tipoUsuario: { type: string, enum: [A, U, D] }
+        fotoUrl: { type: string, nullable: true }
+        ativo: { type: boolean }
+        criadoEm: { type: string, format: date-time }
+    UsuarioResumo:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        email: { type: string }
+        tipoUsuario: { type: string, enum: [A, U, D] }
+        fotoUrl: { type: string, nullable: true }
+        universidade:
+          type: object
+          nullable: true
+          properties:
+            id: { type: integer }
+            status: { type: string, enum: [P, A, R, I] }
+    TokensResposta:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            accessToken: { type: string }
+            refreshToken: { type: string }
+            usuario: { $ref: '#/components/schemas/UsuarioResumo' }
+        meta: { type: object }
+  responses:
+    Sucesso:
+      description: Operação concluída
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              data:
                 type: object
+                properties:
+                  sucesso: { type: boolean }
+              meta: { type: object }
+    ValidationError:
+      description: Dados inválidos
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+    NaoAutenticado:
+      description: Sem token ou token inválido/expirado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+    Proibido:
+      description: Sem permissão para este recurso
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+    NaoEncontrado:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+    Conflito:
+      description: E-mail ou outro identificador já em uso
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+    RateLimited:
+      description: Limite de tentativas excedido (10 req / 15 min por IP)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
