@@ -9,6 +9,7 @@ const errorMiddleware = require('./middlewares/error.middleware');
 const metricsMiddleware = require('./middlewares/metrics.middleware');
 const AppError = require('./shared/errors/AppError');
 const authRoutes = require('./modules/auth/auth.routes');
+const usuariosRoutes = require('./modules/usuarios/usuarios.routes');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.get('/api/v1/health', (req, res) => {
 });
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/usuarios', usuariosRoutes);
 
 app.use((req, res, next) => {
   next(AppError.notFound('Rota não encontrada'));
