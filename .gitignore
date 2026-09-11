@@ -1,0 +1,41 @@
+   CLAUDE.md
+   .claude/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+dist/
+build/
+coverage/
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+
+# Flutter / Dart
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/.pub-cache/
+app/.pub/
+app/build/
+app/ios/Flutter/.last_build_id
+app/linux/flutter/ephemeral/
+app/macos/Flutter/ephemeral/
+app/windows/flutter/ephemeral/
+app/**/generated_plugin_registrant.dart
+app/**/GeneratedPluginRegistrant.*
+*.g.dart
+*.freezed.dart
+*.iml
+.idea/
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+*.log
