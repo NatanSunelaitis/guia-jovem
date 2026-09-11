@@ -13,11 +13,16 @@ jobs:
       run:
         working-directory: api
     services:
+      # sql_mode padrão da imagem mysql:8.0 inclui STRICT_TRANS_TABLES (entre
+      # outros), igual ao MySQL 8 local usado para validar a migration; não
+      # sobrescrever. TZ=UTC para bater com a regra "datas em ISO 8601 UTC"
+      # da seção 3.5 da especificação.
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: guiajovem
           MYSQL_DATABASE: guiajovem
+          TZ: UTC
         ports:
           - 3306:3306
         options: >-
@@ -33,9 +38,9 @@ jobs:
       ADMIN_EMAIL: admin@guiajovem.com.br
       ADMIN_SENHA: senha-de-ci-123456
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '20'
           cache: 'npm'
@@ -66,7 +71,7 @@ jobs:
       run:
         working-directory: app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: subosito/flutter-action@v2
         with:
