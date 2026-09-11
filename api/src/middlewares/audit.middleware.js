@@ -6,15 +6,18 @@ const prisma = require('../config/database');
  * antes de responder, com o cliente Prisma (ou uma transação) desejado.
  */
 function audit(req, res, next) {
-  req.registrarAuditoria = ({ acao, entidade, entidadeId = null, dadosAntes = null, dadosDepois = null }, cliente = prisma) =>
-    cliente.log_auditoria.create({
+  req.registrarAuditoria = (
+    { acao, entidade, entidadeId = null, dadosAntes = null, dadosDepois = null },
+    cliente = prisma,
+  ) =>
+    cliente.logAuditoria.create({
       data: {
-        id_usuario: req.user?.id ?? null,
+        usuarioId: req.user?.id ?? null,
         acao,
         entidade,
-        entidade_id: entidadeId,
-        dados_antes: dadosAntes,
-        dados_depois: dadosDepois,
+        entidadeId,
+        dadosAntes,
+        dadosDepois,
         ip: req.ip,
       },
     });

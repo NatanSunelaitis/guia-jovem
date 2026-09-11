@@ -8,13 +8,13 @@ const prisma = require('../config/database');
  */
 function metrics(req, res, next) {
   req.registrarVisita = ({ entidade = null, entidadeId = null } = {}) => {
-    prisma.visita_pagina
+    prisma.visitaPagina
       .create({
         data: {
           rota: req.baseUrl + (req.route?.path ?? req.path),
           entidade,
-          entidade_id: entidadeId,
-          tipo_usuario: req.user?.tipoUsuario ?? null,
+          entidadeId,
+          tipoUsuario: req.user?.tipoUsuario ?? null,
         },
       })
       .catch((erro) => {
