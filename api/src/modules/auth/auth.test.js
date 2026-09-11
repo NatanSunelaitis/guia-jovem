@@ -1,0 +1,322 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const request = require('supertest');
+
+jest.mock('../../config/database', () => require('../../../tests/helpers/mockPrisma'));
+jest.mock('../../config/mailer', () => ({ enviarEmail: jest.fn().mockResolvedValue(undefined) }));
+jest.mock('./google.util', () => ({ verifyGoogleIdToken: jest.fn() }));
+
+const prisma = require('../../config/database');
+const { enviarEmail } = require('../../config/mailer');
+const { verifyGoogleIdToken } = require('./google.util');
+const app = require('../../app');
+
+const SENHA_HASH_123 = bcrypt.hashSync('senha1234', 12);
+
+function usuarioFake(sobrescreve = {}) {
+  return {
+    id: 1,
+    nome: 'Aluno Teste',
+    email: 'aluno@example.com',
+    senhaHash: SENHA_HASH_123,
+    tipoUsuario: 'A',
+    googleId: null,
+    fotoUrl: null,
+    ativo: true,
+    universidade: null,
+    ...sobrescreve,
+  };
+}
+
+function accessTokenPara(usuario) {
+  return jwt.sign(
+    { sub: usuario.id, tipoUsuario: usuario.tipoUsuario, universidadeId: null },
+    process.env.JWT_ACCESS_SECRET,
+    { expiresIn: '15m' },
+  );
+}
+
+beforeEach(() => {
+  prisma.resetMockPrisma();
+  enviarEmail.mockClear();
+  verifyGoogleIdToken.mockReset();
+});
+
+describe('POST /api/v1/auth/register/aluno', () => {
+  it('cria o usuário e retorna tokens (201)', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(null);
+    prisma.usuario.create.mockResolvedValue(usuarioFake({ id: 10 }));
+
+    const resposta = await request(app)
+      .post('/api/v1/auth/register/aluno')
+      .send({ nome: 'Aluno Teste', email: 'aluno@example.com', senha: 'senha1234' });
+
+    expect(resposta.status).toBe(201);
+    expect(resposta.body.data.usuario).toMatchObject({ id: 10, tipoUsuario: 'A' });
+    expect(resposta.body.data.accessToken).toEqual(expect.any(String));
+    expect(resposta.body.data.refreshToken).toEqual(expect.any(String));
+    expect(prisma.logAuditoria.create).toHaveBeenCalled();
+  });
+
+  it('responde 409 EMAIL_EM_USO quando o e-mail já existe', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(usuarioFake());
+
+    const resposta = await request(app)
+      .post('/api/v1/auth/register/aluno')
+      .send({ nome: 'Aluno Teste', email: 'aluno@example.com', senha: 'senha1234' });
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.error.code).toBe('EMAIL_EM_USO');
+  });
+
+  it('responde 400 VALIDATION_ERROR com senha curta', async () => {
+    const resposta = await request(app)
+      .post('/api/v1/auth/register/aluno')
+      .send({ nome: 'Aluno Teste', email: 'aluno@example.com', senha: '123' });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body.error.code).toBe('VALIDATION_ERROR');
+  });
+});
+
+describe('POST /api/v1/auth/login', () => {
+  it('retorna tokens com credenciais corretas (200)', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(usuarioFake());
+
+    const resposta = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'aluno@example.com', senha: 'senha1234' });
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data.usuario.email).toBe('aluno@example.com');
+    expect(resposta.body.data.accessToken).toEqual(expect.any(String));
+  });
+
+  it('responde 401 quando o usuário não existe', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(null);
+
+    const resposta = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'ninguem@example.com', senha: 'senha1234' });
+
+    expect(resposta.status).toBe(401);
+    expect(resposta.body.error.code).toBe('CREDENCIAIS_INVALIDAS');
+  });
+
+  it('responde 401 quando a senha está incorreta', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(usuarioFake());
+
+    const resposta = await request(app)
+      .post('/api/v1/auth/login')
+      .send({ email: 'aluno@example.com', senha: 'senha-errada' });
+
+    expect(resposta.status).toBe(401);
+    expect(resposta.body.error.code).toBe('CREDENCIAIS_INVALIDAS');
+  });
+});
+
+describe('POST /api/v1/auth/google', () => {
+  it('cria uma nova conta quando não existe usuário com o e-mail ou googleId (200)', async () => {
+    verifyGoogleIdToken.mockResolvedValue({
+      googleId: 'g-123',
+      email: 'novo@example.com',
+      nome: 'Novo Aluno',
+      fotoUrl: null,
+    });
+    prisma.usuario.findUnique.mockResolvedValue(null);
+    prisma.usuario.create.mockResolvedValue(
+      usuarioFake({ id: 20, email: 'novo@example.com', googleId: 'g-123', senhaHash: null }),
+    );
+
+    const resposta = await request(app).post('/api/v1/auth/google').send({ idToken: 'token-valido' });
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data.usuario.email).toBe('novo@example.com');
+  });
+
+  it('vincula a conta existente por e-mail quando o tipo é aluno (200)', async () => {
+    verifyGoogleIdToken.mockResolvedValue({
+      googleId: 'g-999',
+      email: 'aluno@example.com',
+      nome: 'Aluno Teste',
+      fotoUrl: null,
+    });
+    prisma.usuario.findUnique
+      .mockResolvedValueOnce(null) // busca por googleId
+      .mockResolvedValueOnce(usuarioFake()); // busca por email
+    prisma.usuario.update.mockResolvedValue(usuarioFake({ googleId: 'g-999' }));
+
+    const resposta = await request(app).post('/api/v1/auth/google').send({ idToken: 'token-valido' });
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.usuario.update).toHaveBeenCalled();
+  });
+
+  it('responde 403 quando a conta com esse e-mail não é de aluno', async () => {
+    verifyGoogleIdToken.mockResolvedValue({
+      googleId: 'g-999',
+      email: 'universidade@example.com',
+      nome: 'Universidade',
+      fotoUrl: null,
+    });
+    prisma.usuario.findUnique
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(usuarioFake({ tipoUsuario: 'U', email: 'universidade@example.com' }));
+
+    const resposta = await request(app).post('/api/v1/auth/google').send({ idToken: 'token-valido' });
+
+    expect(resposta.status).toBe(403);
+  });
+
+  it('responde 401 quando o idToken é inválido', async () => {
+    const AppError = require('../../shared/errors/AppError');
+    verifyGoogleIdToken.mockRejectedValue(AppError.unauthenticated('Token do Google inválido ou expirado'));
+
+    const resposta = await request(app).post('/api/v1/auth/google').send({ idToken: 'token-invalido' });
+
+    expect(resposta.status).toBe(401);
+  });
+});
+
+describe('POST /api/v1/auth/refresh', () => {
+  it('rotaciona o refresh token válido (200)', async () => {
+    const refreshToken = jwt.sign({ sub: 1, jti: 'abc' }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: '7d',
+    });
+    prisma.refreshToken.findUnique.mockResolvedValue({
+      id: 5,
+      usuarioId: 1,
+      revogadoEm: null,
+    });
+    prisma.usuario.findUnique.mockResolvedValue(usuarioFake());
+
+    const resposta = await request(app).post('/api/v1/auth/refresh').send({ refreshToken });
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data.accessToken).toEqual(expect.any(String));
+    expect(prisma.refreshToken.update).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: 5 } }),
+    );
+  });
+
+  it('responde 401 com refresh token malformado', async () => {
+    const resposta = await request(app)
+      .post('/api/v1/auth/refresh')
+      .send({ refreshToken: 'token-invalido' });
+
+    expect(resposta.status).toBe(401);
+  });
+
+  it('responde 401 quando o refresh token não está cadastrado (revogado/inexistente)', async () => {
+    const refreshToken = jwt.sign({ sub: 1, jti: 'abc' }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: '7d',
+    });
+    prisma.refreshToken.findUnique.mockResolvedValue(null);
+
+    const resposta = await request(app).post('/api/v1/auth/refresh').send({ refreshToken });
+
+    expect(resposta.status).toBe(401);
+  });
+});
+
+describe('POST /api/v1/auth/logout', () => {
+  it('revoga o token e responde 200 quando autenticado', async () => {
+    const usuario = usuarioFake();
+    const refreshToken = jwt.sign({ sub: 1, jti: 'abc' }, process.env.JWT_REFRESH_SECRET, {
+      expiresIn: '7d',
+    });
+    prisma.refreshToken.findUnique.mockResolvedValue({ id: 7, usuarioId: 1, revogadoEm: null });
+
+    const resposta = await request(app)
+      .post('/api/v1/auth/logout')
+      .set('Authorization', `Bearer ${accessTokenPara(usuario)}`)
+      .send({ refreshToken });
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.refreshToken.update).toHaveBeenCalled();
+  });
+
+  it('responde 401 sem token de acesso', async () => {
+    const resposta = await request(app).post('/api/v1/auth/logout').send({ refreshToken: 'x' });
+
+    expect(resposta.status).toBe(401);
+  });
+});
+
+describe('POST /api/v1/auth/forgot-password', () => {
+  it('responde 200 e envia e-mail quando o e-mail existe', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(usuarioFake());
+
+    const resposta = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({ email: 'aluno@example.com' });
+
+    expect(resposta.status).toBe(200);
+    expect(enviarEmail).toHaveBeenCalled();
+  });
+
+  it('responde 200 com a mesma mensagem quando o e-mail não existe (resposta neutra)', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(null);
+
+    const resposta = await request(app)
+      .post('/api/v1/auth/forgot-password')
+      .send({ email: 'ninguem@example.com' });
+
+    expect(resposta.status).toBe(200);
+    expect(enviarEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST /api/v1/auth/reset-password', () => {
+  it('redefine a senha com um token válido (200)', async () => {
+    prisma.tokenRecuperacao.findUnique.mockResolvedValue({
+      id: 1,
+      usuarioId: 1,
+      usadoEm: null,
+      expiraEm: new Date(Date.now() + 60_000),
+    });
+
+    const resposta = await request(app)
+      .post('/api/v1/auth/reset-password')
+      .send({ token: 'token-bruto', novaSenha: 'nova-senha-123' });
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.$transaction).toHaveBeenCalled();
+  });
+
+  it('responde 400 TOKEN_INVALIDO com token expirado', async () => {
+    prisma.tokenRecuperacao.findUnique.mockResolvedValue({
+      id: 1,
+      usuarioId: 1,
+      usadoEm: null,
+      expiraEm: new Date(Date.now() - 60_000),
+    });
+
+    const resposta = await request(app)
+      .post('/api/v1/auth/reset-password')
+      .send({ token: 'token-expirado', novaSenha: 'nova-senha-123' });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body.error.code).toBe('TOKEN_INVALIDO');
+  });
+});
+
+describe('GET /api/v1/auth/me', () => {
+  it('retorna os dados do usuário autenticado (200)', async () => {
+    const usuario = usuarioFake();
+    prisma.usuario.findUnique.mockResolvedValue(usuario);
+
+    const resposta = await request(app)
+      .get('/api/v1/auth/me')
+      .set('Authorization', `Bearer ${accessTokenPara(usuario)}`);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data.email).toBe('aluno@example.com');
+  });
+
+  it('responde 401 sem token de acesso', async () => {
+    const resposta = await request(app).get('/api/v1/auth/me');
+
+    expect(resposta.status).toBe(401);
+  });
+});

@@ -1,0 +1,36 @@
+function createModel(methods) {
+  const model = {};
+  for (const nomeMetodo of methods) {
+    model[nomeMetodo] = jest.fn().mockResolvedValue(undefined);
+  }
+  return model;
+}
+
+const prisma = {
+  usuario: createModel(['findUnique', 'findMany', 'count', 'create', 'update', 'delete']),
+  refreshToken: createModel(['create', 'findUnique', 'update', 'updateMany']),
+  tokenRecuperacao: createModel(['create', 'findUnique', 'update']),
+  universidade: createModel(['findUnique', 'updateMany']),
+  logAuditoria: createModel(['create']),
+  visitaPagina: createModel(['create']),
+  $transaction: jest.fn((operacoes) => {
+    if (Array.isArray(operacoes)) return Promise.all(operacoes);
+    return operacoes(prisma);
+  }),
+};
+
+function resetMockPrisma() {
+  for (const [chave, modelo] of Object.entries(prisma)) {
+    if (chave === '$transaction') {
+      prisma.$transaction.mockClear();
+      continue;
+    }
+    for (const metodo of Object.values(modelo)) {
+      metodo.mockReset();
+      metodo.mockResolvedValue(undefined);
+    }
+  }
+}
+
+module.exports = prisma;
+module.exports.resetMockPrisma = resetMockPrisma;

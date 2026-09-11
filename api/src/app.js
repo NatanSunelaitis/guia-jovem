@@ -8,6 +8,7 @@ const auditMiddleware = require('./middlewares/audit.middleware');
 const errorMiddleware = require('./middlewares/error.middleware');
 const metricsMiddleware = require('./middlewares/metrics.middleware');
 const AppError = require('./shared/errors/AppError');
+const authRoutes = require('./modules/auth/auth.routes');
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiDocument));
 app.get('/api/v1/health', (req, res) => {
   res.json({ data: { status: 'ok' }, meta: {} });
 });
+
+app.use('/api/v1/auth', authRoutes);
 
 app.use((req, res, next) => {
   next(AppError.notFound('Rota não encontrada'));
