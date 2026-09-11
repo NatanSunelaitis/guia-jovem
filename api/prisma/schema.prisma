@@ -61,7 +61,7 @@ model Usuario {
 
 model Universidade {
   id                Int       @id @default(autoincrement()) @map("id_universidade")
-  usuarioId         Int       @unique @map("id_usuario")
+  usuarioId         Int?      @unique @map("id_usuario")
   nomeFantasia      String    @map("nome_fantasia") @db.VarChar(100)
   razaoSocial       String    @map("razao_social") @db.VarChar(100)
   cnpj              String    @unique @db.Char(14)
@@ -79,7 +79,7 @@ model Universidade {
   criadoEm          DateTime  @default(now()) @map("criado_em") @db.DateTime
   atualizadoEm      DateTime  @default(now()) @updatedAt @map("atualizado_em") @db.DateTime
 
-  usuario   Usuario  @relation("UsuarioUniversidade", fields: [usuarioId], references: [id])
+  usuario   Usuario? @relation("UsuarioUniversidade", fields: [usuarioId], references: [id], onDelete: SetNull)
   aprovador Usuario? @relation("UniversidadeAprovadoPor", fields: [aprovadoPor], references: [id])
 
   campus                Campus[]
