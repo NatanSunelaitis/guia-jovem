@@ -9,8 +9,8 @@ CREATE TABLE `usuario` (
     `google_id` VARCHAR(64) NULL,
     `foto_url` VARCHAR(255) NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
-    `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `atualizado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `atualizado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `usuario_email_key`(`email`),
     UNIQUE INDEX `usuario_google_id_key`(`google_id`),
@@ -20,7 +20,7 @@ CREATE TABLE `usuario` (
 -- CreateTable
 CREATE TABLE `universidade` (
     `id_universidade` INTEGER NOT NULL AUTO_INCREMENT,
-    `id_usuario` INTEGER NOT NULL,
+    `id_usuario` INTEGER NULL,
     `nome_fantasia` VARCHAR(100) NOT NULL,
     `razao_social` VARCHAR(100) NOT NULL,
     `cnpj` CHAR(14) NOT NULL,
@@ -31,12 +31,12 @@ CREATE TABLE `universidade` (
     `logo_url` VARCHAR(255) NULL,
     `natureza` CHAR(1) NOT NULL DEFAULT 'V',
     `status` CHAR(1) NOT NULL DEFAULT 'P',
-    `aprovado_em` DATETIME NULL,
+    `aprovado_em` DATETIME(3) NULL,
     `aprovado_por` INTEGER NULL,
     `media_avaliacao` DECIMAL(3, 2) NULL,
     `total_avaliacoes` INTEGER NOT NULL DEFAULT 0,
-    `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `atualizado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `atualizado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `universidade_id_usuario_key`(`id_usuario`),
     UNIQUE INDEX `universidade_cnpj_key`(`cnpj`),
@@ -118,7 +118,7 @@ CREATE TABLE `programa` (
     `id_usuario` INTEGER NOT NULL,
     `id_universidade` INTEGER NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT true,
-    `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `idx_programa_tipo`(`tipo`),
     PRIMARY KEY (`id_programa`)
@@ -152,7 +152,7 @@ CREATE TABLE `avaliacao` (
     `id_universidade` INTEGER NOT NULL,
     `nota` TINYINT NOT NULL,
     `comentario` VARCHAR(500) NULL,
-    `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `uk_avaliacao_usuario_univ`(`id_usuario`, `id_universidade`),
     PRIMARY KEY (`id_avaliacao`)
@@ -168,8 +168,8 @@ CREATE TABLE `sugestao` (
     `status` ENUM('EM_ANALISE', 'APROVADA', 'REPROVADA') NOT NULL DEFAULT 'EM_ANALISE',
     `resposta` TEXT NULL,
     `avaliado_por` INTEGER NULL,
-    `avaliado_em` DATETIME NULL,
-    `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `avaliado_em` DATETIME(3) NULL,
+    `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id_sugestao`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -184,7 +184,7 @@ CREATE TABLE `notificacao` (
     `referencia_tipo` VARCHAR(30) NULL,
     `referencia_id` INTEGER NULL,
     `lida` BOOLEAN NOT NULL DEFAULT false,
-    `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `idx_notificacao_usuario_lida`(`id_usuario`, `lida`),
     PRIMARY KEY (`id_notificacao`)
@@ -194,7 +194,7 @@ CREATE TABLE `notificacao` (
 CREATE TABLE `universidade_salva` (
     `id_usuario` INTEGER NOT NULL,
     `id_universidade` INTEGER NOT NULL,
-    `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id_usuario`, `id_universidade`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -206,7 +206,7 @@ CREATE TABLE `pesquisa_salva` (
     `nome` VARCHAR(100) NOT NULL,
     `tipo` ENUM('UNIVERSIDADE', 'PROGRAMA', 'CURSO') NOT NULL,
     `parametros` JSON NOT NULL,
-    `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id_pesquisa`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -216,8 +216,8 @@ CREATE TABLE `token_recuperacao` (
     `id_token` INTEGER NOT NULL AUTO_INCREMENT,
     `id_usuario` INTEGER NOT NULL,
     `token_hash` CHAR(64) NOT NULL,
-    `expira_em` DATETIME NOT NULL,
-    `usado_em` DATETIME NULL,
+    `expira_em` DATETIME(3) NOT NULL,
+    `usado_em` DATETIME(3) NULL,
 
     UNIQUE INDEX `token_recuperacao_token_hash_key`(`token_hash`),
     PRIMARY KEY (`id_token`)
@@ -228,8 +228,8 @@ CREATE TABLE `refresh_token` (
     `id_refresh` INTEGER NOT NULL AUTO_INCREMENT,
     `id_usuario` INTEGER NOT NULL,
     `token_hash` CHAR(64) NOT NULL,
-    `expira_em` DATETIME NOT NULL,
-    `revogado_em` DATETIME NULL,
+    `expira_em` DATETIME(3) NOT NULL,
+    `revogado_em` DATETIME(3) NULL,
 
     UNIQUE INDEX `refresh_token_token_hash_key`(`token_hash`),
     PRIMARY KEY (`id_refresh`)
@@ -245,7 +245,7 @@ CREATE TABLE `log_auditoria` (
     `dados_antes` JSON NULL,
     `dados_depois` JSON NULL,
     `ip` VARCHAR(45) NULL,
-    `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id_log`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -257,7 +257,7 @@ CREATE TABLE `visita_pagina` (
     `entidade` VARCHAR(30) NULL,
     `entidade_id` INTEGER NULL,
     `tipo_usuario` CHAR(1) NULL,
-    `criado_em` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `criado_em` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     INDEX `idx_visita_data`(`criado_em`),
     INDEX `idx_visita_entidade`(`entidade`, `entidade_id`),
@@ -265,7 +265,7 @@ CREATE TABLE `visita_pagina` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
-ALTER TABLE `universidade` ADD CONSTRAINT `universidade_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `usuario`(`id_usuario`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `universidade` ADD CONSTRAINT `universidade_id_usuario_fkey` FOREIGN KEY (`id_usuario`) REFERENCES `usuario`(`id_usuario`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `universidade` ADD CONSTRAINT `universidade_aprovado_por_fkey` FOREIGN KEY (`aprovado_por`) REFERENCES `usuario`(`id_usuario`) ON DELETE SET NULL ON UPDATE CASCADE;

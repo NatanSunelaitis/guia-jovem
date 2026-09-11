@@ -40,8 +40,8 @@ model Usuario {
   googleId     String?  @unique @map("google_id") @db.VarChar(64)
   fotoUrl      String?  @map("foto_url") @db.VarChar(255)
   ativo        Boolean  @default(true)
-  criadoEm     DateTime @default(now()) @map("criado_em") @db.DateTime
-  atualizadoEm DateTime @default(now()) @updatedAt @map("atualizado_em") @db.DateTime
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.DateTime(3)
+  atualizadoEm DateTime @default(now()) @updatedAt @map("atualizado_em") @db.DateTime(3)
 
   universidade           Universidade?       @relation("UsuarioUniversidade")
   universidadesAprovadas Universidade[]      @relation("UniversidadeAprovadoPor")
@@ -72,12 +72,12 @@ model Universidade {
   logoUrl           String?   @map("logo_url") @db.VarChar(255)
   natureza          String    @default("V") @db.Char(1) // P pública | V privada
   status            String    @default("P") @db.Char(1) // P pendente | A aprovada | R reprovada | I inativa
-  aprovadoEm        DateTime? @map("aprovado_em") @db.DateTime
+  aprovadoEm        DateTime? @map("aprovado_em") @db.DateTime(3)
   aprovadoPor       Int?      @map("aprovado_por")
   mediaAvaliacao    Decimal?  @map("media_avaliacao") @db.Decimal(3, 2)
   totalAvaliacoes   Int       @default(0) @map("total_avaliacoes")
-  criadoEm          DateTime  @default(now()) @map("criado_em") @db.DateTime
-  atualizadoEm      DateTime  @default(now()) @updatedAt @map("atualizado_em") @db.DateTime
+  criadoEm          DateTime  @default(now()) @map("criado_em") @db.DateTime(3)
+  atualizadoEm      DateTime  @default(now()) @updatedAt @map("atualizado_em") @db.DateTime(3)
 
   usuario   Usuario? @relation("UsuarioUniversidade", fields: [usuarioId], references: [id], onDelete: SetNull)
   aprovador Usuario? @relation("UniversidadeAprovadoPor", fields: [aprovadoPor], references: [id])
@@ -176,7 +176,7 @@ model Programa {
   usuarioId      Int          @map("id_usuario")
   universidadeId Int?         @map("id_universidade")
   ativo          Boolean      @default(true)
-  criadoEm       DateTime     @default(now()) @map("criado_em") @db.DateTime
+  criadoEm       DateTime     @default(now()) @map("criado_em") @db.DateTime(3)
 
   usuario      Usuario       @relation("ProgramaCriador", fields: [usuarioId], references: [id])
   universidade Universidade? @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
@@ -219,7 +219,7 @@ model Avaliacao {
   universidadeId Int      @map("id_universidade")
   nota           Int      @db.TinyInt
   comentario     String?  @db.VarChar(500)
-  criadoEm       DateTime @default(now()) @map("criado_em") @db.DateTime
+  criadoEm       DateTime @default(now()) @map("criado_em") @db.DateTime(3)
 
   usuario      Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
   universidade Universidade @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
@@ -237,8 +237,8 @@ model Sugestao {
   status         StatusSugestao @default(EM_ANALISE)
   resposta       String?        @db.Text
   avaliadoPor    Int?           @map("avaliado_por")
-  avaliadoEm     DateTime?      @map("avaliado_em") @db.DateTime
-  criadoEm       DateTime       @default(now()) @map("criado_em") @db.DateTime
+  avaliadoEm     DateTime?      @map("avaliado_em") @db.DateTime(3)
+  criadoEm       DateTime       @default(now()) @map("criado_em") @db.DateTime(3)
 
   usuario      Usuario?      @relation("SugestaoAutor", fields: [usuarioId], references: [id], onDelete: SetNull)
   universidade Universidade? @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
@@ -256,7 +256,7 @@ model Notificacao {
   referenciaTipo String?  @map("referencia_tipo") @db.VarChar(30)
   referenciaId   Int?     @map("referencia_id")
   lida           Boolean  @default(false)
-  criadoEm       DateTime @default(now()) @map("criado_em") @db.DateTime
+  criadoEm       DateTime @default(now()) @map("criado_em") @db.DateTime(3)
 
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
@@ -267,7 +267,7 @@ model Notificacao {
 model UniversidadeSalva {
   usuarioId      Int      @map("id_usuario")
   universidadeId Int      @map("id_universidade")
-  criadoEm       DateTime @default(now()) @map("criado_em") @db.DateTime
+  criadoEm       DateTime @default(now()) @map("criado_em") @db.DateTime(3)
 
   usuario      Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
   universidade Universidade @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
@@ -282,7 +282,7 @@ model PesquisaSalva {
   nome       String            @db.VarChar(100)
   tipo       TipoPesquisaSalva
   parametros Json
-  criadoEm   DateTime          @default(now()) @map("criado_em") @db.DateTime
+  criadoEm   DateTime          @default(now()) @map("criado_em") @db.DateTime(3)
 
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
@@ -293,8 +293,8 @@ model TokenRecuperacao {
   id        Int       @id @default(autoincrement()) @map("id_token")
   usuarioId Int       @map("id_usuario")
   tokenHash String    @unique @map("token_hash") @db.Char(64)
-  expiraEm  DateTime  @map("expira_em") @db.DateTime
-  usadoEm   DateTime? @map("usado_em") @db.DateTime
+  expiraEm  DateTime  @map("expira_em") @db.DateTime(3)
+  usadoEm   DateTime? @map("usado_em") @db.DateTime(3)
 
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
@@ -305,8 +305,8 @@ model RefreshToken {
   id         Int       @id @default(autoincrement()) @map("id_refresh")
   usuarioId  Int       @map("id_usuario")
   tokenHash  String    @unique @map("token_hash") @db.Char(64)
-  expiraEm   DateTime  @map("expira_em") @db.DateTime
-  revogadoEm DateTime? @map("revogado_em") @db.DateTime
+  expiraEm   DateTime  @map("expira_em") @db.DateTime(3)
+  revogadoEm DateTime? @map("revogado_em") @db.DateTime(3)
 
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
@@ -322,7 +322,7 @@ model LogAuditoria {
   dadosAntes  Json?    @map("dados_antes")
   dadosDepois Json?    @map("dados_depois")
   ip          String?  @db.VarChar(45)
-  criadoEm    DateTime @default(now()) @map("criado_em") @db.DateTime
+  criadoEm    DateTime @default(now()) @map("criado_em") @db.DateTime(3)
 
   usuario Usuario? @relation(fields: [usuarioId], references: [id])
 
@@ -335,7 +335,7 @@ model VisitaPagina {
   entidade    String?  @db.VarChar(30) // universidade | programa | curso
   entidadeId  Int?     @map("entidade_id")
   tipoUsuario String?  @map("tipo_usuario") @db.Char(1) // NULL visitante
-  criadoEm    DateTime @default(now()) @map("criado_em") @db.DateTime
+  criadoEm    DateTime @default(now()) @map("criado_em") @db.DateTime(3)
 
   @@index([criadoEm], map: "idx_visita_data")
   @@index([entidade, entidadeId], map: "idx_visita_entidade")
