@@ -1,0 +1,32 @@
+const cors = require('cors');
+const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const path = require('path');
+
+const auditMiddleware = require('./middlewares/audit.middleware');
+const errorMiddleware = require('./middlewares/error.middleware');
+const metricsMiddleware = require('./middlewares/metrics.middleware');
+const AppError = require('./shared/errors/AppError');
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+app.use(auditMiddleware);
+app.use(metricsMiddleware);
+
+const openapiDocument = YAML.load(path.join(__dirname, 'docs', 'openapi.yaml'));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openapiDocument));
+
+app.get('/api/v1/health', (req, res) => {
+  res.json({ data: { status: 'ok' }, meta: {} });
+});
+
+app.use((req, res, next) => {
+  next(AppError.notFound('Rota não encontrada'));
+});
+
+app.use(errorMiddleware);
+
+module.exports = app;

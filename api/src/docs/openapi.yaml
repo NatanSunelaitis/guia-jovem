@@ -1,0 +1,59 @@
+openapi: 3.0.3
+info:
+  title: Guia Jovem API
+  description: >
+    API REST do Guia Jovem: catálogo de universidades, campus, cursos e
+    programas de entrada, financiamento e bolsas de estudo. Contrato completo
+    em docs/ESPECIFICACAO.md (seção 5) no repositório.
+  version: 0.1.0
+  contact:
+    name: Guia Jovem
+servers:
+  - url: /api/v1
+    description: API base (versão 1)
+tags:
+  - name: Sistema
+    description: Endpoints de infraestrutura da API
+paths:
+  /api/v1/health:
+    get:
+      tags:
+        - Sistema
+      summary: Verifica se a API está no ar
+      responses:
+        '200':
+          description: API operacional
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: ok
+                  meta:
+                    type: object
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Erro:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
