@@ -64,15 +64,35 @@ docker compose up
 
 A API fica disponível em `http://localhost:3000` e a documentação interativa (Swagger) em `http://localhost:3000/docs`.
 
-### Rodando a API localmente sem Docker
+### Execução local sem Docker
 
-```bash
-cd api
-npm install
-npm start
-```
+Alternativa ao Docker Compose para quem já tem um MySQL 8 instalado no Windows (ex.: serviço **MySQL80**, porta 3306).
 
-Configure as variáveis de ambiente a partir de `api/.env.example` antes de iniciar.
+1. Confirme que o serviço do MySQL está rodando (PowerShell):
+
+   ```powershell
+   Get-Service MySQL80
+   ```
+
+2. Copie `api/.env.example` para `api/.env` e preencha `DATABASE_URL` com o usuário/senha do seu MySQL local (ex.: `mysql://root:SUA_SENHA@127.0.0.1:3306/guiajovem`). O arquivo `api/.env` nunca é versionado (está no `.gitignore`).
+
+3. Instale as dependências e prepare o banco (cria o banco `guiajovem` se não existir, aplica as migrations e roda o seed):
+
+   ```powershell
+   cd api
+   npm install
+   npm run db:local
+   ```
+
+4. Suba a API:
+
+   ```powershell
+   npm start
+   ```
+
+5. Acesse `http://localhost:3000/docs` para conferir a documentação Swagger.
+
+`npm run db:local` também serve para reaplicar migrations/seed depois de atualizar o código (`git pull`), sem precisar do Docker.
 
 ### Rodando o app Flutter
 
