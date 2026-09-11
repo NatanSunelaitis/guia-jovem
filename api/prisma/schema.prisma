@@ -1,0 +1,343 @@
+// Modelo de dados do Guia Jovem.
+// Espelha o DDL de referência de docs/ESPECIFICACAO.md (seção 4.3).
+// Nomes de tabela/coluna em snake_case (@@map / @map); nomes de campo em
+// camelCase no lado Prisma/JS.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoPrograma {
+  ENTRADA
+  FINANCIAMENTO
+  BOLSA
+}
+
+enum StatusSugestao {
+  EM_ANALISE
+  APROVADA
+  REPROVADA
+}
+
+enum TipoPesquisaSalva {
+  UNIVERSIDADE
+  PROGRAMA
+  CURSO
+}
+
+model Usuario {
+  id           Int      @id @default(autoincrement()) @map("id_usuario")
+  nome         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(100)
+  senhaHash    String?  @map("senha_hash") @db.VarChar(255)
+  tipoUsuario  String   @map("tipo_usuario") @db.Char(1) // A aluno | U universidade | D administrador
+  cpf          String?  @db.Char(11) // apenas perfil D, opcional (RNF24)
+  googleId     String?  @unique @map("google_id") @db.VarChar(64)
+  fotoUrl      String?  @map("foto_url") @db.VarChar(255)
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.DateTime
+  atualizadoEm DateTime @default(now()) @updatedAt @map("atualizado_em") @db.DateTime
+
+  universidade           Universidade?       @relation("UsuarioUniversidade")
+  universidadesAprovadas Universidade[]      @relation("UniversidadeAprovadoPor")
+  programasCriados       Programa[]          @relation("ProgramaCriador")
+  avaliacoes             Avaliacao[]
+  sugestoesEnviadas      Sugestao[]          @relation("SugestaoAutor")
+  sugestoesAvaliadas     Sugestao[]          @relation("SugestaoAvaliador")
+  notificacoes           Notificacao[]
+  universidadesSalvas    UniversidadeSalva[]
+  pesquisasSalvas        PesquisaSalva[]
+  tokensRecuperacao      TokenRecuperacao[]
+  refreshTokens          RefreshToken[]
+  logsAuditoria          LogAuditoria[]
+
+  @@map("usuario")
+}
+
+model Universidade {
+  id                Int       @id @default(autoincrement()) @map("id_universidade")
+  usuarioId         Int       @unique @map("id_usuario")
+  nomeFantasia      String    @map("nome_fantasia") @db.VarChar(100)
+  razaoSocial       String    @map("razao_social") @db.VarChar(100)
+  cnpj              String    @unique @db.Char(14)
+  descricao         String?   @db.Text
+  telefonePrincipal String?   @map("telefone_principal") @db.VarChar(15)
+  linkPagina        String?   @map("link_pagina") @db.VarChar(255) // RF05
+  linkSimulados     String?   @map("link_simulados") @db.VarChar(255) // RF01
+  logoUrl           String?   @map("logo_url") @db.VarChar(255)
+  natureza          String    @default("V") @db.Char(1) // P pública | V privada
+  status            String    @default("P") @db.Char(1) // P pendente | A aprovada | R reprovada | I inativa
+  aprovadoEm        DateTime? @map("aprovado_em") @db.DateTime
+  aprovadoPor       Int?      @map("aprovado_por")
+  mediaAvaliacao    Decimal?  @map("media_avaliacao") @db.Decimal(3, 2)
+  totalAvaliacoes   Int       @default(0) @map("total_avaliacoes")
+  criadoEm          DateTime  @default(now()) @map("criado_em") @db.DateTime
+  atualizadoEm      DateTime  @default(now()) @updatedAt @map("atualizado_em") @db.DateTime
+
+  usuario   Usuario  @relation("UsuarioUniversidade", fields: [usuarioId], references: [id])
+  aprovador Usuario? @relation("UniversidadeAprovadoPor", fields: [aprovadoPor], references: [id])
+
+  campus                Campus[]
+  cursos                Curso[]
+  programas             Programa[]
+  universidadeProgramas UniversidadePrograma[]
+  avaliacoes            Avaliacao[]
+  sugestoes             Sugestao[]
+  universidadesSalvas   UniversidadeSalva[]
+
+  @@index([status], map: "idx_universidade_status")
+  @@index([nomeFantasia], map: "idx_universidade_nome")
+  @@map("universidade")
+}
+
+model Endereco {
+  id          Int     @id @default(autoincrement()) @map("id_endereco")
+  logradouro  String  @db.VarChar(100)
+  numero      String  @db.VarChar(10)
+  complemento String? @db.VarChar(100)
+  bairro      String  @db.VarChar(100)
+  cidade      String  @db.VarChar(100)
+  estado      String  @db.Char(2)
+  cep         String? @db.Char(8)
+
+  campus Campus[]
+
+  @@index([cidade], map: "idx_endereco_cidade")
+  @@index([estado], map: "idx_endereco_estado")
+  @@map("endereco")
+}
+
+model Campus {
+  id              Int     @id @default(autoincrement()) @map("id_campus")
+  universidadeId  Int     @map("id_universidade")
+  enderecoId      Int     @map("id_endereco")
+  nome            String  @db.VarChar(100)
+  telefoneCelular String? @map("telefone_celular") @db.VarChar(15)
+  telefoneFixo    String? @map("telefone_fixo") @db.VarChar(15)
+  emailCampus     String? @map("email_campus") @db.VarChar(100)
+  principal       Boolean @default(false)
+  ativo           Boolean @default(true)
+
+  universidade Universidade  @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
+  endereco     Endereco      @relation(fields: [enderecoId], references: [id])
+  campusCursos CampusCurso[]
+
+  @@map("campus")
+}
+
+model Curso {
+  id               Int     @id @default(autoincrement()) @map("id_curso")
+  universidadeId   Int     @map("id_universidade")
+  nome             String  @db.VarChar(100)
+  areaCurso        String? @map("area_curso") @db.VarChar(100)
+  notaMec          String? @map("nota_mec") @db.VarChar(100)
+  modalidade       String? @db.VarChar(20)
+  grau             String? @db.VarChar(20)
+  duracaoSemestres Int?    @map("duracao_semestres") @db.TinyInt
+  descricao        String? @db.Text
+  ativo            Boolean @default(true)
+
+  universidade Universidade  @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
+  campusCursos CampusCurso[]
+
+  @@index([nome], map: "idx_curso_nome")
+  @@index([areaCurso], map: "idx_curso_area")
+  @@map("curso")
+}
+
+model CampusCurso {
+  campusId Int     @map("id_campus")
+  cursoId  Int     @map("id_curso")
+  turno    String? @db.VarChar(20)
+  vagas    Int?
+
+  campus Campus @relation(fields: [campusId], references: [id], onDelete: Cascade)
+  curso  Curso  @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+
+  @@id([campusId, cursoId])
+  @@map("campus_curso")
+}
+
+model Programa {
+  id             Int          @id @default(autoincrement()) @map("id_programa")
+  nome           String       @db.VarChar(100)
+  sigla          String?      @db.VarChar(20)
+  descricao      String       @db.Text
+  tipo           TipoPrograma
+  requisitos     String?      @db.Text
+  comoFunciona   String?      @map("como_funciona") @db.Text
+  linkOficial    String?      @map("link_oficial") @db.VarChar(255)
+  imagemUrl      String?      @map("imagem_url") @db.VarChar(255)
+  usuarioId      Int          @map("id_usuario")
+  universidadeId Int?         @map("id_universidade")
+  ativo          Boolean      @default(true)
+  criadoEm       DateTime     @default(now()) @map("criado_em") @db.DateTime
+
+  usuario      Usuario       @relation("ProgramaCriador", fields: [usuarioId], references: [id])
+  universidade Universidade? @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
+
+  eventos       ProgramaEvento[]
+  universidades UniversidadePrograma[]
+
+  @@index([tipo], map: "idx_programa_tipo")
+  @@map("programa")
+}
+
+model ProgramaEvento {
+  id         Int       @id @default(autoincrement()) @map("id_evento")
+  programaId Int       @map("id_programa")
+  titulo     String    @db.VarChar(100)
+  descricao  String?   @db.VarChar(255)
+  dataInicio DateTime  @map("data_inicio") @db.Date
+  dataFim    DateTime? @map("data_fim") @db.Date
+
+  programa Programa @relation(fields: [programaId], references: [id], onDelete: Cascade)
+
+  @@map("programa_evento")
+}
+
+model UniversidadePrograma {
+  universidadeId Int     @map("id_universidade")
+  programaId     Int     @map("id_programa")
+  observacao     String? @db.VarChar(255)
+
+  universidade Universidade @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
+  programa     Programa     @relation(fields: [programaId], references: [id], onDelete: Cascade)
+
+  @@id([universidadeId, programaId])
+  @@map("universidade_programa")
+}
+
+model Avaliacao {
+  id             Int      @id @default(autoincrement()) @map("id_avaliacao")
+  usuarioId      Int?     @map("id_usuario")
+  universidadeId Int      @map("id_universidade")
+  nota           Int      @db.TinyInt
+  comentario     String?  @db.VarChar(500)
+  criadoEm       DateTime @default(now()) @map("criado_em") @db.DateTime
+
+  usuario      Usuario?     @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  universidade Universidade @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
+
+  @@unique([usuarioId, universidadeId], map: "uk_avaliacao_usuario_univ")
+  @@map("avaliacao")
+}
+
+model Sugestao {
+  id             Int            @id @default(autoincrement()) @map("id_sugestao")
+  usuarioId      Int?           @map("id_usuario")
+  universidadeId Int?           @map("id_universidade")
+  titulo         String         @db.VarChar(100)
+  texto          String         @db.Text
+  status         StatusSugestao @default(EM_ANALISE)
+  resposta       String?        @db.Text
+  avaliadoPor    Int?           @map("avaliado_por")
+  avaliadoEm     DateTime?      @map("avaliado_em") @db.DateTime
+  criadoEm       DateTime       @default(now()) @map("criado_em") @db.DateTime
+
+  usuario      Usuario?      @relation("SugestaoAutor", fields: [usuarioId], references: [id], onDelete: SetNull)
+  universidade Universidade? @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
+  avaliador    Usuario?      @relation("SugestaoAvaliador", fields: [avaliadoPor], references: [id])
+
+  @@map("sugestao")
+}
+
+model Notificacao {
+  id             Int      @id @default(autoincrement()) @map("id_notificacao")
+  usuarioId      Int      @map("id_usuario")
+  tipo           String   @db.VarChar(30) // NOVA_SUGESTAO | UNIVERSIDADE_PENDENTE | UNIVERSIDADE_APROVADA | SUGESTAO_AVALIADA
+  titulo         String   @db.VarChar(100)
+  mensagem       String   @db.VarChar(255)
+  referenciaTipo String?  @map("referencia_tipo") @db.VarChar(30)
+  referenciaId   Int?     @map("referencia_id")
+  lida           Boolean  @default(false)
+  criadoEm       DateTime @default(now()) @map("criado_em") @db.DateTime
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId, lida], map: "idx_notificacao_usuario_lida")
+  @@map("notificacao")
+}
+
+model UniversidadeSalva {
+  usuarioId      Int      @map("id_usuario")
+  universidadeId Int      @map("id_universidade")
+  criadoEm       DateTime @default(now()) @map("criado_em") @db.DateTime
+
+  usuario      Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  universidade Universidade @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, universidadeId])
+  @@map("universidade_salva")
+}
+
+model PesquisaSalva {
+  id         Int               @id @default(autoincrement()) @map("id_pesquisa")
+  usuarioId  Int               @map("id_usuario")
+  nome       String            @db.VarChar(100)
+  tipo       TipoPesquisaSalva
+  parametros Json
+  criadoEm   DateTime          @default(now()) @map("criado_em") @db.DateTime
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("pesquisa_salva")
+}
+
+model TokenRecuperacao {
+  id        Int       @id @default(autoincrement()) @map("id_token")
+  usuarioId Int       @map("id_usuario")
+  tokenHash String    @unique @map("token_hash") @db.Char(64)
+  expiraEm  DateTime  @map("expira_em") @db.DateTime
+  usadoEm   DateTime? @map("usado_em") @db.DateTime
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("token_recuperacao")
+}
+
+model RefreshToken {
+  id         Int       @id @default(autoincrement()) @map("id_refresh")
+  usuarioId  Int       @map("id_usuario")
+  tokenHash  String    @unique @map("token_hash") @db.Char(64)
+  expiraEm   DateTime  @map("expira_em") @db.DateTime
+  revogadoEm DateTime? @map("revogado_em") @db.DateTime
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_token")
+}
+
+model LogAuditoria {
+  id          BigInt   @id @default(autoincrement()) @map("id_log")
+  usuarioId   Int?     @map("id_usuario")
+  acao        String   @db.VarChar(20) // CREATE | UPDATE | DELETE | LOGIN | LOGOUT | APROVAR
+  entidade    String   @db.VarChar(40)
+  entidadeId  Int?     @map("entidade_id")
+  dadosAntes  Json?    @map("dados_antes")
+  dadosDepois Json?    @map("dados_depois")
+  ip          String?  @db.VarChar(45)
+  criadoEm    DateTime @default(now()) @map("criado_em") @db.DateTime
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@map("log_auditoria")
+}
+
+model VisitaPagina {
+  id          BigInt   @id @default(autoincrement()) @map("id_visita")
+  rota        String   @db.VarChar(120)
+  entidade    String?  @db.VarChar(30) // universidade | programa | curso
+  entidadeId  Int?     @map("entidade_id")
+  tipoUsuario String?  @map("tipo_usuario") @db.Char(1) // NULL visitante
+  criadoEm    DateTime @default(now()) @map("criado_em") @db.DateTime
+
+  @@index([criadoEm], map: "idx_visita_data")
+  @@index([entidade, entidadeId], map: "idx_visita_entidade")
+  @@map("visita_pagina")
+}
