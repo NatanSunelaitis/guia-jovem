@@ -36,20 +36,32 @@ class PublicLayout extends StatelessWidget {
           const SnackBar(content: Text('Login chega em uma próxima fase do app.')),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            child,
-            GJFooter(
-              links: [
-                GJFooterLink(label: 'Sobre', onTap: () {}),
-                GJFooterLink(label: 'Contato', onTap: () {}),
-                GJFooterLink(label: 'Privacidade', onTap: () {}),
-                GJFooterLink(label: 'Termos', onTap: () {}),
-              ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              // IntrinsicHeight + Expanded no conteúdo: quando a página é mais
+              // baixa que a viewport, o footer fica colado no fim em vez de
+              // deixar uma faixa branca (fundo do Scaffold) abaixo dele.
+              child: IntrinsicHeight(
+                child: Column(
+                  children: [
+                    Expanded(child: child),
+                    GJFooter(
+                      links: [
+                        GJFooterLink(label: 'Sobre', onTap: () {}),
+                        GJFooterLink(label: 'Contato', onTap: () {}),
+                        GJFooterLink(label: 'Privacidade', onTap: () {}),
+                        GJFooterLink(label: 'Termos', onTap: () {}),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
