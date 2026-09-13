@@ -148,7 +148,10 @@ class _GJButtonState extends State<GJButton> {
                   height: widget._height,
                   width: widget.expand ? double.infinity : null,
                   padding: EdgeInsets.symmetric(horizontal: widget._horizontalPadding),
-                  alignment: Alignment.center,
+                  // Sem `alignment`: com width null, um Container com
+                  // alignment se expande para preencher o espaço disponível
+                  // em vez de abraçar o conteúdo, esticando o botão dentro
+                  // de um Wrap. A Row já centraliza verticalmente sozinha.
                   child: content,
                 ),
               ),
