@@ -13,6 +13,7 @@ const listQuerySchema = {
     programaId: z.coerce.number().int().positive().optional(),
     cursoId: z.coerce.number().int().positive().optional(),
     areaCurso: z.string().trim().min(1).optional(),
+    notaMinima: z.coerce.number().min(0).max(5).optional(),
     sort: z.enum(['nome', 'media', 'avaliacoes']).optional(),
     page: z.string().optional(),
     pageSize: z.string().optional(),

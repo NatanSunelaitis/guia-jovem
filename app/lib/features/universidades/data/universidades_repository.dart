@@ -12,6 +12,7 @@ class FiltrosUniversidades {
     this.programaId,
     this.cursoId,
     this.areaCurso,
+    this.notaMinima,
     this.sort,
     this.page = 1,
   });
@@ -23,6 +24,7 @@ class FiltrosUniversidades {
   final int? programaId;
   final int? cursoId;
   final String? areaCurso;
+  final double? notaMinima;
   final String? sort;
   final int page;
 
@@ -34,6 +36,7 @@ class FiltrosUniversidades {
         if (programaId != null) 'programaId': programaId,
         if (cursoId != null) 'cursoId': cursoId,
         if (areaCurso != null && areaCurso!.isNotEmpty) 'areaCurso': areaCurso,
+        if (notaMinima != null) 'notaMinima': notaMinima,
         if (sort != null) 'sort': sort,
         'page': page,
       };
@@ -43,6 +46,8 @@ class FiltrosUniversidades {
     String? cidade,
     String? estado,
     String? natureza,
+    String? areaCurso,
+    double? notaMinima,
     String? sort,
     int? page,
   }) {
@@ -53,7 +58,8 @@ class FiltrosUniversidades {
       natureza: natureza ?? this.natureza,
       programaId: programaId,
       cursoId: cursoId,
-      areaCurso: areaCurso,
+      areaCurso: areaCurso ?? this.areaCurso,
+      notaMinima: notaMinima ?? this.notaMinima,
       sort: sort ?? this.sort,
       page: page ?? this.page,
     );

@@ -63,6 +63,16 @@ describe('GET /api/v1/universidades', () => {
     expect(chamada.orderBy).toEqual([{ mediaAvaliacao: 'desc' }, { totalAvaliacoes: 'desc' }]);
   });
 
+  it('aplica o filtro de nota mínima (RF06)', async () => {
+    prisma.universidade.findMany.mockResolvedValue([]);
+    prisma.universidade.count.mockResolvedValue(0);
+
+    await request(app).get('/api/v1/universidades?notaMinima=3.5');
+
+    const chamada = prisma.universidade.findMany.mock.calls[0][0];
+    expect(chamada.where.mediaAvaliacao).toEqual({ gte: 3.5 });
+  });
+
   it('responde 400 com estado inválido', async () => {
     const resposta = await request(app).get('/api/v1/universidades?estado=SPX');
 

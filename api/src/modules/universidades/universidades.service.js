@@ -32,6 +32,7 @@ function buildWhere(query) {
 
   if (query.q) where.nomeFantasia = { contains: query.q };
   if (query.natureza) where.natureza = query.natureza;
+  if (query.notaMinima != null) where.mediaAvaliacao = { gte: query.notaMinima };
 
   if (query.cidade || query.estado) {
     where.campus = {
@@ -232,4 +233,7 @@ module.exports = {
   listarCampus,
   listarCursos,
   listarAvaliacoes,
+  // Reaproveitados por relatorios.service.js (RF03): "mesmos filtros de /universidades".
+  buildWhere,
+  buildOrderBy,
 };
