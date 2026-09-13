@@ -57,7 +57,7 @@ class GJSkeletonCard extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          GJSkeleton(height: 120, radius: GJRadius.md),
+          GJSkeleton(height: 96, radius: GJRadius.md),
           SizedBox(height: GJSpace.s4),
           GJSkeleton(width: 160, height: 20, radius: GJRadius.xs),
           SizedBox(height: GJSpace.s2),
