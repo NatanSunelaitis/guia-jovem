@@ -128,11 +128,17 @@ const UNIVERSIDADES = [
       {
         nome: 'Fatec Sorocaba',
         principal: true,
+        telefoneFixo: '(15) 3223-1450',
+        telefoneCelular: '(15) 99711-2233',
+        emailCampus: 'sorocaba@fatec.sp.gov.br',
         endereco: { logradouro: 'Avenida Engenheiro Carlos Reinaldo Mendes', numero: '2929', bairro: 'Alto da Boa Vista', cidade: 'Sorocaba', estado: 'SP', cep: '18013380' },
       },
       {
         nome: 'Fatec Itu',
         principal: false,
+        telefoneFixo: '(11) 4023-5678',
+        telefoneCelular: null,
+        emailCampus: 'itu@fatec.sp.gov.br',
         endereco: { logradouro: 'Avenida Pereira da Silva', numero: '1500', bairro: 'Jardim Piemonte', cidade: 'Itu', estado: 'SP', cep: '13309280' },
       },
     ],
@@ -157,11 +163,17 @@ const UNIVERSIDADES = [
       {
         nome: 'USP São Paulo',
         principal: true,
+        telefoneFixo: '(11) 3091-3111',
+        telefoneCelular: '(11) 98811-4455',
+        emailCampus: 'atendimento@usp.br',
         endereco: { logradouro: 'Rua da Reitoria', numero: '374', bairro: 'Butantã', cidade: 'São Paulo', estado: 'SP', cep: '05508220' },
       },
       {
         nome: 'USP São Carlos',
         principal: false,
+        telefoneFixo: '(16) 3373-9200',
+        telefoneCelular: null,
+        emailCampus: 'saocarlos@usp.br',
         endereco: { logradouro: 'Avenida Trabalhador São-carlense', numero: '400', bairro: 'Centro', cidade: 'São Carlos', estado: 'SP', cep: '13566590' },
       },
     ],
@@ -186,11 +198,17 @@ const UNIVERSIDADES = [
       {
         nome: 'UNESP Bauru',
         principal: true,
+        telefoneFixo: '(14) 3103-6000',
+        telefoneCelular: '(14) 99622-3344',
+        emailCampus: 'bauru@unesp.br',
         endereco: { logradouro: 'Avenida Engenheiro Luiz Edmundo Carrijo Coube', numero: '14-01', bairro: 'Vargem Limpa', cidade: 'Bauru', estado: 'SP', cep: '17033360' },
       },
       {
         nome: 'UNESP Araraquara',
         principal: false,
+        telefoneFixo: '(16) 3301-6000',
+        telefoneCelular: null,
+        emailCampus: 'araraquara@unesp.br',
         endereco: { logradouro: 'Rodovia Araraquara-Jaú', numero: '01', bairro: 'Machados', cidade: 'Araraquara', estado: 'SP', cep: '14800903' },
       },
     ],
@@ -310,6 +328,9 @@ async function seedUniversidades(adminId, cursosBase, programas) {
           enderecoId: endereco.id,
           nome: dadosCampus.nome,
           principal: dadosCampus.principal,
+          telefoneFixo: dadosCampus.telefoneFixo ?? null,
+          telefoneCelular: dadosCampus.telefoneCelular ?? null,
+          emailCampus: dadosCampus.emailCampus ?? null,
         },
       });
       campusCriados.push(campus);
@@ -332,6 +353,7 @@ async function seedUniversidades(adminId, cursosBase, programas) {
           campusId: campusCriados[0].id,
           cursoId: curso.id,
           turno: 'Integral',
+          vagas: 40,
         },
       });
     }
