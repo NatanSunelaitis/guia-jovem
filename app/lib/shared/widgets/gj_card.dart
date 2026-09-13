@@ -30,7 +30,6 @@ class GJCard extends StatefulWidget {
     Key? key,
     required String nomeFantasia,
     String? logoUrl,
-    String? sigla,
     String? cidade,
     String? estado,
     double? mediaAvaliacao,
@@ -45,7 +44,7 @@ class GJCard extends StatefulWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          _CaixaLogo(logoUrl: logoUrl, sigla: sigla ?? nomeFantasia),
+          _CaixaLogo(logoUrl: logoUrl, nome: nomeFantasia),
           const SizedBox(height: GJSpace.s4),
           Text(nomeFantasia, style: GJTypography.h4(), maxLines: 2, overflow: TextOverflow.ellipsis),
           if (cidade != null) ...[
@@ -209,11 +208,21 @@ class _GJCardState extends State<GJCard> {
   }
 }
 
+const _palavrasIgnoradasIniciais = {'de', 'da', 'do', 'dos', 'das', 'e'};
+
+String _iniciais(String nome) {
+  final palavras = nome
+      .split(RegExp(r'\s+'))
+      .where((palavra) => palavra.isNotEmpty && !_palavrasIgnoradasIniciais.contains(palavra.toLowerCase()));
+  final letras = palavras.take(3).map((palavra) => palavra[0].toUpperCase()).join();
+  return letras.isNotEmpty ? letras : nome.isNotEmpty ? nome[0].toUpperCase() : '?';
+}
+
 class _CaixaLogo extends StatelessWidget {
-  const _CaixaLogo({required this.logoUrl, required this.sigla});
+  const _CaixaLogo({required this.logoUrl, required this.nome});
 
   final String? logoUrl;
-  final String sigla;
+  final String nome;
 
   @override
   Widget build(BuildContext context) {
@@ -222,14 +231,19 @@ class _CaixaLogo extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(GJSpace.s4),
       alignment: Alignment.center,
-      decoration: BoxDecoration(color: GJColors.surfaceLowest, borderRadius: GJRadius.borderMd),
+      // Sem logo: caixa com iniciais sobre primary.fixed (fallback do design
+      // system quando logo_url é nulo).
+      decoration: BoxDecoration(
+        color: logoUrl != null ? GJColors.surfaceLowest : GJColors.primaryFixed,
+        borderRadius: GJRadius.borderMd,
+      ),
       child: logoUrl != null
           ? GJRemoteOrAssetImage(url: logoUrl!, fit: BoxFit.contain)
           : Text(
-              sigla,
+              _iniciais(nome),
               style: GJTypography.h3().copyWith(color: GJColors.primary),
               textAlign: TextAlign.center,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
     );

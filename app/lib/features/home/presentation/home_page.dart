@@ -4,11 +4,14 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/gj_colors.dart';
+import '../../../core/theme/gj_illustrations.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/public_layout.dart';
+import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/widgets/gj_button.dart';
 import '../../../shared/widgets/gj_card.dart';
+import '../../../shared/widgets/gj_carousel.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
 import '../../../shared/widgets/gj_input.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
@@ -36,6 +39,10 @@ class _HomePageState extends State<HomePage> {
   final _cursoController = TextEditingController();
   final _universidadeController = TextEditingController();
 
+  // Toggle da barra de busca (Design System Deck, T01): filtra a natureza
+  // já ao ir para a pesquisa de universidades.
+  String _natureza = 'P';
+
   @override
   void initState() {
     super.initState();
@@ -55,7 +62,12 @@ class _HomePageState extends State<HomePage> {
   void _pesquisar() {
     context.go(
       '/universidades',
-      extra: {'cidade': _cidadeController.text, 'q': _universidadeController.text, 'areaCurso': _cursoController.text},
+      extra: {
+        'cidade': _cidadeController.text,
+        'q': _universidadeController.text,
+        'areaCurso': _cursoController.text,
+        'natureza': _natureza,
+      },
     );
   }
 
@@ -77,27 +89,52 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: GJSpace.s6),
             _buscaHero(isMobile),
             const SizedBox(height: GJSpace.s24),
-            _SecaoDestaques<UniversidadeResumo>(
+            _SecaoCarousel<UniversidadeResumo>(
               titulo: 'Faculdades',
               future: _universidades,
               onVerTodas: () => context.go('/universidades'),
-              itemBuilder: (universidade) => _CardUniversidade(universidade: universidade),
+              itemBuilder: (universidade) => GJCard.universidade(
+                nomeFantasia: universidade.nomeFantasia,
+                logoUrl: universidade.logoUrl,
+                cidade: universidade.cidade,
+                estado: universidade.estado,
+                mediaAvaliacao: universidade.mediaAvaliacao,
+                totalAvaliacoes: universidade.totalAvaliacoes,
+                tags: [
+                  for (final programa in universidade.programas.take(3))
+                    GJTag(label: programa.sigla ?? programa.nome, tone: tonePrograma(programa.tipo)),
+                ],
+                onTap: () => context.go('/universidades/${universidade.id}'),
+              ),
               vazio: 'Nenhuma universidade em destaque no momento.',
             ),
             const SizedBox(height: GJSpace.s16),
-            _SecaoDestaques<ProgramaResumo>(
+            _SecaoCarousel<ProgramaResumo>(
               titulo: 'Programas de Entrada',
               future: _programas,
               onVerTodas: () => context.go('/programas'),
-              itemBuilder: (programa) => _CardPrograma(programa: programa),
+              itemBuilder: (programa) => GJCard.programa(
+                imagemUrl: programa.imagemUrl ?? imagemProgramaPadrao,
+                icone: iconePrograma(programa.sigla, programa.tipo),
+                cor: corPrograma(programa.tipo),
+                sigla: programa.sigla ?? programa.tipo,
+                nome: programa.nome,
+                descricao: programa.descricao,
+                onTap: () => context.go('/programas/${programa.id}'),
+              ),
               vazio: 'Nenhum programa em destaque no momento.',
             ),
             const SizedBox(height: GJSpace.s16),
-            _SecaoDestaques<CursoDestaque>(
-              titulo: 'Principais Cursos Disponíveis',
+            _SecaoCarousel<CursoDestaque>(
+              titulo: 'Principais cursos disponíveis',
               future: _cursos,
               onVerTodas: () => context.go('/cursos'),
-              itemBuilder: (curso) => _CardCurso(curso: curso),
+              itemWidth: 220,
+              itemBuilder: (curso) => GJCard.curso(
+                nome: curso.nome,
+                ilustracao: GJIllustrations.porAreaCurso(curso.areaCurso),
+                onTap: () => context.go('/cursos/nome/${Uri.encodeComponent(curso.nome)}'),
+              ),
               vazio: 'Nenhum curso em destaque no momento.',
             ),
           ],
@@ -131,19 +168,60 @@ class _HomePageState extends State<HomePage> {
             ),
           const SizedBox(height: GJSpace.s2),
           GJButton(label: 'Pesquisar', icon: Symbols.search, expand: isMobile, onPressed: _pesquisar),
+          const SizedBox(height: GJSpace.s4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _toggleNatureza(),
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _toggleNatureza() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: GJColors.surfaceLow, borderRadius: BorderRadius.circular(999)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _opcaoNatureza(label: 'Públicas / Federais', valor: 'P'),
+          _opcaoNatureza(label: 'Privadas', valor: 'V'),
+        ],
+      ),
+    );
+  }
+
+  Widget _opcaoNatureza({required String label, required String valor}) {
+    final selecionado = _natureza == valor;
+    return GestureDetector(
+      onTap: () => setState(() => _natureza = valor),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: GJSpace.s5),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selecionado ? GJColors.primaryContainer : Colors.transparent,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: GJTypography.label(color: selecionado ? GJColors.primaryOn : GJColors.textSecondary),
+        ),
       ),
     );
   }
 }
 
-class _SecaoDestaques<T> extends StatelessWidget {
-  const _SecaoDestaques({
+class _SecaoCarousel<T> extends StatelessWidget {
+  const _SecaoCarousel({
     required this.titulo,
     required this.future,
     required this.onVerTodas,
     required this.itemBuilder,
     required this.vazio,
+    this.itemWidth = 260,
   });
 
   final String titulo;
@@ -151,9 +229,53 @@ class _SecaoDestaques<T> extends StatelessWidget {
   final VoidCallback onVerTodas;
   final Widget Function(T item) itemBuilder;
   final String vazio;
+  final double itemWidth;
 
   @override
   Widget build(BuildContext context) {
+    return FutureBuilder<List<T>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return _cabecalhoEstatico(
+            Row(
+              children: [
+                for (var i = 0; i < 3; i++) ...[
+                  if (i > 0) const SizedBox(width: GJSpace.s6),
+                  SizedBox(width: itemWidth, child: const GJSkeletonCard()),
+                ],
+              ],
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return _cabecalhoEstatico(
+            GJEmptyState(
+              titulo: 'Não foi possível carregar',
+              texto: snapshot.error is ApiException ? (snapshot.error as ApiException).message : 'Tente novamente.',
+              icone: Symbols.wifi_off,
+            ),
+          );
+        }
+
+        final itens = snapshot.data ?? [];
+        if (itens.isEmpty) {
+          return _cabecalhoEstatico(GJEmptyState(titulo: 'Nada por aqui ainda', texto: vazio));
+        }
+
+        return GJCarousel(
+          titulo: titulo,
+          onVerTodas: onVerTodas,
+          itemWidth: itemWidth,
+          itemCount: itens.length,
+          itemBuilder: (context, index) => itemBuilder(itens[index]),
+        );
+      },
+    );
+  }
+
+  Widget _cabecalhoEstatico(Widget corpo) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -164,140 +286,8 @@ class _SecaoDestaques<T> extends StatelessWidget {
           ],
         ),
         const SizedBox(height: GJSpace.s4),
-        SizedBox(
-          height: 260,
-          child: FutureBuilder<List<T>>(
-            future: future,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: 3,
-                  separatorBuilder: (_, __) => const SizedBox(width: GJSpace.s4),
-                  itemBuilder: (_, __) => const SizedBox(width: 260, child: GJSkeletonCard()),
-                );
-              }
-
-              if (snapshot.hasError) {
-                return GJEmptyState(
-                  titulo: 'Não foi possível carregar',
-                  texto: (snapshot.error is ApiException) ? (snapshot.error as ApiException).message : 'Tente novamente.',
-                  icone: Symbols.wifi_off,
-                );
-              }
-
-              final itens = snapshot.data ?? [];
-              if (itens.isEmpty) {
-                return GJEmptyState(titulo: 'Nada por aqui ainda', texto: vazio);
-              }
-
-              return ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: itens.length,
-                separatorBuilder: (_, __) => const SizedBox(width: GJSpace.s4),
-                itemBuilder: (context, index) => SizedBox(width: 260, child: itemBuilder(itens[index])),
-              );
-            },
-          ),
-        ),
+        SingleChildScrollView(scrollDirection: Axis.horizontal, child: corpo),
       ],
     );
   }
 }
-
-class _CardUniversidade extends StatelessWidget {
-  const _CardUniversidade({required this.universidade});
-
-  final UniversidadeResumo universidade;
-
-  @override
-  Widget build(BuildContext context) {
-    return GJCard(
-      onTap: () => context.go('/universidades/${universidade.id}'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(universidade.nomeFantasia, style: GJTypography.h4(), maxLines: 1, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: GJSpace.s1),
-          Text(
-            [universidade.cidade, universidade.estado].where((v) => v != null).join('/'),
-            style: GJTypography.bodySm(),
-          ),
-          const SizedBox(height: GJSpace.s2),
-          Row(
-            children: [
-              const Icon(Symbols.star, size: 16, color: GJColors.rating, fill: 1),
-              const SizedBox(width: GJSpace.s1),
-              Text(
-                universidade.mediaAvaliacao != null
-                    ? '${universidade.mediaAvaliacao!.toStringAsFixed(1)} (${universidade.totalAvaliacoes})'
-                    : 'Sem avaliações',
-                style: GJTypography.bodySm(),
-              ),
-            ],
-          ),
-          const SizedBox(height: GJSpace.s2),
-          Wrap(
-            spacing: GJSpace.s1,
-            children: [
-              for (final programa in universidade.programas.take(2))
-                GJTag(label: programa.sigla ?? programa.nome, tone: _tonePorTipo(programa.tipo)),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CardPrograma extends StatelessWidget {
-  const _CardPrograma({required this.programa});
-
-  final ProgramaResumo programa;
-
-  @override
-  Widget build(BuildContext context) {
-    return GJCard(
-      onTap: () => context.go('/programas/${programa.id}'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          GJTag(label: programa.sigla ?? programa.tipo, tone: _tonePorTipo(programa.tipo)),
-          const SizedBox(height: GJSpace.s2),
-          Text(programa.nome, style: GJTypography.h4(), maxLines: 2, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: GJSpace.s1),
-          Text(programa.descricao, style: GJTypography.bodySm(), maxLines: 3, overflow: TextOverflow.ellipsis),
-        ],
-      ),
-    );
-  }
-}
-
-class _CardCurso extends StatelessWidget {
-  const _CardCurso({required this.curso});
-
-  final CursoDestaque curso;
-
-  @override
-  Widget build(BuildContext context) {
-    return GJCard(
-      onTap: () => context.go('/cursos/nome/${Uri.encodeComponent(curso.nome)}'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Symbols.menu_book, size: 32, color: GJColors.primary),
-          const SizedBox(height: GJSpace.s3),
-          Text(curso.nome, style: GJTypography.label().copyWith(fontSize: 16), maxLines: 2, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: GJSpace.s1),
-          Text('${curso.totalOfertas} universidades', style: GJTypography.caption()),
-        ],
-      ),
-    );
-  }
-}
-
-GJTagTone _tonePorTipo(String tipo) => switch (tipo) {
-      'FINANCIAMENTO' => GJTagTone.financiamento,
-      'BOLSA' => GJTagTone.bolsa,
-      _ => GJTagTone.entrada,
-    };
