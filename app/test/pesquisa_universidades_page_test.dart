@@ -38,7 +38,7 @@ void main() {
     await pump(tester);
 
     expect(find.text('Fatec Sorocaba'), findsOneWidget);
-    expect(find.text('1 universidade(s) encontrada(s)'), findsOneWidget);
+    expect(find.text('1 universidade encontrada'), findsOneWidget);
   });
 
   testWidgets('mostra estado vazio quando não há resultados', (tester) async {
