@@ -7,6 +7,7 @@ import '../../../core/theme/gj_colors.dart';
 import '../../../core/theme/gj_illustrations.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
+import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
 import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/widgets/gj_button.dart';
@@ -77,8 +78,9 @@ class _HomePageState extends State<HomePage> {
 
     return PublicLayout(
       rotaAtiva: PublicRota.inicio,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: isMobile ? GJSpace.s4 : GJSpace.s16, vertical: GJSpace.s16),
+      child: GJPageContainer(
+        child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: GJSpace.s16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -93,6 +95,7 @@ class _HomePageState extends State<HomePage> {
               titulo: 'Faculdades',
               future: _universidades,
               onVerTodas: () => context.go('/universidades'),
+              verTodasLabel: 'Ver todas as faculdades',
               itemBuilder: (universidade) => GJCard.universidade(
                 nomeFantasia: universidade.nomeFantasia,
                 logoUrl: universidade.logoUrl,
@@ -113,6 +116,7 @@ class _HomePageState extends State<HomePage> {
               titulo: 'Programas de Entrada',
               future: _programas,
               onVerTodas: () => context.go('/programas'),
+              verTodasLabel: 'Ver todos os programas',
               itemBuilder: (programa) => GJCard.programa(
                 imagemUrl: programa.imagemUrl ?? imagemProgramaPadrao,
                 icone: iconePrograma(programa.sigla, programa.tipo),
@@ -129,6 +133,7 @@ class _HomePageState extends State<HomePage> {
               titulo: 'Principais cursos disponíveis',
               future: _cursos,
               onVerTodas: () => context.go('/cursos'),
+              verTodasLabel: 'Ver mais cursos',
               itemWidth: 220,
               itemBuilder: (curso) => GJCard.curso(
                 nome: curso.nome,
@@ -138,6 +143,7 @@ class _HomePageState extends State<HomePage> {
               vazio: 'Nenhum curso em destaque no momento.',
             ),
           ],
+        ),
         ),
       ),
     );
@@ -222,6 +228,7 @@ class _SecaoCarousel<T> extends StatelessWidget {
     required this.itemBuilder,
     required this.vazio,
     this.itemWidth = 260,
+    this.verTodasLabel = 'Ver todas',
   });
 
   final String titulo;
@@ -230,6 +237,7 @@ class _SecaoCarousel<T> extends StatelessWidget {
   final Widget Function(T item) itemBuilder;
   final String vazio;
   final double itemWidth;
+  final String verTodasLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -267,6 +275,7 @@ class _SecaoCarousel<T> extends StatelessWidget {
         return GJCarousel(
           titulo: titulo,
           onVerTodas: onVerTodas,
+          verTodasLabel: verTodasLabel,
           itemWidth: itemWidth,
           itemCount: itens.length,
           itemBuilder: (context, index) => itemBuilder(itens[index]),
@@ -282,7 +291,7 @@ class _SecaoCarousel<T> extends StatelessWidget {
         Row(
           children: [
             Expanded(child: Text(titulo, style: GJTypography.h2(), maxLines: 1, overflow: TextOverflow.ellipsis)),
-            TextButton(onPressed: onVerTodas, child: const Text('Ver todas')),
+            TextButton(onPressed: onVerTodas, child: Text(verTodasLabel)),
           ],
         ),
         const SizedBox(height: GJSpace.s4),

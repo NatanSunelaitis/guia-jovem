@@ -8,6 +8,7 @@ import '../../../core/theme/gj_colors.dart';
 import '../../../core/theme/gj_radius.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
+import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
 import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/widgets/gj_button.dart';
@@ -76,8 +77,9 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _cabecalho(universidade, isMobile),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: isMobile ? GJSpace.s4 : GJSpace.s16, vertical: GJSpace.s12),
+              GJPageContainer(
+                child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: GJSpace.s12),
                 child: isMobile
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,6 +113,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                           Expanded(child: _blocoAvaliacoes(universidade)),
                         ],
                       ),
+                ),
               ),
             ],
           );
@@ -121,9 +124,11 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
 
   Widget _cabecalho(UniversidadeDetalhe universidade, bool isMobile) {
     return Container(
+      width: double.infinity,
       color: GJColors.surfaceLow,
-      padding: EdgeInsets.symmetric(horizontal: isMobile ? GJSpace.s4 : GJSpace.s16, vertical: GJSpace.s12),
-      child: Flex(
+      padding: const EdgeInsets.symmetric(vertical: GJSpace.s12),
+      child: GJPageContainer(
+        child: Flex(
         direction: isMobile ? Axis.vertical : Axis.horizontal,
         crossAxisAlignment: isMobile ? CrossAxisAlignment.start : CrossAxisAlignment.start,
         children: [
@@ -232,6 +237,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
             ),
           ),
         ],
+        ),
       ),
     );
   }

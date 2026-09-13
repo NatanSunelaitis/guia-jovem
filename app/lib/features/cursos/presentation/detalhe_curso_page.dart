@@ -6,6 +6,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/gj_colors.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
+import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
 import '../../../shared/widgets/gj_card.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
@@ -74,8 +75,9 @@ class _DetalheCursoPageState extends State<DetalheCursoPage> {
         final curso = snapshot.data!;
         final isMobile = MediaQuery.sizeOf(context).width < 600;
 
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: isMobile ? GJSpace.s4 : GJSpace.s16, vertical: GJSpace.s12),
+        return GJPageContainer(
+          child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: GJSpace.s12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -123,6 +125,7 @@ class _DetalheCursoPageState extends State<DetalheCursoPage> {
               ),
             ],
           ),
+          ),
         );
       },
     );
@@ -146,10 +149,10 @@ class _DetalheCursoPageState extends State<DetalheCursoPage> {
         }
 
         final resultado = snapshot.data!;
-        final isMobile = MediaQuery.sizeOf(context).width < 600;
 
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: isMobile ? GJSpace.s4 : GJSpace.s16, vertical: GJSpace.s12),
+        return GJPageContainer(
+          child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: GJSpace.s12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -186,6 +189,7 @@ class _DetalheCursoPageState extends State<DetalheCursoPage> {
                     ),
                   ),
             ],
+          ),
           ),
         );
       },

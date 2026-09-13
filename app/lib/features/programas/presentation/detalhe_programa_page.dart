@@ -8,6 +8,7 @@ import '../../../core/theme/gj_colors.dart';
 import '../../../core/theme/gj_radius.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
+import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
 import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/widgets/gj_button.dart';
@@ -104,13 +105,12 @@ class _Conteudo extends StatelessWidget {
     final isMobile = MediaQuery.sizeOf(context).width < 600;
     final passos = _proximosPassos[programa.tipo] ?? _proximosPassos['ENTRADA']!;
 
-    return Column(
+    return GJPageContainer(
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _hero(context, isMobile),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: isMobile ? GJSpace.s4 : GJSpace.s16),
-          child: Column(
+        Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _secaoDuasColunas(
@@ -204,8 +204,8 @@ class _Conteudo extends StatelessWidget {
               const SizedBox(height: GJSpace.s12),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -255,12 +255,7 @@ class _Conteudo extends StatelessWidget {
     );
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        isMobile ? GJSpace.s4 : GJSpace.s16,
-        GJSpace.s12,
-        isMobile ? GJSpace.s4 : GJSpace.s16,
-        GJSpace.s8,
-      ),
+      padding: const EdgeInsets.fromLTRB(0, GJSpace.s12, 0, GJSpace.s8),
       child: isMobile
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
