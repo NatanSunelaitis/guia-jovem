@@ -35,8 +35,12 @@ class CursosRepository {
     return PaginatedResult.fromJson(json, CursoResumo.fromJson);
   }
 
-  Future<List<CursoDestaque>> destaques({int limite = 8}) async {
-    final json = await _client.get('/cursos/destaques', query: {'limite': limite});
+  Future<List<CursoDestaque>> destaques({int limite = 8, String? q, String? areaCurso}) async {
+    final json = await _client.get('/cursos/destaques', query: {
+      'limite': limite,
+      if (q != null && q.isNotEmpty) 'q': q,
+      if (areaCurso != null && areaCurso.isNotEmpty) 'areaCurso': areaCurso,
+    });
     return (json['data'] as List<dynamic>).map((item) => CursoDestaque.fromJson(item as Map<String, dynamic>)).toList();
   }
 

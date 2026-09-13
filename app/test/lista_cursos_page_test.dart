@@ -15,32 +15,23 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
   }
 
-  testWidgets('lista cursos encontrados', (tester) async {
+  testWidgets('lista cursos agrupados por nome, com contagem de universidades', (tester) async {
     mockApi({
-      '/cursos': envelope(
-        [
-          {
-            'id': 5,
-            'nome': 'Administração',
-            'areaCurso': 'Negócios',
-            'modalidade': 'Presencial',
-            'grau': 'Bacharelado',
-            'universidade': {'id': 1, 'nomeFantasia': 'Fatec Sorocaba', 'logoUrl': null},
-          },
-        ],
-        {'page': 1, 'pageSize': 20, 'total': 1, 'totalPages': 1},
-      ),
+      '/cursos/destaques': envelope([
+        {'nome': 'Administração', 'areaCurso': 'Negócios', 'totalOfertas': 2},
+      ]),
     });
 
     await pump(tester);
 
     expect(find.text('Administração'), findsOneWidget);
-    expect(find.text('Fatec Sorocaba'), findsOneWidget);
+    expect(find.text('Negócios'), findsOneWidget);
+    expect(find.text('2 universidades'), findsOneWidget);
   });
 
   testWidgets('mostra estado vazio quando não há cursos', (tester) async {
     mockApi({
-      '/cursos': envelope(<dynamic>[], {'page': 1, 'pageSize': 20, 'total': 0, 'totalPages': 1}),
+      '/cursos/destaques': envelope(<dynamic>[]),
     });
 
     await pump(tester);
