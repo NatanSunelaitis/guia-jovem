@@ -9,8 +9,10 @@ import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../core/utils/link_launcher.dart';
 import '../../../core/network/api_client.dart';
+import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
 import '../../../shared/utils/programa_estilo.dart';
+import '../../../shared/widgets/gj_aligned_grid.dart';
 import '../../../shared/widgets/gj_button.dart';
 import '../../../shared/widgets/gj_card.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
@@ -116,8 +118,9 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
 
     return PublicLayout(
       rotaAtiva: PublicRota.universidades,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: isMobile ? GJSpace.s4 : GJSpace.s16, vertical: GJSpace.s12),
+      child: GJPageContainer(
+        child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: GJSpace.s12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -163,6 +166,7 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
               },
             ),
           ],
+        ),
         ),
       ),
     );
@@ -321,11 +325,15 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
   }
 
   Widget _grade(bool isMobile, List<Widget> cards) {
-    return Wrap(
-      spacing: GJSpace.s4,
-      runSpacing: GJSpace.s4,
-      children: [for (final card in cards) SizedBox(width: isMobile ? double.infinity : 300, child: card)],
-    );
+    if (isMobile) {
+      return Column(
+        children: [for (final card in cards) Padding(padding: const EdgeInsets.only(bottom: GJSpace.s4), child: card)],
+      );
+    }
+    // GJAlignedGrid (não Wrap): cards da mesma linha ficam com a mesma
+    // altura (a maior delas), como o align-items:stretch padrão do CSS
+    // Grid; linhas diferentes continuam livres para ter alturas diferentes.
+    return GJAlignedGrid(itemWidth: 300, spacing: GJSpace.s4, runSpacing: GJSpace.s4, children: cards);
   }
 
   Widget _filtrosCard(bool isMobile) {
@@ -402,17 +410,20 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text('Nota mínima', style: GJTypography.bodySm()),
-        const SizedBox(width: GJSpace.s2),
+        const SizedBox(width: GJSpace.s3),
         SliderTheme(
           data: SliderThemeData(
+            trackHeight: 6,
             activeTrackColor: GJColors.primaryContainer,
-            inactiveTrackColor: GJColors.surfaceHighest,
+            // border (não surfaceHighest, quase branco): o trilho precisa
+            // ter contraste visível contra o fundo da barra de filtros.
+            inactiveTrackColor: GJColors.border,
             thumbColor: GJColors.surfaceLowest,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10, elevation: 1),
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10, elevation: 2),
             overlayShape: SliderComponentShape.noOverlay,
           ),
           child: SizedBox(
-            width: 100,
+            width: 140,
             child: Slider(
               value: _notaMinima,
               min: 0,
@@ -421,15 +432,17 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
               onChanged: (valor) => setState(() => _notaMinima = valor),
               onChangeEnd: (_) => _buscar(),
             ),
-            ),
           ),
-          SizedBox(
-            width: 32,
-            child: Text(
-              _notaMinima > 0 ? _formatarNota(_notaMinima) : '-',
-              style: GJTypography.label(color: GJColors.primary).copyWith(fontWeight: FontWeight.w700),
-            ),
+        ),
+        const SizedBox(width: GJSpace.s2),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: GJSpace.s2, vertical: 2),
+          decoration: BoxDecoration(color: GJColors.primaryFixed, borderRadius: BorderRadius.circular(999)),
+          child: Text(
+            _formatarNota(_notaMinima),
+            style: GJTypography.label(color: GJColors.primary).copyWith(fontWeight: FontWeight.w700),
           ),
+        ),
       ],
     );
   }
