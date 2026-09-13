@@ -1,0 +1,106 @@
+import '../../../core/network/api_client.dart';
+import '../../../core/network/paginated_result.dart';
+import '../domain/avaliacao.dart';
+import '../domain/universidade.dart';
+
+class FiltrosUniversidades {
+  const FiltrosUniversidades({
+    this.q,
+    this.cidade,
+    this.estado,
+    this.natureza,
+    this.programaId,
+    this.cursoId,
+    this.areaCurso,
+    this.sort,
+    this.page = 1,
+  });
+
+  final String? q;
+  final String? cidade;
+  final String? estado;
+  final String? natureza;
+  final int? programaId;
+  final int? cursoId;
+  final String? areaCurso;
+  final String? sort;
+  final int page;
+
+  Map<String, dynamic> toQuery() => {
+        if (q != null && q!.isNotEmpty) 'q': q,
+        if (cidade != null && cidade!.isNotEmpty) 'cidade': cidade,
+        if (estado != null && estado!.isNotEmpty) 'estado': estado,
+        if (natureza != null) 'natureza': natureza,
+        if (programaId != null) 'programaId': programaId,
+        if (cursoId != null) 'cursoId': cursoId,
+        if (areaCurso != null && areaCurso!.isNotEmpty) 'areaCurso': areaCurso,
+        if (sort != null) 'sort': sort,
+        'page': page,
+      };
+
+  FiltrosUniversidades copyWith({
+    String? q,
+    String? cidade,
+    String? estado,
+    String? natureza,
+    String? sort,
+    int? page,
+  }) {
+    return FiltrosUniversidades(
+      q: q ?? this.q,
+      cidade: cidade ?? this.cidade,
+      estado: estado ?? this.estado,
+      natureza: natureza ?? this.natureza,
+      programaId: programaId,
+      cursoId: cursoId,
+      areaCurso: areaCurso,
+      sort: sort ?? this.sort,
+      page: page ?? this.page,
+    );
+  }
+}
+
+class UniversidadesRepository {
+  UniversidadesRepository({ApiClient? client}) : _override = client;
+
+  final ApiClient? _override;
+  ApiClient get _client => _override ?? apiClient;
+
+  Future<PaginatedResult<UniversidadeResumo>> listar(FiltrosUniversidades filtros) async {
+    final json = await _client.get('/universidades', query: filtros.toQuery());
+    return PaginatedResult.fromJson(json, UniversidadeResumo.fromJson);
+  }
+
+  Future<List<UniversidadeResumo>> destaques({int limite = 8}) async {
+    final json = await _client.get('/universidades/destaques', query: {'limite': limite});
+    return (json['data'] as List<dynamic>)
+        .map((item) => UniversidadeResumo.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<UniversidadeDetalhe> detalhe(int id) async {
+    final json = await _client.get('/universidades/$id');
+    return UniversidadeDetalhe.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<List<UniversidadeCampusItem>> campus(int id) async {
+    final json = await _client.get('/universidades/$id/campus');
+    return (json['data'] as List<dynamic>)
+        .map((item) => UniversidadeCampusItem.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<List<UniversidadeCursoItem>> cursos(int id) async {
+    final json = await _client.get('/universidades/$id/cursos');
+    return (json['data'] as List<dynamic>)
+        .map((item) => UniversidadeCursoItem.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<PaginatedResult<Avaliacao>> avaliacoes(int id, {int page = 1}) async {
+    final json = await _client.get('/universidades/$id/avaliacoes', query: {'page': page});
+    return PaginatedResult.fromJson(json, Avaliacao.fromJson);
+  }
+}
+
+final universidadesRepository = UniversidadesRepository();
