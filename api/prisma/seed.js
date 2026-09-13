@@ -15,6 +15,7 @@ const PROGRAMAS_GLOBAIS = [
       'O estudante se inscreve pelo site oficial, realiza as provas em dois domingos e usa a nota obtida para concorrer a vagas no SiSU, no ProUni e no FIES, ou para o Certificado de Conclusão do Ensino Médio.',
     requisitos: 'Estar cursando ou ter concluído o ensino médio.',
     linkOficial: 'https://enem.inep.gov.br',
+    imagemUrl: 'assets/img/programas/enem.svg',
   },
   {
     nome: 'Sistema de Seleção Unificada',
@@ -25,6 +26,7 @@ const PROGRAMAS_GLOBAIS = [
       'A cada semestre, o candidato escolhe até duas opções de curso e universidade e concorre com sua nota do ENEM às vagas disponíveis.',
     requisitos: 'Ter feito o ENEM do ano de referência e não ter zerado a redação.',
     linkOficial: 'https://sisu.mec.gov.br',
+    imagemUrl: 'assets/img/programas/sisu.svg',
   },
   {
     nome: 'Vestibular Tradicional',
@@ -35,6 +37,7 @@ const PROGRAMAS_GLOBAIS = [
       'Cada universidade define seu edital, cronograma e critérios de avaliação, que podem incluir provas próprias, redação e entrevistas.',
     requisitos: 'Ter concluído o ensino médio até a data da matrícula.',
     linkOficial: null,
+    imagemUrl: 'assets/img/programas/vestibular.svg',
   },
   {
     nome: 'Programa Universidade para Todos',
@@ -45,6 +48,7 @@ const PROGRAMAS_GLOBAIS = [
       'A concessão da bolsa é feita com base na nota do ENEM, respeitando critérios de renda familiar por pessoa e outras condições estabelecidas em edital.',
     requisitos: 'Ter feito o ENEM e atender aos critérios de renda familiar per capita do programa.',
     linkOficial: 'https://prouniportal.mec.gov.br',
+    imagemUrl: 'assets/img/programas/prouni.svg',
   },
   {
     nome: 'Fundo de Financiamento Estudantil',
@@ -55,6 +59,7 @@ const PROGRAMAS_GLOBAIS = [
       'O estudante financia parte ou a totalidade da mensalidade do curso e começa a pagar o valor financiado somente após a conclusão ou trancamento do curso, em condições facilitadas.',
     requisitos: 'Ter participado do ENEM e atingido a nota mínima exigida pelo programa, além de atender aos critérios de renda.',
     linkOficial: 'https://fies.mec.gov.br',
+    imagemUrl: 'assets/img/programas/fies.svg',
   },
   {
     nome: 'Programa Nacional de Assistência Estudantil',
@@ -65,8 +70,32 @@ const PROGRAMAS_GLOBAIS = [
       'As instituições federais utilizam recursos do programa para oferecer auxílios de moradia, alimentação, transporte e outras bolsas de permanência a estudantes em situação de vulnerabilidade socioeconômica.',
     requisitos: 'Estar regularmente matriculado em instituição federal de ensino superior e comprovar vulnerabilidade socioeconômica.',
     linkOficial: 'https://www.gov.br/mec/pt-br/acesso-a-informacao/acoes-e-programas/programas/pnaes',
+    imagemUrl: 'assets/img/programas/pnaes.svg',
   },
 ];
+
+// RF06/T08: cronograma 2026 exibido na linha do tempo do detalhe do programa.
+const EVENTOS_POR_SIGLA = {
+  ENEM: [
+    { titulo: 'Início das inscrições', descricao: 'Página do Participante', dataInicio: '2026-05-12' },
+    { titulo: 'Fim das inscrições', descricao: 'Pagamento da taxa até 23 de maio', dataInicio: '2026-05-23' },
+    { titulo: 'Primeiro dia de prova', descricao: 'Linguagens, Humanas e Redação', dataInicio: '2026-11-08' },
+    { titulo: 'Segundo dia de prova', descricao: 'Matemática e Natureza', dataInicio: '2026-11-15' },
+  ],
+  SiSU: [
+    { titulo: 'Abertura das inscrições', descricao: 'Primeira edição de 2026', dataInicio: '2026-01-08' },
+    { titulo: 'Resultado da chamada única', descricao: 'Divulgação no portal do SiSU', dataInicio: '2026-01-16' },
+  ],
+  ProUni: [
+    { titulo: 'Abertura das inscrições', descricao: 'Primeiro semestre de 2026', dataInicio: '2026-01-16' },
+    { titulo: 'Resultado da primeira chamada', descricao: 'Divulgação no portal do ProUni', dataInicio: '2026-01-22' },
+  ],
+  FIES: [
+    { titulo: 'Abertura das inscrições', descricao: 'Primeiro semestre de 2026', dataInicio: '2026-02-10' },
+    { titulo: 'Encerramento', descricao: 'Resultado em 18 de fevereiro', dataInicio: '2026-02-14' },
+    { titulo: 'Entrega de documentos', descricao: 'Na instituição de ensino escolhida', dataInicio: '2026-03-05' },
+  ],
+};
 
 const CURSOS = [
   { nome: 'Administração', areaCurso: 'Negócios', grau: 'Bacharelado' },
@@ -88,6 +117,13 @@ const UNIVERSIDADES = [
     natureza: 'P',
     descricao: 'Faculdade de Tecnologia pública estadual, mantida pelo Centro Paula Souza.',
     linkPagina: 'https://fatecsorocaba.edu.br',
+    logoUrl: 'assets/img/logos/fatec.svg',
+    programas: ['ENEM', 'SiSU', 'VESTIBULAR'],
+    avaliacoes: [
+      { nome: 'Marina Souza', nota: 5, comentario: 'Os professores têm vivência de mercado e os laboratórios são bem equipados. Consegui estágio em Gestão de Recursos Humanos já no terceiro semestre.' },
+      { nome: 'Lucas Amaral', nota: 4, comentario: 'Ensino de qualidade e gratuito. A biblioteca poderia ficar aberta até mais tarde nos dias de prova.' },
+      { nome: 'Ana Paula Ribeiro', nota: 5, comentario: 'A secretaria responde rápido e o processo de matrícula é simples. Recomendo para quem quer um curso de tecnologia com foco prático.' },
+    ],
     campus: [
       {
         nome: 'Fatec Sorocaba',
@@ -110,6 +146,13 @@ const UNIVERSIDADES = [
     natureza: 'P',
     descricao: 'Maior universidade pública do Brasil, referência em ensino, pesquisa e extensão.',
     linkPagina: 'https://www5.usp.br',
+    logoUrl: 'assets/img/logos/usp.svg',
+    programas: ['ENEM', 'SiSU', 'FIES'],
+    avaliacoes: [
+      { nome: 'Beatriz Lima', nota: 5, comentario: 'A estrutura de laboratórios e bibliotecas é impressionante. Tive muitas oportunidades de iniciação científica logo no primeiro ano.' },
+      { nome: 'Rafael Nogueira', nota: 5, comentario: 'O nome da USP abre portas no mercado de trabalho. As provas são exigentes, mas o suporte de monitoria é constante.' },
+      { nome: 'Camila Duarte', nota: 5, comentario: 'Ambiente muito plural e professores renomados na área. Só senti falta de mais vagas de moradia estudantil perto do campus.' },
+    ],
     campus: [
       {
         nome: 'USP São Paulo',
@@ -132,6 +175,13 @@ const UNIVERSIDADES = [
     natureza: 'P',
     descricao: 'Universidade pública estadual com campus distribuídos por todo o estado de São Paulo.',
     linkPagina: 'https://www.unesp.br',
+    logoUrl: 'assets/img/logos/unesp.svg',
+    programas: ['ENEM', 'SiSU', 'ProUni', 'FIES'],
+    avaliacoes: [
+      { nome: 'Pedro Henrique Alves', nota: 4, comentario: 'Bom custo-benefício sendo pública, com professores acessíveis. O transporte até o campus de Bauru podia ser mais frequente.' },
+      { nome: 'Juliana Ferreira', nota: 5, comentario: 'Gostei muito da grade curricular e dos projetos de extensão. A secretaria virtual facilita bastante a vida do aluno.' },
+      { nome: 'Thiago Martins', nota: 4, comentario: 'Estrutura boa para os cursos da área de saúde. Falta ampliar o refeitório em horário de pico.' },
+    ],
     campus: [
       {
         nome: 'UNESP Bauru',
@@ -147,6 +197,10 @@ const UNIVERSIDADES = [
     cursos: ['Farmácia', 'Nutrição', 'Pedagogia', 'Administração'],
   },
 ];
+
+function media(notas) {
+  return (notas.reduce((soma, nota) => soma + nota, 0) / notas.length).toFixed(2);
+}
 
 async function seedAdmin() {
   const env = require('../src/config/env');
@@ -182,6 +236,24 @@ async function seedProgramasGlobais(adminId) {
   return programas;
 }
 
+async function seedProgramaEventos(programas) {
+  for (const [sigla, eventos] of Object.entries(EVENTOS_POR_SIGLA)) {
+    const programa = programas[sigla];
+    if (!programa) continue;
+
+    for (const evento of eventos) {
+      await prisma.programaEvento.create({
+        data: {
+          programaId: programa.id,
+          titulo: evento.titulo,
+          descricao: evento.descricao,
+          dataInicio: new Date(evento.dataInicio),
+        },
+      });
+    }
+  }
+}
+
 async function seedCursosGlobais() {
   const cursosPorNome = {};
 
@@ -192,7 +264,7 @@ async function seedCursosGlobais() {
   return cursosPorNome;
 }
 
-async function seedUniversidades(adminId, cursosBase) {
+async function seedUniversidades(adminId, cursosBase, programas) {
   for (const dadosUniversidade of UNIVERSIDADES) {
     const senhaHash = await bcrypt.hash(SENHA_DEMO, 12);
 
@@ -207,6 +279,8 @@ async function seedUniversidades(adminId, cursosBase) {
       },
     });
 
+    const mediaAvaliacao = media(dadosUniversidade.avaliacoes.map((a) => a.nota));
+
     const universidade = await prisma.universidade.upsert({
       where: { cnpj: dadosUniversidade.cnpj },
       update: {},
@@ -217,10 +291,13 @@ async function seedUniversidades(adminId, cursosBase) {
         cnpj: dadosUniversidade.cnpj,
         descricao: dadosUniversidade.descricao,
         linkPagina: dadosUniversidade.linkPagina,
+        logoUrl: dadosUniversidade.logoUrl,
         natureza: dadosUniversidade.natureza,
         status: 'A',
         aprovadoEm: new Date(),
         aprovadoPor: adminId,
+        mediaAvaliacao,
+        totalAvaliacoes: dadosUniversidade.avaliacoes.length,
       },
     });
 
@@ -258,6 +335,37 @@ async function seedUniversidades(adminId, cursosBase) {
         },
       });
     }
+
+    for (const sigla of dadosUniversidade.programas) {
+      const programa = programas[sigla];
+      if (!programa) continue;
+
+      await prisma.universidadePrograma.create({
+        data: { universidadeId: universidade.id, programaId: programa.id },
+      });
+    }
+
+    for (const avaliacao of dadosUniversidade.avaliacoes) {
+      const usuarioAvaliador = await prisma.usuario.upsert({
+        where: { email: `${avaliacao.nome.split(' ')[0].toLowerCase()}.${universidade.id}@aluno.guiajovem.com.br` },
+        update: {},
+        create: {
+          nome: avaliacao.nome,
+          email: `${avaliacao.nome.split(' ')[0].toLowerCase()}.${universidade.id}@aluno.guiajovem.com.br`,
+          senhaHash: await bcrypt.hash(SENHA_DEMO, 12),
+          tipoUsuario: 'A',
+        },
+      });
+
+      await prisma.avaliacao.create({
+        data: {
+          usuarioId: usuarioAvaliador.id,
+          universidadeId: universidade.id,
+          nota: avaliacao.nota,
+          comentario: avaliacao.comentario,
+        },
+      });
+    }
   }
 }
 
@@ -269,9 +377,10 @@ async function main() {
   }
 
   const admin = await seedAdmin();
-  await seedProgramasGlobais(admin.id);
+  const programas = await seedProgramasGlobais(admin.id);
+  await seedProgramaEventos(programas);
   const cursosBase = await seedCursosGlobais();
-  await seedUniversidades(admin.id, cursosBase);
+  await seedUniversidades(admin.id, cursosBase, programas);
 
   console.log('Seed aplicado com sucesso.');
 }

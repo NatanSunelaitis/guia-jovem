@@ -30,3 +30,6 @@ flutter:
 
   assets:
     - assets/brand/
+    - assets/img/logos/
+    - assets/img/programas/
+    - assets/img/areas/
