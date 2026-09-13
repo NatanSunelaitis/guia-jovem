@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Tokens de cor do Guia Jovem Design System (GJDS v1.1), seção 2.1.
+/// Tokens de cor do Guia Jovem Design System (GJDS v1.2), seção 2.1.
 /// Nenhuma outra cor deve ser usada fora deste arquivo.
 abstract final class GJColors {
   // Marca e ação
@@ -21,6 +21,8 @@ abstract final class GJColors {
   static const tertiary = Color(0xFFB3272A);
   static const tertiaryContainer = Color(0xFFFA5B57);
   static const tertiaryFixed = Color(0xFFFFDAD7);
+  /// Hover/pressed de botões na categoria Financiamento, simétrico ao `primaryDark` (v1.2).
+  static const tertiaryDark = Color(0xFF8C1D20);
 
   // Semânticas
   static const error = Color(0xFFBA1A1A);

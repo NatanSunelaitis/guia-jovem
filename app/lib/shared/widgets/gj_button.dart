@@ -5,7 +5,7 @@ import '../../core/theme/gj_radius.dart';
 import '../../core/theme/gj_spacing.dart';
 import '../../core/theme/gj_typography.dart';
 
-enum GJButtonVariant { primary, secondary, ghost, danger, google }
+enum GJButtonVariant { primary, secondary, ghost, danger, google, financiamento }
 
 enum GJButtonShape { pill, rect }
 
@@ -88,6 +88,13 @@ class _GJButtonState extends State<GJButton> {
           background: GJColors.surfaceLowest,
           foreground: GJColors.textPrimary,
           border: GJColors.border,
+        );
+      case GJButtonVariant.financiamento:
+        // Categoria Financiamento (FIES): mesmo padrão do primary, em tertiary.
+        return _ButtonPalette(
+          background: _hovered ? GJColors.tertiaryDark : GJColors.tertiaryContainer,
+          foreground: GJColors.primaryOn,
+          border: null,
         );
     }
   }

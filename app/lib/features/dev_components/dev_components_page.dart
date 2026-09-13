@@ -43,6 +43,7 @@ class _DevComponentsPageState extends State<DevComponentsPage> {
                   GJButton(label: 'Ghost', variant: GJButtonVariant.ghost, onPressed: () {}),
                   GJButton(label: 'Danger', variant: GJButtonVariant.danger, onPressed: () {}),
                   GJButton(label: 'Entrar com Google', variant: GJButtonVariant.google, onPressed: () {}),
+                  GJButton(label: 'Financiamento', variant: GJButtonVariant.financiamento, onPressed: () {}),
                   const GJButton(label: 'Desabilitado'),
                   const GJButton(label: 'Carregando', loading: true),
                   GJButton(label: 'Retangular', shape: GJButtonShape.rect, onPressed: () {}),
