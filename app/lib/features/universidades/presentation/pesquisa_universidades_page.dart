@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../../core/data/estados_brasil.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/paginated_result.dart';
 import '../../../core/theme/gj_colors.dart';
@@ -23,11 +24,6 @@ import '../../programas/data/programas_repository.dart';
 import '../../programas/domain/programa.dart';
 import '../data/universidades_repository.dart';
 import '../domain/universidade.dart';
-
-const _estados = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB',
-  'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-];
 
 class PesquisaUniversidadesPage extends StatefulWidget {
   const PesquisaUniversidadesPage({super.key, this.filtrosIniciais});
@@ -454,7 +450,7 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
         decoration: const InputDecoration(labelText: 'Estado', border: OutlineInputBorder()),
         items: [
           const DropdownMenuItem(value: null, child: Text('Qualquer estado')),
-          for (final uf in _estados) DropdownMenuItem(value: uf, child: Text(uf)),
+          for (final uf in estadosBrasil) DropdownMenuItem(value: uf, child: Text(uf)),
         ],
         onChanged: (valor) => setState(() {
           _estado = valor;
