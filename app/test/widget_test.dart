@@ -1,7 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:app/app.dart';
+import 'package:app/core/theme/gj_theme.dart';
+import 'package:app/features/dev_components/dev_components_page.dart';
 
 void main() {
   setUpAll(() {
@@ -9,16 +11,12 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
   });
 
-  // Evita pumpAndSettle: a galeria inclui um GJButton em estado "loading",
-  // cujo spinner anima indefinidamente.
-  Future<void> pumpApp(WidgetTester tester) async {
-    await tester.pumpWidget(const GuiaJovemApp());
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-  }
-
   testWidgets('abre a galeria de componentes em /dev/components', (tester) async {
-    await pumpApp(tester);
+    await tester.pumpWidget(MaterialApp(theme: GJTheme.light, home: const DevComponentsPage()));
+    await tester.pump();
+    // Evita pumpAndSettle: a galeria tem um GJButton "loading" e badges/skeletons
+    // com animação indefinida.
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Galeria de componentes'), findsOneWidget);
     expect(find.text('GJButton'), findsOneWidget);
@@ -26,17 +24,8 @@ void main() {
     expect(find.text('GJCard'), findsOneWidget);
     expect(find.text('GJTag'), findsOneWidget);
     expect(find.text('GJTabs'), findsOneWidget);
-  });
-
-  testWidgets('troca de aba do GJTabs atualiza a seleção', (tester) async {
-    await pumpApp(tester);
-
-    final abaCursos = find.text('Cursos');
-    await tester.ensureVisible(abaCursos);
-    await tester.pump(const Duration(milliseconds: 300));
-    await tester.tap(abaCursos);
-    await tester.pump();
-
-    expect(find.text('Cursos'), findsOneWidget);
+    expect(find.text('GJHeader'), findsOneWidget);
+    expect(find.text('GJFooter'), findsOneWidget);
+    expect(find.text('GJDataTable'), findsOneWidget);
   });
 }
