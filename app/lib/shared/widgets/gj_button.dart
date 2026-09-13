@@ -24,6 +24,7 @@ class GJButton extends StatefulWidget {
     this.icon,
     this.loading = false,
     this.expand = false,
+    this.color = GJColors.primary,
   });
 
   final String label;
@@ -34,6 +35,11 @@ class GJButton extends StatefulWidget {
   final IconData? icon;
   final bool loading;
   final bool expand;
+
+  /// Cor de destaque da variante `secondary` (contorno + preenchimento no
+  /// hover). Usada para reproduzir o "Ver detalhes" dos cards de programa,
+  /// que muda de cor por categoria (entrada/bolsa/financiamento).
+  final Color color;
 
   double get _height => switch (size) {
         GJButtonSize.sm => 36,
@@ -67,9 +73,9 @@ class _GJButtonState extends State<GJButton> {
         );
       case GJButtonVariant.secondary:
         return _ButtonPalette(
-          background: _hovered ? GJColors.primary : Colors.transparent,
-          foreground: _hovered ? GJColors.primaryOn : GJColors.primary,
-          border: GJColors.primary.withOpacity(0.2),
+          background: _hovered ? widget.color : Colors.transparent,
+          foreground: _hovered ? GJColors.primaryOn : widget.color,
+          border: widget.color.withOpacity(0.2),
         );
       case GJButtonVariant.ghost:
         return _ButtonPalette(
@@ -119,7 +125,18 @@ class _GJButtonState extends State<GJButton> {
                 Icon(widget.icon, size: 20, color: palette.foreground),
                 const SizedBox(width: GJSpace.s2),
               ],
-              Text(widget.label, style: GJTypography.label(color: palette.foreground)),
+              // Flexible com ellipsis: com `expand: true` dentro de um card
+              // estreito, o Row recebe menos largura do que o texto pediria;
+              // sem isso, o botão estoura em RenderFlex overflow em vez de
+              // truncar o rótulo.
+              Flexible(
+                child: Text(
+                  widget.label,
+                  style: GJTypography.label(color: palette.foreground),
+                  overflow: TextOverflow.ellipsis,
+                  softWrap: false,
+                ),
+              ),
             ],
           );
 

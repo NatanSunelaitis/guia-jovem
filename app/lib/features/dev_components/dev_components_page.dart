@@ -7,6 +7,7 @@ import '../../core/theme/gj_typography.dart';
 import '../../shared/widgets/gj_avatar_menu.dart';
 import '../../shared/widgets/gj_button.dart';
 import '../../shared/widgets/gj_card.dart';
+import '../../shared/widgets/gj_carousel.dart';
 import '../../shared/widgets/gj_data_table.dart';
 import '../../shared/widgets/gj_drawer.dart';
 import '../../shared/widgets/gj_footer.dart';
@@ -133,7 +134,58 @@ class _DevComponentsPageState extends State<DevComponentsPage> {
                       ),
                     ),
                   ),
+                  SizedBox(
+                    width: 260,
+                    child: GJCard.universidade(
+                      nomeFantasia: 'Fatec Sorocaba',
+                      logoUrl: 'assets/img/logos/fatec.svg',
+                      cidade: 'Sorocaba',
+                      estado: 'SP',
+                      mediaAvaliacao: 4.6,
+                      totalAvaliacoes: 128,
+                      tags: const [GJTag(label: 'ENEM', tone: GJTagTone.entrada), GJTag(label: 'ProUni', tone: GJTagTone.bolsa)],
+                      onTap: () {},
+                    ),
+                  ),
+                  SizedBox(
+                    width: 260,
+                    child: GJCard.programa(
+                      imagemUrl: 'assets/img/programas/enem.svg',
+                      icone: Symbols.school,
+                      cor: GJColors.primary,
+                      sigla: 'ENEM',
+                      nome: 'Exame Nacional do Ensino Médio',
+                      descricao: 'A principal porta de entrada para o ensino superior no Brasil.',
+                      onTap: () {},
+                    ),
+                  ),
+                  SizedBox(
+                    width: 200,
+                    child: GJCard.curso(
+                      nome: 'Farmácia',
+                      ilustracao: 'assets/img/areas/saude.svg',
+                      onTap: () {},
+                    ),
+                  ),
                 ],
+              ),
+            ),
+            _Section(
+              title: 'GJCarousel',
+              child: GJCarousel(
+                titulo: 'Faculdades',
+                onVerTodas: () {},
+                itemCount: 4,
+                itemWidth: 240,
+                itemBuilder: (context, index) => GJCard.universidade(
+                  nomeFantasia: 'Universidade ${index + 1}',
+                  cidade: 'São Paulo',
+                  estado: 'SP',
+                  mediaAvaliacao: 4.5,
+                  totalAvaliacoes: 20 + index,
+                  tags: const [GJTag(label: 'ENEM', tone: GJTagTone.entrada)],
+                  onTap: () {},
+                ),
               ),
             ),
             const _Section(

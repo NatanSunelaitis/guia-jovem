@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../core/theme/gj_colors.dart';
 import '../../core/theme/gj_radius.dart';
 import '../../core/theme/gj_shadows.dart';
 import '../../core/theme/gj_spacing.dart';
+import '../../core/theme/gj_typography.dart';
+import 'gj_button.dart';
+import 'gj_remote_or_asset_image.dart';
 
 enum GJCardVariant { base, elevated }
 
-/// Card base do Guia Jovem Design System (seção 3.4).
-/// As variantes de domínio (GJCard.universidade, .programa, .curso, ...)
-/// são compostas a partir deste componente quando as telas forem construídas.
+/// Card base do Guia Jovem Design System (seção 3.4), com as variantes de
+/// domínio do Design System Deck compostas como factory constructors:
+/// `GJCard.universidade`, `GJCard.programa` e `GJCard.curso`.
 class GJCard extends StatefulWidget {
   const GJCard({
     super.key,
@@ -18,6 +22,146 @@ class GJCard extends StatefulWidget {
     this.onTap,
     this.padding,
   });
+
+  /// Card de uma universidade (Design System Deck, seção 15): logo (ou
+  /// iniciais sobre `primaryFixed` quando `logoUrl` é nulo), nome, cidade/UF,
+  /// nota com estrelas e tags de programas aceitos.
+  factory GJCard.universidade({
+    Key? key,
+    required String nomeFantasia,
+    String? logoUrl,
+    String? sigla,
+    String? cidade,
+    String? estado,
+    double? mediaAvaliacao,
+    int? totalAvaliacoes,
+    List<Widget> tags = const [],
+    required VoidCallback onTap,
+  }) {
+    return GJCard(
+      key: key,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _CaixaLogo(logoUrl: logoUrl, sigla: sigla ?? nomeFantasia),
+          const SizedBox(height: GJSpace.s4),
+          Text(nomeFantasia, style: GJTypography.h4(), maxLines: 2, overflow: TextOverflow.ellipsis),
+          if (cidade != null) ...[
+            const SizedBox(height: GJSpace.s1),
+            Text([cidade, estado].whereType<String>().join('/'), style: GJTypography.bodySm()),
+          ],
+          const SizedBox(height: GJSpace.s2),
+          Row(
+            children: [
+              const Icon(Symbols.star, size: 16, color: GJColors.rating, fill: 1),
+              const SizedBox(width: GJSpace.s1),
+              Text(
+                mediaAvaliacao != null ? '${mediaAvaliacao.toStringAsFixed(1)} (${totalAvaliacoes ?? 0})' : 'Sem avaliações',
+                style: GJTypography.bodySm(),
+              ),
+            ],
+          ),
+          if (tags.isNotEmpty) ...[
+            const SizedBox(height: GJSpace.s2),
+            Wrap(spacing: GJSpace.s1, runSpacing: GJSpace.s1, children: tags),
+          ],
+          const SizedBox(height: GJSpace.s3),
+          GJButton(label: 'Saiba mais', variant: GJButtonVariant.secondary, expand: true, onPressed: onTap),
+        ],
+      ),
+    );
+  }
+
+  /// Card de um programa (Design System Deck, seção 15): imagem 16:9, ícone
+  /// e sigla na cor da categoria, título, descrição e "Ver detalhes".
+  factory GJCard.programa({
+    Key? key,
+    required String imagemUrl,
+    required IconData icone,
+    required Color cor,
+    required String sigla,
+    required String nome,
+    required String descricao,
+    required VoidCallback onTap,
+  }) {
+    return GJCard(
+      key: key,
+      onTap: onTap,
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(GJRadius.xl)),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: GJRemoteOrAssetImage(url: imagemUrl),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(GJSpace.s6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(icone, size: 20, color: cor, fill: 1),
+                    const SizedBox(width: GJSpace.s2),
+                    Text(sigla, style: GJTypography.eyebrow(color: cor)),
+                  ],
+                ),
+                const SizedBox(height: GJSpace.s3),
+                Text(nome, style: GJTypography.h4(), maxLines: 2, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: GJSpace.s1),
+                Text(descricao, style: GJTypography.bodySm(), maxLines: 3, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: GJSpace.s3),
+                GJButton(label: 'Ver detalhes', variant: GJButtonVariant.secondary, color: cor, expand: true, onPressed: onTap),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Card de um curso (Design System Deck, seção 15): ilustração 16:10 por
+  /// área do curso (a especificação não define uma imagem própria por
+  /// curso) e o nome centralizado.
+  factory GJCard.curso({
+    Key? key,
+    required String nome,
+    required String ilustracao,
+    required VoidCallback onTap,
+  }) {
+    return GJCard(
+      key: key,
+      onTap: onTap,
+      padding: EdgeInsets.zero,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(GJRadius.lg)),
+            child: AspectRatio(aspectRatio: 16 / 10, child: GJRemoteOrAssetImage(url: ilustracao)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(GJSpace.s4),
+            child: Text(
+              nome,
+              style: GJTypography.label().copyWith(fontSize: 15, color: GJColors.textPrimary),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   final Widget child;
   final GJCardVariant variant;
@@ -50,6 +194,7 @@ class _GJCardState extends State<GJCard> {
         border: widget.variant == GJCardVariant.elevated ? GJShadows.borderSubtle : null,
         boxShadow: widget.variant == GJCardVariant.elevated ? GJShadows.sm : GJShadows.none,
       ),
+      clipBehavior: Clip.antiAlias,
       child: widget.child,
     );
 
@@ -60,6 +205,33 @@ class _GJCardState extends State<GJCard> {
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
       child: GestureDetector(onTap: widget.onTap, child: card),
+    );
+  }
+}
+
+class _CaixaLogo extends StatelessWidget {
+  const _CaixaLogo({required this.logoUrl, required this.sigla});
+
+  final String? logoUrl;
+  final String sigla;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 120,
+      width: double.infinity,
+      padding: const EdgeInsets.all(GJSpace.s4),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: GJColors.surfaceLowest, borderRadius: GJRadius.borderMd),
+      child: logoUrl != null
+          ? GJRemoteOrAssetImage(url: logoUrl!, fit: BoxFit.contain)
+          : Text(
+              sigla,
+              style: GJTypography.h3().copyWith(color: GJColors.primary),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
     );
   }
 }
