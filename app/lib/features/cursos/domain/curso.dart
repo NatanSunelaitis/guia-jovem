@@ -40,12 +40,16 @@ class CursoResumo {
 }
 
 class CursoDestaque {
-  CursoDestaque({required this.nome, required this.totalOfertas});
+  CursoDestaque({required this.nome, this.areaCurso, required this.totalOfertas});
 
-  factory CursoDestaque.fromJson(Map<String, dynamic> json) =>
-      CursoDestaque(nome: json['nome'] as String, totalOfertas: json['totalOfertas'] as int);
+  factory CursoDestaque.fromJson(Map<String, dynamic> json) => CursoDestaque(
+        nome: json['nome'] as String,
+        areaCurso: json['areaCurso'] as String?,
+        totalOfertas: json['totalOfertas'] as int,
+      );
 
   final String nome;
+  final String? areaCurso;
   final int totalOfertas;
 }
 

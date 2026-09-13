@@ -56,14 +56,16 @@ async function listarDestaques(prisma, limite = DESTAQUES_PADRAO) {
   const cursos = await repo.nomesAtivos(prisma);
 
   const contagemPorNome = new Map();
-  for (const { nome } of cursos) {
+  const areaPorNome = new Map();
+  for (const { nome, areaCurso } of cursos) {
     contagemPorNome.set(nome, (contagemPorNome.get(nome) ?? 0) + 1);
+    if (!areaPorNome.has(nome)) areaPorNome.set(nome, areaCurso);
   }
 
   return [...contagemPorNome.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, limite)
-    .map(([nome, totalOfertas]) => ({ nome, totalOfertas }));
+    .map(([nome, totalOfertas]) => ({ nome, areaCurso: areaPorNome.get(nome), totalOfertas }));
 }
 
 function paraDetalhe(curso) {

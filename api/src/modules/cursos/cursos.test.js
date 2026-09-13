@@ -43,16 +43,16 @@ describe('GET /api/v1/cursos', () => {
 describe('GET /api/v1/cursos/destaques', () => {
   it('agrupa por nome e ordena pela contagem (200)', async () => {
     prisma.curso.findMany.mockResolvedValue([
-      { nome: 'Administração' },
-      { nome: 'Administração' },
-      { nome: 'Farmácia' },
+      { nome: 'Administração', areaCurso: 'Negócios' },
+      { nome: 'Administração', areaCurso: 'Negócios' },
+      { nome: 'Farmácia', areaCurso: 'Saúde' },
     ]);
 
     const resposta = await request(app).get('/api/v1/cursos/destaques');
 
     expect(resposta.status).toBe(200);
-    expect(resposta.body.data[0]).toEqual({ nome: 'Administração', totalOfertas: 2 });
-    expect(resposta.body.data[1]).toEqual({ nome: 'Farmácia', totalOfertas: 1 });
+    expect(resposta.body.data[0]).toEqual({ nome: 'Administração', areaCurso: 'Negócios', totalOfertas: 2 });
+    expect(resposta.body.data[1]).toEqual({ nome: 'Farmácia', areaCurso: 'Saúde', totalOfertas: 1 });
   });
 });
 

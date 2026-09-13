@@ -19,7 +19,7 @@ function count(prisma, where) {
 function nomesAtivos(prisma) {
   return prisma.curso.findMany({
     where: { ativo: true, universidade: { status: 'A' } },
-    select: { nome: true },
+    select: { nome: true, areaCurso: true },
   });
 }
 

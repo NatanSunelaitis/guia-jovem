@@ -592,6 +592,7 @@ paths:
                       type: object
                       properties:
                         nome: { type: string }
+                        areaCurso: { type: string, nullable: true }
                         totalOfertas: { type: integer }
                   meta: { type: object }
 
