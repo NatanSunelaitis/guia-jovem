@@ -24,6 +24,8 @@ tags:
     description: Catálogo público de cursos (RF21, RF22)
   - name: Programas
     description: Catálogo público de programas de entrada, financiamento e bolsas (RF12, RF13, RF19)
+  - name: Relatorios
+    description: Relatório de pesquisa exportável em CSV/PDF (RF03)
 paths:
   /health:
     get:
@@ -403,6 +405,7 @@ paths:
         - { in: query, name: programaId, schema: { type: integer } }
         - { in: query, name: cursoId, schema: { type: integer } }
         - { in: query, name: areaCurso, schema: { type: string } }
+        - { in: query, name: notaMinima, schema: { type: number, minimum: 0, maximum: 5 }, description: 'Extensão do RF06 além do contrato original (ver docs/DECISOES.md): filtra por media_avaliacao >= notaMinima.' }
         - { in: query, name: sort, schema: { type: string, enum: [nome, media, avaliacoes] } }
         - { in: query, name: page, schema: { type: integer, default: 1 } }
         - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
@@ -718,6 +721,30 @@ paths:
                   data: { type: array, items: { type: object } }
                   meta: { type: object }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /relatorios/pesquisa:
+    get:
+      tags: [Relatorios]
+      summary: Relatório de pesquisa exportável (RF03)
+      description: Mesmos filtros de GET /universidades. Gera um arquivo com universidades, campus, cursos e programas do resultado (um registro por universidade, com campus/cursos/programas listados nesse registro).
+      parameters:
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: cidade, schema: { type: string } }
+        - { in: query, name: estado, schema: { type: string, minLength: 2, maxLength: 2 } }
+        - { in: query, name: natureza, schema: { type: string, enum: [P, V] } }
+        - { in: query, name: programaId, schema: { type: integer } }
+        - { in: query, name: cursoId, schema: { type: integer } }
+        - { in: query, name: areaCurso, schema: { type: string } }
+        - { in: query, name: notaMinima, schema: { type: number, minimum: 0, maximum: 5 } }
+        - { in: query, name: sort, schema: { type: string, enum: [nome, media, avaliacoes] } }
+        - { in: query, name: formato, required: true, schema: { type: string, enum: [csv, pdf] } }
+      responses:
+        '200':
+          description: Arquivo CSV ou PDF para download
+          content:
+            text/csv: { schema: { type: string, format: binary } }
+            application/pdf: { schema: { type: string, format: binary } }
+        '400': { $ref: '#/components/responses/ValidationError' }
 
 components:
   securitySchemes:
