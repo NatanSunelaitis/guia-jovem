@@ -10,6 +10,15 @@ async function registerAluno(req, res, next) {
   }
 }
 
+async function registerUniversidade(req, res, next) {
+  try {
+    const resultado = await authService.registrarUniversidade(prisma, req.body, req);
+    res.status(201).json({ data: resultado, meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
 async function login(req, res, next) {
   try {
     const resultado = await authService.login(prisma, req.body, req);
@@ -76,4 +85,14 @@ async function me(req, res, next) {
   }
 }
 
-module.exports = { registerAluno, login, google, refresh, logout, forgotPassword, resetPassword, me };
+module.exports = {
+  registerAluno,
+  registerUniversidade,
+  login,
+  google,
+  refresh,
+  logout,
+  forgotPassword,
+  resetPassword,
+  me,
+};

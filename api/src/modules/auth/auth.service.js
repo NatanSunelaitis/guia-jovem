@@ -52,6 +52,94 @@ async function registrarAluno(prisma, { nome, email, senha }, req) {
   return { ...tokens, usuario: paraResumo(usuario) };
 }
 
+async function registrarUniversidade(prisma, dados, req) {
+  const { usuario: dadosUsuario, universidade: dadosUniversidade, programasIds, campus: dadosCampus } = dados;
+
+  const emailEmUso = await prisma.usuario.findUnique({ where: { email: dadosUsuario.email } });
+  if (emailEmUso) {
+    throw AppError.conflict('EMAIL_EM_USO', 'Este e-mail já está em uso');
+  }
+
+  const cnpjEmUso = await prisma.universidade.findUnique({ where: { cnpj: dadosUniversidade.cnpj } });
+  if (cnpjEmUso) {
+    throw AppError.conflict('CNPJ_EM_USO', 'Este CNPJ já está cadastrado');
+  }
+
+  const senhaHash = await bcrypt.hash(dadosUsuario.senha, BCRYPT_CUSTO);
+
+  const { usuario, universidade } = await prisma.$transaction(async (tx) => {
+    const usuarioCriado = await tx.usuario.create({
+      data: { nome: dadosUsuario.nome, email: dadosUsuario.email, senhaHash, tipoUsuario: 'U' },
+    });
+
+    const universidadeCriada = await tx.universidade.create({
+      data: {
+        usuarioId: usuarioCriado.id,
+        razaoSocial: dadosUniversidade.razaoSocial,
+        nomeFantasia: dadosUniversidade.nomeFantasia,
+        cnpj: dadosUniversidade.cnpj,
+        telefonePrincipal: dadosUniversidade.telefonePrincipal ?? null,
+        linkPagina: dadosUniversidade.linkPagina ?? null,
+        linkSimulados: dadosUniversidade.linkSimulados ?? null,
+        natureza: dadosUniversidade.natureza,
+        status: 'P',
+      },
+    });
+
+    if (programasIds.length > 0) {
+      await tx.universidadePrograma.createMany({
+        data: programasIds.map((programaId) => ({ universidadeId: universidadeCriada.id, programaId })),
+      });
+    }
+
+    const endereco = await tx.endereco.create({ data: dadosCampus.endereco });
+    await tx.campus.create({
+      data: {
+        universidadeId: universidadeCriada.id,
+        enderecoId: endereco.id,
+        nome: dadosCampus.nome,
+        telefoneCelular: dadosCampus.telefoneCelular ?? null,
+        telefoneFixo: dadosCampus.telefoneFixo ?? null,
+        emailCampus: dadosCampus.emailCampus ?? null,
+        principal: true,
+      },
+    });
+
+    await req.registrarAuditoria(
+      {
+        acao: 'CREATE',
+        entidade: 'universidade',
+        entidadeId: universidadeCriada.id,
+        dadosDepois: { nomeFantasia: universidadeCriada.nomeFantasia, status: universidadeCriada.status },
+      },
+      tx,
+    );
+
+    return { usuario: usuarioCriado, universidade: universidadeCriada };
+  });
+
+  // RF25: avisa os administradores para a análise do cadastro (seção 5.1).
+  const admins = await prisma.usuario.findMany({ where: { tipoUsuario: 'D', ativo: true }, select: { id: true } });
+  if (admins.length > 0) {
+    await prisma.notificacao.createMany({
+      data: admins.map((admin) => ({
+        usuarioId: admin.id,
+        tipo: 'UNIVERSIDADE_PENDENTE',
+        titulo: 'Nova universidade aguardando aprovação',
+        mensagem: `${universidade.nomeFantasia} enviou um cadastro para análise.`,
+        referenciaTipo: 'universidade',
+        referenciaId: universidade.id,
+      })),
+    });
+  }
+
+  const tokens = await issueTokenPair(prisma, usuario);
+  return {
+    ...tokens,
+    usuario: paraResumo({ ...usuario, universidade: { id: universidade.id, status: universidade.status } }),
+  };
+}
+
 async function login(prisma, { email, senha }, req) {
   const usuario = await prisma.usuario.findUnique({
     where: { email },
@@ -249,6 +337,7 @@ async function me(prisma, usuarioId) {
 module.exports = {
   paraResumo,
   registrarAluno,
+  registrarUniversidade,
   login,
   loginComGoogle,
   refresh,

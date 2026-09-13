@@ -72,6 +72,67 @@ paths:
         '400': { $ref: '#/components/responses/ValidationError' }
         '409': { $ref: '#/components/responses/Conflito' }
 
+  /auth/register/universidade:
+    post:
+      tags: [Auth]
+      summary: Cadastra uma universidade em análise (RF20, RF25, fluxo 7.3)
+      description: Cria usuário tipo U, universidade com status=P, relaciona os programas informados, cria o primeiro campus (principal) e notifica os administradores (UNIVERSIDADE_PENDENTE).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [aceitouTermos, usuario, universidade, campus]
+              properties:
+                aceitouTermos: { type: boolean, enum: [true] }
+                usuario:
+                  type: object
+                  required: [nome, email, senha]
+                  properties:
+                    nome: { type: string, maxLength: 100 }
+                    email: { type: string, format: email, maxLength: 100 }
+                    senha: { type: string, minLength: 7 }
+                universidade:
+                  type: object
+                  required: [razaoSocial, nomeFantasia, cnpj, natureza]
+                  properties:
+                    razaoSocial: { type: string, maxLength: 100 }
+                    nomeFantasia: { type: string, maxLength: 100 }
+                    cnpj: { type: string, description: '14 dígitos, com ou sem máscara' }
+                    telefonePrincipal: { type: string }
+                    linkPagina: { type: string, format: uri }
+                    linkSimulados: { type: string, format: uri }
+                    natureza: { type: string, enum: [P, V] }
+                programasIds: { type: array, items: { type: integer } }
+                campus:
+                  type: object
+                  required: [nome, endereco]
+                  properties:
+                    nome: { type: string, maxLength: 100 }
+                    telefoneCelular: { type: string }
+                    telefoneFixo: { type: string }
+                    emailCampus: { type: string, format: email }
+                    endereco:
+                      type: object
+                      required: [logradouro, numero, bairro, cidade, estado]
+                      properties:
+                        logradouro: { type: string, maxLength: 100 }
+                        numero: { type: string, maxLength: 10 }
+                        complemento: { type: string, maxLength: 100 }
+                        bairro: { type: string, maxLength: 100 }
+                        cidade: { type: string, maxLength: 100 }
+                        estado: { type: string, minLength: 2, maxLength: 2 }
+                        cep: { type: string, description: '8 dígitos, com ou sem máscara' }
+      responses:
+        '201':
+          description: Cadastro criado, em análise
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TokensResposta' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '409': { $ref: '#/components/responses/Conflito' }
+
   /auth/login:
     post:
       tags: [Auth]

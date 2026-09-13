@@ -79,6 +79,107 @@ describe('POST /api/v1/auth/register/aluno', () => {
   });
 });
 
+describe('POST /api/v1/auth/register/universidade', () => {
+  function corpoValido(sobrescreve = {}) {
+    return {
+      aceitouTermos: true,
+      usuario: { nome: 'Responsável Fatec', email: 'contato@fatec-teste.edu.br', senha: 'senha1234' },
+      universidade: {
+        razaoSocial: 'Faculdade de Tecnologia Teste',
+        nomeFantasia: 'Fatec Teste',
+        cnpj: '11.222.333/0001-81',
+        telefonePrincipal: '(15) 3223-1450',
+        linkPagina: 'https://fatecteste.edu.br',
+        natureza: 'P',
+      },
+      programasIds: [1, 2],
+      campus: {
+        nome: 'Fatec Teste',
+        telefoneFixo: '(15) 3223-1450',
+        endereco: {
+          logradouro: 'Avenida Teste',
+          numero: '100',
+          bairro: 'Centro',
+          cidade: 'Sorocaba',
+          estado: 'sp',
+          cep: '18000-000',
+        },
+      },
+      ...sobrescreve,
+    };
+  }
+
+  it('cria usuário U, universidade P, programas, campus e notifica admins (201)', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(null);
+    prisma.universidade.findUnique.mockResolvedValue(null);
+    prisma.usuario.create.mockResolvedValue(usuarioFake({ id: 20, tipoUsuario: 'U', senhaHash: null }));
+    prisma.universidade.create.mockResolvedValue({ id: 5, nomeFantasia: 'Fatec Teste', status: 'P' });
+    prisma.endereco.create.mockResolvedValue({ id: 30 });
+    prisma.usuario.findMany.mockResolvedValue([{ id: 1 }, { id: 2 }]);
+
+    const resposta = await request(app).post('/api/v1/auth/register/universidade').send(corpoValido());
+
+    expect(resposta.status).toBe(201);
+    expect(resposta.body.data.usuario).toMatchObject({ id: 20, tipoUsuario: 'U', universidade: { id: 5, status: 'P' } });
+    expect(resposta.body.data.accessToken).toEqual(expect.any(String));
+
+    expect(prisma.universidade.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ cnpj: '11222333000181', status: 'P' }) }),
+    );
+    expect(prisma.universidadePrograma.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({ data: [{ universidadeId: 5, programaId: 1 }, { universidadeId: 5, programaId: 2 }] }),
+    );
+    expect(prisma.campus.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ principal: true, enderecoId: 30 }) }),
+    );
+    expect(prisma.notificacao.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: [
+          expect.objectContaining({ usuarioId: 1, tipo: 'UNIVERSIDADE_PENDENTE' }),
+          expect.objectContaining({ usuarioId: 2, tipo: 'UNIVERSIDADE_PENDENTE' }),
+        ],
+      }),
+    );
+  });
+
+  it('responde 409 EMAIL_EM_USO quando o e-mail já existe', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(usuarioFake());
+
+    const resposta = await request(app).post('/api/v1/auth/register/universidade').send(corpoValido());
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.error.code).toBe('EMAIL_EM_USO');
+  });
+
+  it('responde 409 CNPJ_EM_USO quando o CNPJ já existe', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(null);
+    prisma.universidade.findUnique.mockResolvedValue({ id: 9 });
+
+    const resposta = await request(app).post('/api/v1/auth/register/universidade').send(corpoValido());
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.error.code).toBe('CNPJ_EM_USO');
+  });
+
+  it('responde 400 quando aceitouTermos não é true', async () => {
+    const resposta = await request(app)
+      .post('/api/v1/auth/register/universidade')
+      .send(corpoValido({ aceitouTermos: false }));
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('responde 400 com CNPJ inválido', async () => {
+    const resposta = await request(app)
+      .post('/api/v1/auth/register/universidade')
+      .send(corpoValido({ universidade: { ...corpoValido().universidade, cnpj: '123' } }));
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body.error.code).toBe('VALIDATION_ERROR');
+  });
+});
+
 describe('POST /api/v1/auth/login', () => {
   it('retorna tokens com credenciais corretas (200)', async () => {
     prisma.usuario.findUnique.mockResolvedValue(usuarioFake());

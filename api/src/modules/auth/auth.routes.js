@@ -22,6 +22,11 @@ const limitadorSensivel = rateLimit({
 const router = Router();
 
 router.post('/register/aluno', validate(schemas.registerAlunoSchema), controller.registerAluno);
+router.post(
+  '/register/universidade',
+  validate(schemas.registerUniversidadeSchema),
+  controller.registerUniversidade,
+);
 router.post('/login', limitadorSensivel, validate(schemas.loginSchema), controller.login);
 router.post('/google', validate(schemas.googleSchema), controller.google);
 router.post('/refresh', validate(schemas.refreshSchema), controller.refresh);
