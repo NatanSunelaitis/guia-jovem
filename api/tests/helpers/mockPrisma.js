@@ -10,7 +10,11 @@ const prisma = {
   usuario: createModel(['findUnique', 'findMany', 'count', 'create', 'update', 'delete']),
   refreshToken: createModel(['create', 'findUnique', 'update', 'updateMany']),
   tokenRecuperacao: createModel(['create', 'findUnique', 'update']),
-  universidade: createModel(['findUnique', 'updateMany']),
+  universidade: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'updateMany']),
+  campus: createModel(['findUnique', 'findFirst', 'findMany']),
+  curso: createModel(['findUnique', 'findFirst', 'findMany', 'count']),
+  programa: createModel(['findUnique', 'findFirst', 'findMany', 'count']),
+  avaliacao: createModel(['findMany', 'count']),
   logAuditoria: createModel(['create']),
   visitaPagina: createModel(['create']),
   $transaction: jest.fn((operacoes) => {

@@ -10,6 +10,10 @@ const metricsMiddleware = require('./middlewares/metrics.middleware');
 const AppError = require('./shared/errors/AppError');
 const authRoutes = require('./modules/auth/auth.routes');
 const usuariosRoutes = require('./modules/usuarios/usuarios.routes');
+const universidadesRoutes = require('./modules/universidades/universidades.routes');
+const campusRoutes = require('./modules/campus/campus.routes');
+const cursosRoutes = require('./modules/cursos/cursos.routes');
+const programasRoutes = require('./modules/programas/programas.routes');
 
 const app = express();
 
@@ -27,6 +31,10 @@ app.get('/api/v1/health', (req, res) => {
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/usuarios', usuariosRoutes);
+app.use('/api/v1/universidades', universidadesRoutes);
+app.use('/api/v1/campus', campusRoutes);
+app.use('/api/v1/cursos', cursosRoutes);
+app.use('/api/v1/programas', programasRoutes);
 
 app.use((req, res, next) => {
   next(AppError.notFound('Rota não encontrada'));
