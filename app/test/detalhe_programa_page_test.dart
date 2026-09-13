@@ -36,7 +36,7 @@ void main() {
     await pump(tester, 1);
 
     expect(find.text('Exame Nacional do Ensino Médio'), findsOneWidget);
-    expect(find.text('Programa de Entrada'), findsOneWidget);
+    expect(find.text('PROGRAMA DE ENTRADA'), findsOneWidget);
     expect(find.text('Ver site oficial'), findsOneWidget);
   });
 
@@ -61,7 +61,7 @@ void main() {
     await pump(tester, 5);
 
     expect(find.text('Fundo de Financiamento Estudantil'), findsOneWidget);
-    expect(find.text('Financiamento Estudantil'), findsOneWidget);
+    expect(find.text('FINANCIAMENTO ESTUDANTIL'), findsOneWidget);
   });
 
   testWidgets('mostra estado de erro quando o programa não existe', (tester) async {

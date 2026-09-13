@@ -22,30 +22,36 @@ class GJTimelineItem {
 
 /// Linha do tempo (seção 3.18), usada no cronograma/"Datas Importantes" dos programas.
 class GJTimeline extends StatelessWidget {
-  const GJTimeline({super.key, required this.itens});
+  const GJTimeline({super.key, required this.itens, this.cor = GJColors.primary});
 
   final List<GJTimelineItem> itens;
+
+  /// Cor de destaque (dia e ponto concluído). Acompanha a cor da categoria
+  /// do programa (financiamento usa tertiary, por exemplo).
+  final Color cor;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (var i = 0; i < itens.length; i++) _TimelineRow(item: itens[i], ultimo: i == itens.length - 1),
+        for (var i = 0; i < itens.length; i++)
+          _TimelineRow(item: itens[i], ultimo: i == itens.length - 1, cor: cor),
       ],
     );
   }
 }
 
 class _TimelineRow extends StatelessWidget {
-  const _TimelineRow({required this.item, required this.ultimo});
+  const _TimelineRow({required this.item, required this.ultimo, required this.cor});
 
   final GJTimelineItem item;
   final bool ultimo;
+  final Color cor;
 
   @override
   Widget build(BuildContext context) {
-    final corPonto = item.concluido ? GJColors.primary : GJColors.border;
+    final corPonto = item.concluido ? cor : GJColors.border;
 
     return IntrinsicHeight(
       child: Row(
@@ -56,7 +62,7 @@ class _TimelineRow extends StatelessWidget {
             child: Column(
               children: [
                 Text(item.mes.toUpperCase(), style: GJTypography.caption().copyWith(fontWeight: FontWeight.w600)),
-                Text(item.dia, style: GJTypography.h3().copyWith(color: GJColors.primary)),
+                Text(item.dia, style: GJTypography.h3().copyWith(color: cor)),
               ],
             ),
           ),
