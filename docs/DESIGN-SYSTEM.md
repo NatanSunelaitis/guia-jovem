@@ -1,4 +1,4 @@
-# Guia Jovem Design System (GJDS) v1.1
+# Guia Jovem Design System (GJDS) v1.2
 
 > Fonte única de verdade para a identidade visual e os componentes da plataforma Guia Jovem.
 > Serve a três consumidores: o protótipo de alta fidelidade, a implementação em Flutter e a documentação do TG (seção 4.5, Interfaces com o usuário).
@@ -46,6 +46,7 @@ Nomenclatura: `gj.<categoria>.<nome>`. Em Flutter viram constantes em `lib/core/
 | `gj.color.tertiary` | `#B3272A` | `tertiary` | Categoria Financiamento/FIES. Também é o vermelho da faixa DEMO |
 | `gj.color.tertiary.container` | `#FA5B57` | `tertiary-container` | Destaques quentes |
 | `gj.color.tertiary.fixed` | `#FFDAD7` | `tertiary-fixed` | Fundo de tag Financiamento |
+| `gj.color.tertiary.dark` | `#8C1D20` | (derivado) | Hover/pressed de botões na categoria Financiamento, simétrico ao `primary.dark` |
 
 #### Semânticas
 | Token | Hex | Uso |
@@ -446,5 +447,6 @@ ColorScheme(
 ---
 
 ## Changelog
+- **v1.2** Token `tertiary.dark` (#8C1D20) para hover na categoria Financiamento, a partir do protótipo do Grupo Público.
 - **v1.1** Seção 2.10 Marca e logo: logo oficial em SVG com versões empilhada, horizontal, símbolo e monocromática branca; header, footer e avatar padrão atualizados.
 - **v1.0** Consolidação inicial a partir do protótipo Stitch (2 telas: Programas de Entrada e Painel de Administração da Universidade, mais a tela ENEM) e das Figuras 12 a 36 do TG.

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#0061A4}a:hover{color:#00497D}
+.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;user-select:none}
+.material-symbols-outlined.fill{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sk{background:linear-gradient(90deg,#E2E2E2 25%,#EEEEEE 50%,#E2E2E2 75%);background-size:800px 100%;animation:shimmer 1.4s linear infinite}
+.pulse{animation:pulse 1.6s ease-in-out infinite}
+</style>
+</helmet>
+<x-import component-from-global-scope="deck-stage" from="./deck-stage.js" width="1920" height="1080" hint-size="100%,100%">
+<section data-label="Capa" style="background:#0061A4;color:#FFFFFF;font-family:Inter,sans-serif;padding:120px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;gap:24px;position:relative;overflow:hidden">
+  <img data-om-raster src="brand/logo-horizontal-white.svg" alt="Guia Jovem" style="height:72px;width:auto;align-self:flex-start;display:block">
+  <h1 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:800;font-size:112px;line-height:1.05;letter-spacing:-0.02em">Design System v1.0</h1>
+  <p style="margin:0;font-size:32px;line-height:1.5;color:#D1E4FF;max-width:1100px">Tokens e componentes em todas as variantes e estados. Referência para implementação em Flutter (prefixo GJ).</p>
+  <div style="margin-top:auto;font-size:24px;color:#D1E4FF">FATEC Sorocaba, ADS, 2026. O Mentor Dinâmico.</div>
+</section>
+<section data-label="Fontes" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden;justify-content:center">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:800;font-size:64px;line-height:1.1">Fontes usadas neste arquivo</h2>
+  <p style="margin:0;font-size:28px;line-height:1.5;color:#404752;max-width:1100px">Instale as três famílias antes de editar os slides. Sem elas o PowerPoint substitui por uma fonte do sistema e o espaçamento muda.</p>
+  <div style="display:flex;flex-direction:column;gap:20px;margin-top:16px">
+    <div style="background:#FFFFFF;border-radius:20px;padding:28px 36px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px"><div style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:34px">Plus Jakarta Sans</div><div style="font-size:24px;color:#404752">Títulos e wordmark. Pesos 700 e 800.</div><div style="font-size:22px;color:#0061A4">fonts.google.com/specimen/Plus+Jakarta+Sans</div></div>
+    <div style="background:#FFFFFF;border-radius:20px;padding:28px 36px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px"><div style="font-family:Inter;font-weight:700;font-size:34px">Inter</div><div style="font-size:24px;color:#404752">Corpo, labels, botões e tabelas. Pesos 400, 500 e 600.</div><div style="font-size:22px;color:#0061A4">fonts.google.com/specimen/Inter</div></div>
+    <div style="background:#FFFFFF;border-radius:20px;padding:28px 36px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px"><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:34px">Material Symbols Outlined</div><div style="font-size:24px;color:#404752">Ícones. Neste arquivo os ícones já estão embutidos como imagem, a fonte só é necessária para editar.</div><div style="font-size:22px;color:#0061A4">fonts.google.com/icons</div></div>
+  </div>
+</section>
+<section data-label="Cores" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">1. Cores</h2>
+  <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:16px">
+    <sc-for list="{{ colors }}" as="c" hint-placeholder-count="24">
+      <div style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06);border:1px solid rgba(191,199,212,.2)">
+        <div style="height:56px;background:{{ c.hex }}"></div>
+        <div style="padding:12px 16px;display:flex;flex-direction:column;gap:2px">
+          <div style="font-size:12px;font-weight:600;color:#1A1C1C">{{ c.token }}</div>
+          <div style="font-size:12px;color:#707883;font-family:monospace">{{ c.hex }}</div>
+          <div style="font-size:12px;color:#404752;margin-top:4px;line-height:1.4">{{ c.use }}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  </section></div></section>
+<section data-label="Cores: regras" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px"><h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">1. Cores: regras fixas</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+    <div style="background:#F3F3F3;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:16px">
+      <h4 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:18px">Categorias de programa (regra fixa)</h4>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <span style="display:inline-flex;align-items:center;gap:6px;background:#D1E4FF;color:#0061A4;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600"><span data-om-raster class="material-symbols-outlined fill" style="font-size:16px">school</span>Programa de Entrada</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;background:#D4E3FF;color:#005FAF;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600"><span data-om-raster class="material-symbols-outlined fill" style="font-size:16px">workspace_premium</span>Bolsa de Estudo</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;background:#FFDAD7;color:#B3272A;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600"><span data-om-raster class="material-symbols-outlined fill" style="font-size:16px">account_balance_wallet</span>Financiamento</span>
+      </div>
+      <p style="margin:0;font-size:14px;color:#404752;line-height:1.5">ENEM, SiSU e Vestibular: primary. ProUni e bolsas institucionais: secondary. FIES: tertiary.</p>
+    </div>
+    <div style="background:#F3F3F3;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:16px">
+      <h4 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:18px">Status (regra fixa)</h4>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <span style="display:inline-flex;align-items:center;gap:8px;background:#D8F3DC;color:#1B7F3B;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:#1B7F3B"></span>Aprovada</span>
+        <span style="display:inline-flex;align-items:center;gap:8px;background:#FFE8B8;color:#B26A00;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600"><span style="width:8px;height:8px;border-radius:50%;background:#B26A00"></span>Em análise</span>
+        <span style="display:inline-flex;align-items:center;gap:8px;background:#FFDAD6;color:#93000A;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600"><span style="width:8px;height:8px;border-radius:50%;background:#93000A"></span>Reprovada</span>
+        <span style="display:inline-flex;align-items:center;gap:8px;background:#D1E4FF;color:#0061A4;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">Pública</span>
+        <span style="display:inline-flex;align-items:center;gap:8px;background:#EEEEEE;color:#404752;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">Privada</span>
+      </div>
+      <p style="margin:0;font-size:14px;color:#404752;line-height:1.5">Ponto de 8 px à esquerda; verde pulsante para "Publicado e Ativo".</p>
+    </div>
+  </div>
+</section></div></section>
+<section data-label="Tipografia" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">2. Tipografia</h2>
+  <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:0">
+    <sc-for list="{{ type }}" as="t" hint-placeholder-count="12">
+      <div style="display:grid;grid-template-columns:220px 1fr 260px;gap:32px;align-items:baseline;padding:16px 0;border-bottom:1px solid #E8E8E8">
+        <div style="font-size:12px;font-weight:600;color:#707883;font-family:monospace">{{ t.token }}</div>
+        <div style="font-family:{{ t.family }};font-size:{{ t.size }};font-weight:{{ t.weight }};line-height:{{ t.lh }};letter-spacing:{{ t.ls }};text-transform:{{ t.tt }};color:#1A1C1C">{{ t.sample }}</div>
+        <div style="font-size:12px;color:#404752">{{ t.spec }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section></div></section>
+<section data-label="Espaçamento, raio, sombra" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+  <div style="display:flex;flex-direction:column;gap:24px">
+    <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">3. Espaçamento</h2>
+    <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:12px">
+      <sc-for list="{{ spaces }}" as="s" hint-placeholder-count="10">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:110px;font-size:12px;font-family:monospace;color:#707883">{{ s.token }}</div>
+          <div style="height:16px;background:#2196F3;border-radius:2px;width:{{ s.w }}"></div>
+          <div style="font-size:12px;color:#404752">{{ s.v }} px</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+    <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">4. Raio</h2>
+    <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <sc-for list="{{ radii }}" as="r" hint-placeholder-count="6">
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:center">
+          <div style="width:72px;height:72px;background:#D1E4FF;border:2px solid #0061A4;border-radius:{{ r.css }}"></div>
+          <div style="font-size:12px;font-family:monospace;color:#707883">{{ r.token }}</div>
+          <div style="font-size:12px;color:#404752">{{ r.v }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+    <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">5. Elevação</h2>
+    <div style="background:#F3F3F3;border-radius:16px;padding:32px;display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div style="display:flex;flex-direction:column;gap:8px"><div style="height:72px;background:#FFFFFF;border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.06)"></div><div style="font-size:12px;font-family:monospace;color:#707883">shadow.sm</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px"><div style="height:72px;background:#FFFFFF;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.08)"></div><div style="font-size:12px;font-family:monospace;color:#707883">shadow.md</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px"><div style="height:72px;background:#FFFFFF;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.12)"></div><div style="font-size:12px;font-family:monospace;color:#707883">shadow.lg</div></div>
+      <div style="display:flex;flex-direction:column;gap:8px"><div style="height:72px;background:#FFFFFF;border-radius:12px;border:1px solid rgba(191,199,212,.2)"></div><div style="font-size:12px;font-family:monospace;color:#707883">border.subtle</div></div>
+    </div>
+  </div>
+</section></div></section>
+<section data-label="Ícones" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">6. Iconografia (Material Symbols Outlined)</h2>
+  <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:grid;grid-template-columns:repeat(9,1fr);gap:16px">
+    <sc-for list="{{ icons }}" as="i" hint-placeholder-count="27">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;border-radius:12px;background:#F9F9F9">
+        <span data-om-raster class="material-symbols-outlined" style="color:#0061A4;font-size:24px">{{ i.icon }}</span>
+        <div style="font-size:12px;font-weight:600;color:#1A1C1C">{{ i.label }}</div>
+        <div style="font-size:11px;font-family:monospace;color:#707883">{{ i.icon }}</div>
+      </div>
+    </sc-for>
+  </div>
+</section></div></section>
+<section data-label="Botões" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">7. GJButton</h2>
+  <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:24px">
+    <div style="display:grid;grid-template-columns:120px repeat(6,1fr);gap:16px;align-items:center;font-size:12px;font-weight:600;color:#707883;text-transform:uppercase;letter-spacing:.08em">
+      <div></div><div>Default</div><div>Hover</div><div>Pressed</div><div>Focus</div><div>Disabled</div><div>Loading</div>
+    </div>
+    <!-- primary pill -->
+    <div style="display:grid;grid-template-columns:120px repeat(6,1fr);gap:16px;align-items:center">
+      <div style="font-size:14px;font-weight:600;color:#404752">Primary pill</div>
+      <button style="height:44px;padding:0 24px;border-radius:9999px;border:0;background:#2196F3;color:#FFFFFF;font:600 14px Inter;cursor:pointer">Entrar</button>
+      <button style="height:44px;padding:0 24px;border-radius:9999px;border:0;background:#00497D;color:#FFFFFF;font:600 14px Inter">Entrar</button>
+      <button style="height:44px;padding:0 24px;border-radius:9999px;border:0;background:#00497D;color:#FFFFFF;font:600 14px Inter;transform:scale(.97)">Entrar</button>
+      <button style="height:44px;padding:0 24px;border-radius:9999px;border:0;background:#2196F3;color:#FFFFFF;font:600 14px Inter;outline:2px solid #0061A4;outline-offset:2px">Entrar</button>
+      <button style="height:44px;padding:0 24px;border-radius:9999px;border:0;background:#2196F3;color:#FFFFFF;font:600 14px Inter;opacity:.4">Entrar</button>
+      <button style="height:44px;padding:0 24px;border-radius:9999px;border:0;background:#2196F3;color:#FFFFFF;display:flex;align-items:center;justify-content:center"><span style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:block"></span></button>
+    </div>
+    <!-- primary rect -->
+    <div style="display:grid;grid-template-columns:120px repeat(6,1fr);gap:16px;align-items:center">
+      <div style="font-size:14px;font-weight:600;color:#404752">Primary rect</div>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#2196F3;color:#FFFFFF;font:600 14px Inter;display:flex;align-items:center;justify-content:center;gap:8px"><span data-om-raster class="material-symbols-outlined" style="font-size:20px">search</span>Pesquisar</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#00497D;color:#FFFFFF;font:600 14px Inter">Pesquisar</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#00497D;color:#FFFFFF;font:600 14px Inter;transform:scale(.97)">Pesquisar</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#2196F3;color:#FFFFFF;font:600 14px Inter;outline:2px solid #0061A4;outline-offset:2px">Pesquisar</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#2196F3;color:#FFFFFF;font:600 14px Inter;opacity:.4">Pesquisar</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#2196F3;color:#FFFFFF;display:flex;align-items:center;justify-content:center"><span style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:block"></span></button>
+    </div>
+    <!-- secondary -->
+    <div style="display:grid;grid-template-columns:120px repeat(6,1fr);gap:16px;align-items:center">
+      <div style="font-size:14px;font-weight:600;color:#404752">Secondary</div>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid rgba(0,97,164,.2);background:transparent;color:#0061A4;font:600 14px Inter">Ver detalhes</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid #0061A4;background:#0061A4;color:#FFFFFF;font:600 14px Inter">Ver detalhes</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid #00497D;background:#00497D;color:#FFFFFF;font:600 14px Inter;transform:scale(.97)">Ver detalhes</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid rgba(0,97,164,.2);background:transparent;color:#0061A4;font:600 14px Inter;outline:2px solid #0061A4;outline-offset:2px">Ver detalhes</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid rgba(0,97,164,.2);background:transparent;color:#0061A4;font:600 14px Inter;opacity:.4">Ver detalhes</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid rgba(0,97,164,.2);background:transparent;display:flex;align-items:center;justify-content:center"><span style="width:16px;height:16px;border:2px solid rgba(0,97,164,.3);border-top-color:#0061A4;border-radius:50%;display:block"></span></button>
+    </div>
+    <!-- ghost -->
+    <div style="display:grid;grid-template-columns:120px repeat(6,1fr);gap:16px;align-items:center">
+      <div style="font-size:14px;font-weight:600;color:#404752">Ghost</div>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:transparent;color:#0061A4;font:600 14px Inter">Cancelar</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#F3F3F3;color:#0061A4;font:600 14px Inter">Cancelar</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#EEEEEE;color:#0061A4;font:600 14px Inter;transform:scale(.97)">Cancelar</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:transparent;color:#0061A4;font:600 14px Inter;outline:2px solid #0061A4;outline-offset:2px">Cancelar</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:transparent;color:#0061A4;font:600 14px Inter;opacity:.4">Cancelar</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:transparent;display:flex;align-items:center;justify-content:center"><span style="width:16px;height:16px;border:2px solid rgba(0,97,164,.3);border-top-color:#0061A4;border-radius:50%;display:block"></span></button>
+    </div>
+    <!-- danger -->
+    <div style="display:grid;grid-template-columns:120px repeat(6,1fr);gap:16px;align-items:center">
+      <div style="font-size:14px;font-weight:600;color:#404752">Danger</div>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#BA1A1A;color:#FFFFFF;font:600 14px Inter">Excluir</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#93000A;color:#FFFFFF;font:600 14px Inter">Excluir</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#93000A;color:#FFFFFF;font:600 14px Inter;transform:scale(.97)">Excluir</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#BA1A1A;color:#FFFFFF;font:600 14px Inter;outline:2px solid #BA1A1A;outline-offset:2px">Excluir</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#BA1A1A;color:#FFFFFF;font:600 14px Inter;opacity:.4">Excluir</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#BA1A1A;display:flex;align-items:center;justify-content:center"><span style="width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;display:block"></span></button>
+    </div>
+    <!-- google -->
+    <div style="display:grid;grid-template-columns:120px repeat(6,1fr);gap:16px;align-items:center">
+      <div style="font-size:14px;font-weight:600;color:#404752">Google</div>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid #BFC7D4;background:#FFFFFF;color:#1A1C1C;font:600 14px Inter;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:16px;color:#0061A4">G</span>Entrar com Google</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid #BFC7D4;background:#F3F3F3;color:#1A1C1C;font:600 14px Inter;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:16px;color:#0061A4">G</span>Entrar com Google</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid #BFC7D4;background:#EEEEEE;color:#1A1C1C;font:600 14px Inter;transform:scale(.97);display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:16px;color:#0061A4">G</span>Entrar com Google</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid #BFC7D4;background:#FFFFFF;color:#1A1C1C;font:600 14px Inter;outline:2px solid #0061A4;outline-offset:2px;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:16px;color:#0061A4">G</span>Entrar com Google</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid #BFC7D4;background:#FFFFFF;color:#1A1C1C;font:600 14px Inter;opacity:.4;display:flex;align-items:center;justify-content:center;gap:8px"><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:16px;color:#0061A4">G</span>Entrar com Google</button>
+      <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid #BFC7D4;background:#FFFFFF;display:flex;align-items:center;justify-content:center"><span style="width:16px;height:16px;border:2px solid rgba(0,97,164,.3);border-top-color:#0061A4;border-radius:50%;display:block"></span></button>
+    </div>
+    <div style="display:flex;gap:16px;align-items:center;padding-top:16px;border-top:1px solid #E8E8E8">
+      <div style="font-size:14px;font-weight:600;color:#404752;width:120px">Tamanhos</div>
+      <button style="height:36px;padding:0 16px;border-radius:9999px;border:0;background:#2196F3;color:#FFFFFF;font:600 14px Inter">sm 36</button>
+      <button style="height:44px;padding:0 24px;border-radius:9999px;border:0;background:#2196F3;color:#FFFFFF;font:600 14px Inter">md 44</button>
+      <button style="height:52px;padding:0 32px;border-radius:9999px;border:0;background:#2196F3;color:#FFFFFF;font:600 14px Inter">lg 52</button>
+      <button style="height:44px;width:44px;border-radius:9999px;border:0;background:transparent;color:#0061A4;display:flex;align-items:center;justify-content:center"><span data-om-raster class="material-symbols-outlined">bookmark</span></button>
+      <button style="height:44px;width:44px;border-radius:9999px;border:1px solid rgba(0,97,164,.2);background:#FFFFFF;color:#0061A4;display:flex;align-items:center;justify-content:center"><span data-om-raster class="material-symbols-outlined">chevron_right</span></button>
+      <div style="font-size:12px;color:#707883">Ícone ghost 44 e seta de carrossel 40/44</div>
+    </div>
+  </div>
+</section></div></section>
+<section data-label="Inputs" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">8. GJInput</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+    <div style="background:#F3F3F3;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:20px">
+      <div style="font-size:12px;font-weight:600;color:#707883;text-transform:uppercase;letter-spacing:.08em">Visual público (fundo branco, sombra sm, raio 12)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">E-mail</span><input style="height:52px;padding:0 16px;border:0;border-radius:12px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06);font:400 16px Inter;color:#1A1C1C" placeholder="seu@email.com"><span style="font-size:12px;color:#707883">Default</span></label>
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">E-mail</span><input value="mayara@email.com" style="height:52px;padding:0 16px;border:0;border-radius:12px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06);font:400 16px Inter;color:#1A1C1C;outline:2px solid #0061A4"><span style="font-size:12px;color:#707883">Focus</span></label>
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Senha</span><div style="position:relative"><input type="password" value="1234" style="width:100%;box-sizing:border-box;height:52px;padding:0 48px 0 16px;border:0;border-radius:12px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06);font:400 16px Inter;color:#1A1C1C;outline:2px solid #BA1A1A"><span data-om-raster class="material-symbols-outlined" style="position:absolute;right:14px;top:14px;color:#707883">visibility</span></div><span style="display:flex;align-items:center;gap:4px;font-size:12px;color:#BA1A1A;font-weight:500"><span data-om-raster class="material-symbols-outlined" style="font-size:16px">error</span>Informe uma senha com 7 ou mais caracteres</span></label>
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Nome</span><input value="Mayara Santos" disabled style="height:52px;padding:0 16px;border:0;border-radius:12px;background:#E8E8E8;font:400 16px Inter;color:#404752"><span style="font-size:12px;color:#707883">Read-only / desabilitado</span></label>
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Cidade</span><div style="position:relative"><span data-om-raster class="material-symbols-outlined" style="position:absolute;left:14px;top:14px;color:#707883">location_on</span><input style="width:100%;box-sizing:border-box;height:52px;padding:0 16px 0 48px;border:0;border-radius:12px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06);font:400 16px Inter" placeholder="Escolha uma cidade"></div><span style="font-size:12px;color:#707883">Com ícone</span></label>
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Estado</span><div style="position:relative"><div style="height:52px;padding:0 48px 0 16px;border-radius:12px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06);font:400 16px Inter;color:#1A1C1C;display:flex;align-items:center">São Paulo</div><span data-om-raster class="material-symbols-outlined" style="position:absolute;right:14px;top:14px;color:#707883">expand_more</span></div><span style="font-size:12px;color:#707883">Select</span></label>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Conte para outros estudantes</span><textarea style="height:112px;padding:16px;border:0;border-radius:12px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06);font:400 16px Inter;resize:none" placeholder="Conte para outros estudantes..."></textarea><span style="font-size:12px;color:#707883;text-align:right">0/500</span></label>
+    </div>
+    <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);border:1px solid rgba(191,199,212,.2);display:flex;flex-direction:column;gap:20px">
+      <div style="font-size:12px;font-weight:600;color:#707883;text-transform:uppercase;letter-spacing:.08em">Visual painel (fundo F3F3F3, raio 8)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Razão social</span><input style="height:44px;padding:0 16px;border:0;border-radius:8px;background:#F3F3F3;font:400 14px Inter" placeholder="Nome legal da instituição"></label>
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">CNPJ</span><input value="62.823.257/0001-09" style="height:44px;padding:0 16px;border:0;border-radius:8px;background:#F3F3F3;font:400 14px Inter;outline:2px solid #0061A4"></label>
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Telefone</span><input value="(15) 3229" style="height:44px;padding:0 16px;border:0;border-radius:8px;background:#F3F3F3;font:400 14px Inter;outline:2px solid #BA1A1A"><span style="display:flex;align-items:center;gap:4px;font-size:12px;color:#BA1A1A;font-weight:500"><span data-om-raster class="material-symbols-outlined" style="font-size:16px">error</span>Informe o telefone completo com DDD</span></label>
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Natureza</span><div style="position:relative"><div style="height:44px;padding:0 40px 0 16px;border-radius:8px;background:#F3F3F3;font:400 14px Inter;display:flex;align-items:center">Pública</div><span data-om-raster class="material-symbols-outlined" style="position:absolute;right:10px;top:10px;color:#707883;font-size:24px">expand_more</span></div></label>
+      </div>
+      <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Descrição da instituição</span><textarea style="height:96px;padding:12px 16px;border:0;border-radius:8px;background:#F3F3F3;font:400 14px Inter;resize:none">A Fatec Sorocaba é uma instituição pública de ensino superior tecnológico.</textarea><span style="font-size:12px;color:#707883;text-align:right">78/500</span></label>
+      <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:#1A1C1C"><span style="width:20px;height:20px;border-radius:4px;background:#2196F3;display:flex;align-items:center;justify-content:center"><span data-om-raster class="material-symbols-outlined" style="color:#fff;font-size:16px">check</span></span>Concordo com os termos</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:#1A1C1C"><span style="width:20px;height:20px;border-radius:4px;border:2px solid #BFC7D4;box-sizing:border-box"></span>Checkbox vazio</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:#1A1C1C"><span style="width:20px;height:20px;border-radius:50%;border:2px solid #0061A4;box-sizing:border-box;display:flex;align-items:center;justify-content:center"><span style="width:10px;height:10px;border-radius:50%;background:#0061A4"></span></span>Radio ativo</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:#1A1C1C"><span style="width:20px;height:20px;border-radius:50%;border:2px solid #BFC7D4;box-sizing:border-box"></span>Radio</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:14px;color:#1A1C1C"><span style="width:40px;height:24px;border-radius:9999px;background:#2196F3;position:relative"><span style="position:absolute;right:2px;top:2px;width:20px;height:20px;border-radius:50%;background:#fff"></span></span>Switch</label>
+      </div>
+    </div>
+  </div>
+</section></div></section>
+<section data-label="Barra de pesquisa, toggle, slider, chips" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">9. GJSearchBar, GJToggleGroup, GJSlider, GJTag / GJChip</h2>
+  <div style="background:#F3F3F3;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:24px">
+    <div style="display:flex;gap:16px">
+      <div style="flex:1;position:relative"><span data-om-raster class="material-symbols-outlined" style="position:absolute;left:16px;top:16px;color:#707883">location_on</span><input style="width:100%;box-sizing:border-box;height:56px;padding:0 16px 0 52px;border:0;border-radius:12px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06);font:400 16px Inter" placeholder="Escolha uma cidade"></div>
+      <div style="flex:1;position:relative"><span data-om-raster class="material-symbols-outlined" style="position:absolute;left:16px;top:16px;color:#707883">menu_book</span><input style="width:100%;box-sizing:border-box;height:56px;padding:0 16px 0 52px;border:0;border-radius:12px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06);font:400 16px Inter" placeholder="Curso que deseja estudar"></div>
+      <div style="flex:1;position:relative"><span data-om-raster class="material-symbols-outlined" style="position:absolute;left:16px;top:16px;color:#707883">account_balance</span><input style="width:100%;box-sizing:border-box;height:56px;padding:0 16px 0 52px;border:0;border-radius:12px;background:#FFFFFF;box-shadow:0 1px 2px rgba(0,0,0,.06);font:400 16px Inter" placeholder="Faculdade que deseja estudar"></div>
+      <button style="height:56px;padding:0 32px;border-radius:12px;border:0;background:#2196F3;color:#FFFFFF;font:600 16px Inter;display:flex;align-items:center;gap:8px"><span data-om-raster class="material-symbols-outlined">search</span>Pesquisar</button>
+    </div>
+    <div style="display:flex;gap:32px;align-items:center;flex-wrap:wrap">
+      <div style="display:inline-flex;background:#FFFFFF;border-radius:9999px;padding:4px;box-shadow:0 1px 2px rgba(0,0,0,.06)">
+        <button style="height:40px;padding:0 20px;border-radius:9999px;border:0;background:#2196F3;color:#fff;font:600 14px Inter">Públicas / Federais</button>
+        <button style="height:40px;padding:0 20px;border-radius:9999px;border:0;background:transparent;color:#404752;font:600 14px Inter">Privadas</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;min-width:320px">
+        <span style="font-size:14px;font-weight:600;color:#404752">Nota mínima</span>
+        <div style="flex:1;position:relative;height:6px;border-radius:3px;background:#E2E2E2"><div style="position:absolute;left:0;top:0;height:6px;width:70%;background:#2196F3;border-radius:3px"></div><div style="position:absolute;left:70%;top:-7px;width:20px;height:20px;margin-left:-10px;border-radius:50%;background:#FFFFFF;border:2px solid #2196F3;box-sizing:border-box;box-shadow:0 1px 2px rgba(0,0,0,.1)"></div></div>
+        <span style="font-size:14px;font-weight:700;color:#0061A4;min-width:28px">3,5</span>
+      </div>
+      <a href="#" style="font-size:14px;font-weight:600;color:#0061A4;text-decoration:none;display:inline-flex;align-items:center;gap:4px">Filtros avançados<span data-om-raster class="material-symbols-outlined" style="font-size:20px">tune</span></a>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:12px;font-weight:600;color:#707883;text-transform:uppercase;letter-spacing:.08em;margin-right:8px">Chips</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;background:#D1E4FF;color:#0061A4;border-radius:9999px;padding:6px 8px 6px 12px;font-size:12px;font-weight:600">Sorocaba<span data-om-raster class="material-symbols-outlined" style="font-size:16px">close</span></span>
+      <span style="display:inline-flex;align-items:center;gap:6px;background:#D1E4FF;color:#0061A4;border-radius:9999px;padding:6px 8px 6px 12px;font-size:12px;font-weight:600">Aceita ENEM<span data-om-raster class="material-symbols-outlined" style="font-size:16px">close</span></span>
+      <span style="display:inline-flex;align-items:center;background:#2196F3;color:#FFFFFF;border-radius:9999px;padding:8px 16px;font-size:14px;font-weight:600">Todos</span>
+      <span style="display:inline-flex;align-items:center;background:#FFFFFF;color:#404752;border:1px solid #BFC7D4;border-radius:9999px;padding:8px 16px;font-size:14px;font-weight:600">Programas de Entrada</span>
+      <span style="display:inline-flex;align-items:center;background:#FFFFFF;color:#404752;border:1px solid #BFC7D4;border-radius:9999px;padding:8px 16px;font-size:14px;font-weight:600">Financiamento</span>
+      <span style="display:inline-flex;align-items:center;background:#FFFFFF;color:#404752;border:1px solid #BFC7D4;border-radius:9999px;padding:8px 16px;font-size:14px;font-weight:600">Bolsas de Estudo</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:12px;font-weight:600;color:#707883;text-transform:uppercase;letter-spacing:.08em;margin-right:8px">Tags</span>
+      <span style="background:#D1E4FF;color:#0061A4;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">ENEM</span>
+      <span style="background:#D1E4FF;color:#0061A4;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">SiSU</span>
+      <span style="background:#D1E4FF;color:#0061A4;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">Vestibular</span>
+      <span style="background:#D4E3FF;color:#005FAF;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">ProUni</span>
+      <span style="background:#FFDAD7;color:#B3272A;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">FIES</span>
+      <span style="background:#EEEEEE;color:#404752;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">Bacharelado</span>
+      <span style="background:#EEEEEE;color:#404752;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">Presencial</span>
+      <span style="background:#EEEEEE;color:#404752;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">8 semestres</span>
+    </div>
+  </div>
+</section></div></section>
+<section data-label="Cards" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">10. GJCard</h2>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:32px;align-items:start">
+    <!-- universidade -->
+    <div style="background:#F3F3F3;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px" style-hover="background:#EEEEEE">
+      <div style="height:120px;background:#FFFFFF;border-radius:12px;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box"><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:28px;color:#0061A4;letter-spacing:-0.02em">FATEC</span></div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <h3 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:22px;line-height:1.3">Fatec Sorocaba</h3>
+        <div style="font-size:14px;color:#404752">Sorocaba, SP</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="display:flex;gap:0;color:#F5A623"><span data-om-raster class="material-symbols-outlined fill" style="font-size:20px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:20px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:20px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:20px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:20px;color:#BFC7D4">star</span></div>
+        <span style="font-size:14px;color:#404752">4,6 (128 avaliações)</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span style="background:#D1E4FF;color:#0061A4;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">ENEM</span>
+        <span style="background:#D1E4FF;color:#0061A4;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">Vestibular</span>
+        <span style="background:#D4E3FF;color:#005FAF;border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600">ProUni</span>
+      </div>
+      <button style="height:44px;border-radius:12px;border:1px solid rgba(0,97,164,.2);background:transparent;color:#0061A4;font:600 14px Inter;width:100%">Saiba mais</button>
+      <div style="font-size:12px;color:#707883;text-align:center">GJCard.universidade</div>
+    </div>
+    <!-- programa -->
+    <div style="background:#F3F3F3;border-radius:20px;overflow:hidden;position:relative">
+      <div style="position:absolute;top:150px;right:-16px;color:rgba(0,97,164,.1);transform:rotate(12deg)"><span data-om-raster class="material-symbols-outlined" style="font-size:100px">bolt</span></div>
+      <div style="height:160px;overflow:hidden"><img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80" style="width:100%;height:100%;object-fit:cover;display:block" alt="Estudante escrevendo"></div>
+      <div style="padding:24px;display:flex;flex-direction:column;gap:12px;position:relative">
+        <div style="display:flex;align-items:center;gap:8px"><span data-om-raster class="material-symbols-outlined fill" style="color:#0061A4">school</span><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:#0061A4">ENEM</span></div>
+        <h3 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:22px;line-height:1.3">Exame Nacional do Ensino Médio</h3>
+        <p style="margin:0;font-size:14px;line-height:1.5;color:#404752">A principal porta de entrada para o ensino superior no Brasil.</p>
+        <button style="height:44px;border-radius:12px;border:1px solid rgba(0,97,164,.2);background:transparent;color:#0061A4;font:600 14px Inter;width:100%">Ver detalhes</button>
+        <div style="font-size:12px;color:#707883;text-align:center">GJCard.programa (Entrada)</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:32px">
+      <div style="background:#F3F3F3;border-radius:20px;overflow:hidden">
+        <div style="padding:24px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px"><span data-om-raster class="material-symbols-outlined fill" style="color:#005FAF">workspace_premium</span><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:#005FAF">ProUni</span></div>
+          <h3 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:22px;line-height:1.3">Bolsas de Estudo</h3>
+          <button style="height:44px;border-radius:12px;border:1px solid rgba(0,95,175,.2);background:transparent;color:#005FAF;font:600 14px Inter;width:100%">Ver detalhes</button>
+          <div style="font-size:12px;color:#707883;text-align:center">Variante Bolsa</div>
+        </div>
+      </div>
+      <div style="background:#F3F3F3;border-radius:20px;overflow:hidden">
+        <div style="padding:24px;display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px"><span data-om-raster class="material-symbols-outlined fill" style="color:#B3272A">account_balance_wallet</span><span style="font-family:'Plus Jakarta Sans';font-weight:800;font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:#B3272A">FIES</span></div>
+          <h3 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:22px;line-height:1.3">Fundo de Financiamento</h3>
+          <button style="height:44px;border-radius:12px;border:1px solid rgba(179,39,42,.2);background:transparent;color:#B3272A;font:600 14px Inter;width:100%">Ver detalhes</button>
+          <div style="font-size:12px;color:#707883;text-align:center">Variante Financiamento</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:32px">
+      <!-- curso -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="background:#F3F3F3;border-radius:16px;overflow:hidden;display:flex;flex-direction:column"><div style="aspect-ratio:1;overflow:hidden"><img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=80" style="width:100%;height:100%;object-fit:cover;display:block" alt=""></div><div style="padding:12px;font-size:14px;font-weight:600;text-align:center">Administração</div></div>
+        <div style="background:#F3F3F3;border-radius:16px;overflow:hidden;display:flex;flex-direction:column"><div style="aspect-ratio:1;overflow:hidden"><img src="https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=400&q=80" style="width:100%;height:100%;object-fit:cover;display:block" alt=""></div><div style="padding:12px;font-size:14px;font-weight:600;text-align:center">Biomedicina</div></div>
+      </div>
+      <div style="font-size:12px;color:#707883;text-align:center;margin-top:-20px">GJCard.curso</div>
+      <!-- info -->
+      <div style="display:flex;gap:16px;padding:16px;border-radius:16px;background:#F3F3F3">
+        <div style="width:48px;height:48px;border-radius:8px;background:#2196F3;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><span data-om-raster class="material-symbols-outlined">event</span></div>
+        <div><div style="font-weight:600;font-size:16px">Inscrições</div><div style="font-size:14px;color:#404752">25 de maio a 5 de junho de 2026</div></div>
+      </div>
+      <div style="font-size:12px;color:#707883;text-align:center;margin-top:-20px">GJCard.info</div>
+      <!-- metric -->
+      <div style="background:#FFFFFF;border-radius:16px;padding:24px;box-shadow:0 1px 2px rgba(0,0,0,.06);border:1px solid rgba(191,199,212,.2);display:flex;flex-direction:column;gap:8px">
+        <div style="font-size:12px;font-weight:600;color:#404752">Visualizações do perfil</div>
+        <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;color:#0061A4">1.284</div>
+        <div style="height:6px;border-radius:3px;background:#EEEEEE"><div style="width:72%;height:6px;border-radius:3px;background:#0061A4"></div></div>
+      </div>
+      <div style="font-size:12px;color:#707883;text-align:center;margin-top:-20px">GJCard.metric</div>
+      <!-- highlight -->
+      <div style="background:#0061A4;border-radius:16px;padding:24px;color:#fff;position:relative;overflow:hidden">
+        <span data-om-raster class="material-symbols-outlined" style="position:absolute;right:-24px;bottom:-32px;font-size:128px;color:rgba(255,255,255,.1)">visibility</span>
+        <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:18px;margin-bottom:8px">Visibilidade da Página</div>
+        <span style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border-radius:9999px;padding:4px 12px;font-size:12px;font-weight:600"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:#7BE495"></span>Publicado e Ativo</span>
+      </div>
+      <div style="font-size:12px;color:#707883;text-align:center;margin-top:-20px">GJCard.highlight</div>
+    </div>
+  </div>
+</section></div></section>
+<section data-label="Rating, Tabs, Stepper, Timeline" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+  <div style="display:flex;flex-direction:column;gap:24px">
+    <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">11. GJRating e GJTabs</h2>
+    <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:24px">
+      <div style="display:flex;align-items:center;gap:16px"><div style="display:flex;color:#F5A623"><span data-om-raster class="material-symbols-outlined fill" style="font-size:20px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:20px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:20px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:20px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:20px;color:#BFC7D4">star</span></div><span style="font-size:14px;color:#404752">4,6 (128 avaliações)</span><span style="font-size:12px;color:#707883">leitura 20 px</span></div>
+      <div style="display:flex;align-items:center;gap:16px"><div style="display:flex;gap:4px;color:#F5A623"><span data-om-raster class="material-symbols-outlined fill" style="font-size:32px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:32px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:32px">star</span><span data-om-raster class="material-symbols-outlined" style="font-size:32px;color:#BFC7D4">star</span><span data-om-raster class="material-symbols-outlined" style="font-size:32px;color:#BFC7D4">star</span></div><span style="font-size:14px;color:#404752">3 de 5 estrelas</span><span style="font-size:12px;color:#707883">input 32 px</span></div>
+      <div style="display:flex;border-bottom:1px solid rgba(191,199,212,.4)">
+        <div style="display:flex;align-items:center;gap:8px;padding:16px 24px;font-size:14px;font-weight:700;color:#0061A4;border-bottom:2px solid #0061A4;margin-bottom:-1px"><span data-om-raster class="material-symbols-outlined" style="font-size:20px">info</span>Informações</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:16px 24px;font-size:14px;font-weight:600;color:#404752"><span data-om-raster class="material-symbols-outlined" style="font-size:20px">menu_book</span>Cursos</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:16px 24px;font-size:14px;font-weight:600;color:#404752"><span data-om-raster class="material-symbols-outlined" style="font-size:20px">location_on</span>Campus</div>
+        <div style="display:flex;align-items:center;gap:8px;padding:16px 24px;font-size:14px;font-weight:600;color:#0061A4;background:#F9F9F9"><span data-om-raster class="material-symbols-outlined" style="font-size:20px">school</span>Programas (hover)</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0;padding:0 48px">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div style="width:32px;height:32px;border-radius:50%;background:#0061A4;color:#fff;display:flex;align-items:center;justify-content:center"><span data-om-raster class="material-symbols-outlined" style="font-size:18px">check</span></div><span style="font-size:12px;font-weight:500;color:#0061A4">Dados</span></div>
+        <div style="flex:1;height:2px;background:#0061A4;margin:0 8px 24px"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div style="width:32px;height:32px;border-radius:50%;border:2px solid #0061A4;box-sizing:border-box;color:#0061A4;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">2</div><span style="font-size:12px;font-weight:500;color:#0061A4">Programas</span></div>
+        <div style="flex:1;height:2px;background:#BFC7D4;margin:0 8px 24px"></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px"><div style="width:32px;height:32px;border-radius:50%;border:2px solid #BFC7D4;box-sizing:border-box;color:#707883;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">3</div><span style="font-size:12px;font-weight:500;color:#707883">Campus</span></div>
+      </div>
+      <div style="font-size:12px;color:#707883;text-align:center">GJStepper</div>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:24px">
+    <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">12. GJTimeline e GJEmptyState</h2>
+    <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:grid;grid-template-columns:1fr 1fr;gap:32px">
+      <div style="display:flex;flex-direction:column">
+        <div style="display:flex;gap:16px"><div style="width:48px;text-align:center"><div style="font-size:12px;font-weight:600;color:#707883;text-transform:uppercase">mai</div><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:22px;color:#0061A4">25</div></div><div style="width:2px;background:#BFC7D4;position:relative"><div style="position:absolute;top:8px;left:-4px;width:10px;height:10px;border-radius:50%;background:#0061A4"></div></div><div style="padding-bottom:24px"><div style="font-weight:600">Início das inscrições</div><div style="font-size:14px;color:#404752">Página do Participante</div></div></div>
+        <div style="display:flex;gap:16px"><div style="width:48px;text-align:center"><div style="font-size:12px;font-weight:600;color:#707883;text-transform:uppercase">nov</div><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:22px;color:#0061A4">08</div></div><div style="width:2px;background:#BFC7D4;position:relative"><div style="position:absolute;top:8px;left:-4px;width:10px;height:10px;border-radius:50%;background:#BFC7D4"></div></div><div style="padding-bottom:24px"><div style="font-weight:600">Primeiro dia de prova</div><div style="font-size:14px;color:#404752">Linguagens, Humanas e Redação</div></div></div>
+        <div style="display:flex;gap:16px"><div style="width:48px;text-align:center"><div style="font-size:12px;font-weight:600;color:#707883;text-transform:uppercase">nov</div><div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:22px;color:#0061A4">15</div></div><div style="width:2px;background:transparent;position:relative"><div style="position:absolute;top:8px;left:-4px;width:10px;height:10px;border-radius:50%;background:#BFC7D4"></div></div><div><div style="font-weight:600">Segundo dia de prova</div><div style="font-size:14px;color:#404752">Matemática e Natureza</div></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:24px;background:#F9F9F9;border-radius:16px">
+        <span data-om-raster class="material-symbols-outlined" style="font-size:48px;color:#707883">search_off</span>
+        <div style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:18px">Nenhuma universidade encontrada</div>
+        <div style="font-size:14px;color:#404752">Tente remover alguns filtros ou pesquisar por outra cidade.</div>
+        <button style="height:44px;padding:0 24px;border-radius:12px;border:1px solid rgba(0,97,164,.2);background:transparent;color:#0061A4;font:600 14px Inter">Limpar filtros</button>
+      </div>
+    </div>
+  </div>
+</section></div></section>
+<section data-label="Header, Footer, Avatar menu, Bell" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">13. GJHeader, GJAvatarMenu, GJNotificationBell, GJFooter</h2>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div style="height:72px;background:rgba(255,255,255,.8);backdrop-filter:blur(20px);box-shadow:0 1px 2px rgba(0,0,0,.06);border-radius:16px;display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+      <img data-om-raster src="brand/logo-horizontal.svg" alt="Guia Jovem" style="height:40px;width:auto;display:block">
+      <div style="display:flex;gap:32px;align-items:center">
+        <a href="#" style="font-size:16px;font-weight:700;color:#0061A4;text-decoration:none;border-bottom:2px solid #0061A4;padding-bottom:2px">Início</a>
+        <a href="#" style="font-size:16px;font-weight:500;color:#404752;text-decoration:none">Programas de Entrada</a>
+        <a href="#" style="font-size:16px;font-weight:500;color:#404752;text-decoration:none">Universidades</a>
+      </div>
+      <button style="height:40px;padding:0 24px;border-radius:9999px;border:0;background:#2196F3;color:#FFFFFF;font:600 14px Inter">Entrar</button>
+    </div>
+    <div style="position:relative;height:72px;background:rgba(255,255,255,.8);box-shadow:0 1px 2px rgba(0,0,0,.06);border-radius:16px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:2">
+      <img data-om-raster src="brand/logo-horizontal.svg" alt="Guia Jovem" style="height:40px;width:auto;display:block">
+      <div style="display:flex;gap:32px;align-items:center">
+        <a href="#" style="font-size:16px;font-weight:500;color:#404752;text-decoration:none">Início</a>
+        <a href="#" style="font-size:16px;font-weight:500;color:#404752;text-decoration:none">Programas de Entrada</a>
+        <a href="#" style="font-size:16px;font-weight:700;color:#0061A4;text-decoration:none;border-bottom:2px solid #0061A4;padding-bottom:2px">Universidades</a>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span data-om-raster class="material-symbols-outlined" style="color:#404752">notifications</span><span style="position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#BA1A1A;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">3</span></div>
+        <div style="width:40px;height:40px;border-radius:50%;background:#2196F3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">MS</div>
+      </div>
+      <!-- avatar dropdown -->
+      <div style="position:absolute;right:24px;top:80px;width:240px;background:#FFFFFF;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);padding:8px;display:flex;flex-direction:column">
+        <div style="padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;color:#1A1C1C;border-radius:8px"><span data-om-raster class="material-symbols-outlined" style="font-size:20px;color:#404752">person</span>Visualizar Perfil</div>
+        <div style="padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;color:#1A1C1C;border-radius:8px;background:#F3F3F3"><span data-om-raster class="material-symbols-outlined" style="font-size:20px;color:#404752">dashboard</span>Painel Administrativo</div>
+        <div style="padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;color:#1A1C1C;border-radius:8px"><span data-om-raster class="material-symbols-outlined" style="font-size:20px;color:#404752">logout</span>Desligar</div>
+        <div style="height:1px;background:#E8E8E8;margin:4px 8px"></div>
+        <div style="padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;color:#BA1A1A;border-radius:8px"><span data-om-raster class="material-symbols-outlined" style="font-size:20px">delete</span>Excluir Conta</div>
+      </div>
+      <!-- bell dropdown -->
+      <div style="position:absolute;right:300px;top:80px;width:360px;background:#FFFFFF;border-radius:16px;box-shadow:0 4px 12px rgba(0,0,0,.08);display:flex;flex-direction:column;overflow:hidden">
+        <div style="padding:16px 20px;font-family:'Plus Jakarta Sans';font-weight:700;font-size:16px;border-bottom:1px solid #E8E8E8">Notificações</div>
+        <div style="padding:12px 20px;display:flex;gap:12px;background:#F9F9F9"><span style="width:8px;height:8px;border-radius:50%;background:#0061A4;margin-top:6px;flex-shrink:0"></span><div><div style="font-size:14px;font-weight:600">Sua universidade foi aprovada</div><div style="font-size:14px;color:#404752">A página da Fatec já está visível para os estudantes.</div><div style="font-size:12px;color:#707883;margin-top:4px">há 2 horas</div></div></div>
+        <div style="padding:12px 20px;display:flex;gap:12px;background:#F9F9F9"><span style="width:8px;height:8px;border-radius:50%;background:#0061A4;margin-top:6px;flex-shrink:0"></span><div><div style="font-size:14px;font-weight:600">Nova sugestão recebida</div><div style="font-size:14px;color:#404752">Lucas enviou uma sugestão sobre o curso de ADS.</div><div style="font-size:12px;color:#707883;margin-top:4px">ontem</div></div></div>
+        <div style="padding:12px 20px;display:flex;gap:12px"><span style="width:8px;height:8px;flex-shrink:0"></span><div><div style="font-size:14px;font-weight:600;color:#404752">Sugestão respondida</div><div style="font-size:14px;color:#707883">Sua sugestão sobre horários foi aprovada.</div><div style="font-size:12px;color:#707883;margin-top:4px">há 3 dias</div></div></div>
+        <div style="padding:12px 20px;border-top:1px solid #E8E8E8;font-size:14px;font-weight:600;color:#0061A4;text-align:center">Marcar todas como lidas</div>
+      </div>
+    </div>
+    <div style="height:280px"></div>
+    <div style="height:72px;background:rgba(255,255,255,.8);box-shadow:0 1px 2px rgba(0,0,0,.06);border-radius:16px;display:flex;align-items:center;justify-content:space-between;padding:0 24px">
+      <div style="display:flex;align-items:center;gap:16px">
+        <img data-om-raster src="brand/logo-horizontal.svg" alt="Guia Jovem" style="height:40px;width:auto;display:block">
+        <div style="width:1px;height:24px;background:#BFC7D4"></div>
+        <div style="font-size:16px;font-weight:500;color:#404752">Painel da Universidade</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center"><span data-om-raster class="material-symbols-outlined" style="color:#404752">notifications</span><span style="position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;background:#BA1A1A;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">3</span></div>
+        <div style="width:40px;height:40px;border-radius:50%;background:#D1E4FF;display:flex;align-items:center;justify-content:center"><img data-om-raster src="brand/symbol.svg" alt="" style="width:24px;height:24px;display:block"></div>
+      </div>
+    </div>
+    <footer style="background:#0061A4;color:#fff;border-radius:16px;padding:48px 64px;display:grid;grid-template-columns:1fr 1fr;gap:64px">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <img data-om-raster src="brand/logo-horizontal-white.svg" alt="Guia Jovem" style="height:40px;width:auto;display:block">
+        <p style="margin:0;font-size:14px;line-height:1.6;color:rgba(255,255,255,.8);max-width:400px">Informações sobre programas de entrada, financiamento, bolsas de estudo e universidades em um só lugar.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-end">
+        <div style="display:flex;gap:32px"><a href="#" style="color:#fff;font-size:14px;font-weight:500;text-decoration:none">Sobre</a><a href="#" style="color:#fff;font-size:14px;font-weight:500;text-decoration:none">Contato</a><a href="#" style="color:#fff;font-size:14px;font-weight:500;text-decoration:none">Privacidade</a><a href="#" style="color:#fff;font-size:14px;font-weight:500;text-decoration:none">Termos</a></div>
+        <div style="font-size:14px;color:rgba(255,255,255,.8);margin-top:auto">© 2026 Guia Jovem. O Mentor Dinâmico.</div>
+      </div>
+    </footer>
+  </div>
+</section></div></section>
+<section data-label="Modal, Dialog, Drawer, Toast, Alert" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">14. GJModal, GJDialog, GJDrawer, GJToast, GJAlert</h2>
+  <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:32px;align-items:start">
+    <div style="background:rgba(26,28,28,.2);border-radius:16px;padding:48px;display:flex;flex-direction:column;gap:32px;align-items:center">
+      <div style="width:100%;max-width:720px;background:#FFFFFF;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:48px;position:relative;display:flex;flex-direction:column;gap:24px">
+        <span data-om-raster class="material-symbols-outlined" style="position:absolute;right:24px;top:24px;color:#404752">close</span>
+        <h4 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:22px">Como foi sua experiência com a Fatec?</h4>
+        <div style="display:flex;gap:8px;color:#F5A623"><span data-om-raster class="material-symbols-outlined fill" style="font-size:40px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:40px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:40px">star</span><span data-om-raster class="material-symbols-outlined fill" style="font-size:40px">star</span><span data-om-raster class="material-symbols-outlined" style="font-size:40px;color:#BFC7D4">star</span></div>
+        <label style="display:flex;flex-direction:column;gap:8px"><textarea style="height:120px;padding:16px;border:0;border-radius:12px;background:#F3F3F3;font:400 16px Inter;resize:none" placeholder="Conte para outros estudantes..."></textarea><span style="font-size:12px;color:#707883;text-align:right">0/500</span></label>
+        <div style="display:flex;justify-content:flex-end;gap:12px"><button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:transparent;color:#0061A4;font:600 14px Inter">Cancelar</button><button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#2196F3;color:#fff;font:600 14px Inter">Enviar avaliação</button></div>
+      </div>
+      <div style="width:440px;background:#FFFFFF;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.12);padding:32px;display:flex;flex-direction:column;gap:16px">
+        <h4 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:18px">Confirmação</h4>
+        <p style="margin:0;font-size:16px;line-height:1.6;color:#404752">Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.</p>
+        <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Digite EXCLUIR para confirmar</span><input style="height:44px;padding:0 16px;border:0;border-radius:8px;background:#F3F3F3;font:400 14px Inter" placeholder="EXCLUIR"></label>
+        <div style="display:flex;justify-content:flex-end;gap:12px"><button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:transparent;color:#0061A4;font:600 14px Inter">Cancelar</button><button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:#BA1A1A;color:#fff;font:600 14px Inter;opacity:.4">Excluir</button></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:24px">
+      <div style="background:#FFFFFF;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.12);display:flex;flex-direction:column;height:360px;overflow:hidden">
+        <div style="padding:20px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #E8E8E8"><span style="font-family:'Plus Jakarta Sans';font-weight:700;font-size:18px">Novo curso</span><span data-om-raster class="material-symbols-outlined" style="color:#404752">close</span></div>
+        <div style="padding:24px;display:flex;flex-direction:column;gap:16px;flex:1">
+          <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Nome do curso</span><input style="height:44px;padding:0 16px;border:0;border-radius:8px;background:#F3F3F3;font:400 14px Inter" placeholder="Análise e Desenvolvimento de Sistemas"></label>
+          <label style="display:flex;flex-direction:column;gap:8px"><span style="font-size:14px;font-weight:600;color:#404752;margin-left:4px">Área</span><div style="height:44px;padding:0 16px;border-radius:8px;background:#F3F3F3;font:400 14px Inter;display:flex;align-items:center;justify-content:space-between">Tecnologia<span data-om-raster class="material-symbols-outlined" style="color:#707883">expand_more</span></div></label>
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid #E8E8E8;display:flex;justify-content:flex-end;gap:12px;background:#F9F9F9"><button style="height:44px;padding:0 24px;border-radius:12px;border:0;background:transparent;color:#0061A4;font:600 14px Inter">Cancelar</button><button style="height:44px;padding:0 24px;border-radius:9999px;border:0;background:#2196F3;color:#fff;font:600 14px Inter">Salvar</button></div>
+      </div>
+      <div style="font-size:12px;color:#707883;text-align:center;margin-top:-16px">GJDrawer (480 px, lateral direita)</div>
+      <div style="display:flex;align-items:center;gap:12px;background:#2F3131;color:#F1F1F1;border-radius:12px;padding:14px 16px;box-shadow:0 4px 12px rgba(0,0,0,.08)"><span data-om-raster class="material-symbols-outlined" style="color:#7BE495">check_circle</span><span style="font-size:14px;font-weight:500">Senha alterada com sucesso</span><span data-om-raster class="material-symbols-outlined" style="margin-left:auto;font-size:20px;color:#F1F1F1">close</span></div>
+      <div style="display:flex;align-items:center;gap:12px;background:#2F3131;color:#F1F1F1;border-radius:12px;padding:14px 16px"><span data-om-raster class="material-symbols-outlined" style="color:#FFB4AB">error</span><span style="font-size:14px;font-weight:500">Não foi possível salvar. Tente novamente.</span></div>
+      <div style="display:flex;gap:12px;background:#FFE8B8;color:#B26A00;border-radius:12px;padding:16px"><span data-om-raster class="material-symbols-outlined">warning</span><div style="font-size:14px;line-height:1.5"><strong>Cadastro em análise.</strong> A página da sua universidade ainda não está visível para os estudantes. Você receberá um e-mail em até 15 dias úteis.</div></div>
+      <div style="display:flex;gap:12px;background:#FFDAD6;color:#93000A;border-radius:12px;padding:16px"><span data-om-raster class="material-symbols-outlined">error</span><div style="font-size:14px;line-height:1.5">E-mail ou senha incorretos</div></div>
+      <div style="display:flex;gap:12px;background:#D8F3DC;color:#1B7F3B;border-radius:12px;padding:16px"><span data-om-raster class="material-symbols-outlined">check_circle</span><div style="font-size:14px;line-height:1.5">Cadastro enviado para análise.</div></div>
+    </div>
+  </div>
+</section></div></section>
+<section data-label="Tabela e Skeleton" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">15. GJDataTable e GJSkeleton</h2>
+  <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:32px;align-items:start">
+    <div style="background:#FFFFFF;border-radius:16px;box-shadow:0 1px 2px rgba(0,0,0,.06);border:1px solid rgba(191,199,212,.2);overflow:hidden">
+      <div style="padding:16px 24px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #E8E8E8">
+        <div style="position:relative;flex:1;max-width:320px"><span data-om-raster class="material-symbols-outlined" style="position:absolute;left:12px;top:10px;color:#707883;font-size:20px">search</span><input style="width:100%;box-sizing:border-box;height:40px;padding:0 12px 0 40px;border:0;border-radius:8px;background:#F3F3F3;font:400 14px Inter" placeholder="Buscar curso"></div>
+        <span style="display:inline-flex;align-items:center;gap:6px;background:#FFFFFF;color:#404752;border:1px solid #BFC7D4;border-radius:9999px;padding:8px 16px;font-size:14px;font-weight:600">Área<span data-om-raster class="material-symbols-outlined" style="font-size:16px">expand_more</span></span>
+        <button style="margin-left:auto;height:40px;padding:0 20px;border-radius:9999px;border:0;background:#2196F3;color:#fff;font:600 14px Inter;display:flex;align-items:center;gap:8px"><span data-om-raster class="material-symbols-outlined" style="font-size:20px">add</span>Novo curso</button>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 96px;padding:0 24px;height:48px;align-items:center;background:#F3F3F3;font-size:14px;font-weight:600;color:#404752"><div>Nome</div><div>Área</div><div>Grau</div><div>Modalidade</div><div style="text-align:right">Ações</div></div>
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="3">
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 96px;padding:0 24px;height:56px;align-items:center;border-bottom:1px solid #DADADA;font-size:14px" style-hover="background:#F3F3F3"><div style="font-weight:500">{{ r.nome }}</div><div style="color:#404752">{{ r.area }}</div><div style="color:#404752">{{ r.grau }}</div><div style="color:#404752">{{ r.mod }}</div><div style="display:flex;justify-content:flex-end;gap:4px;color:#404752"><span data-om-raster class="material-symbols-outlined" style="font-size:20px">edit</span><span data-om-raster class="material-symbols-outlined" style="font-size:20px">delete</span></div></div>
+      </sc-for>
+      <div style="padding:16px 24px;display:flex;justify-content:space-between;align-items:center;font-size:14px;color:#404752"><span>Mostrando 1 a 3 de 12</span><div style="display:flex;gap:4px;align-items:center"><span data-om-raster class="material-symbols-outlined" style="font-size:20px">chevron_left</span><span style="width:32px;height:32px;border-radius:8px;background:#2196F3;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600">1</span><span style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center">2</span><span style="width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center">3</span><span data-om-raster class="material-symbols-outlined" style="font-size:20px">chevron_right</span></div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:24px">
+      <div style="background:#F3F3F3;border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:16px">
+        <div class="sk" style="height:120px;border-radius:12px"></div>
+        <div class="sk" style="height:24px;width:70%;border-radius:6px"></div>
+        <div class="sk" style="height:14px;width:40%;border-radius:6px"></div>
+        <div style="display:flex;gap:8px"><div class="sk" style="height:24px;width:56px;border-radius:9999px"></div><div class="sk" style="height:24px;width:72px;border-radius:9999px"></div></div>
+        <div class="sk" style="height:44px;border-radius:12px"></div>
+      </div>
+      <div style="font-size:12px;color:#707883;text-align:center;margin-top:-16px">Skeleton do card de universidade</div>
+      <div style="background:#FFFFFF;border-radius:16px;padding:0 24px;box-shadow:0 1px 2px rgba(0,0,0,.06)">
+        <div style="display:flex;gap:16px;align-items:center;height:56px;border-bottom:1px solid #DADADA"><div class="sk" style="height:14px;flex:2;border-radius:6px"></div><div class="sk" style="height:14px;flex:1;border-radius:6px"></div><div class="sk" style="height:14px;flex:1;border-radius:6px"></div></div>
+        <div style="display:flex;gap:16px;align-items:center;height:56px;border-bottom:1px solid #DADADA"><div class="sk" style="height:14px;flex:2;border-radius:6px"></div><div class="sk" style="height:14px;flex:1;border-radius:6px"></div><div class="sk" style="height:14px;flex:1;border-radius:6px"></div></div>
+        <div style="display:flex;gap:16px;align-items:center;height:56px"><div class="sk" style="height:14px;flex:2;border-radius:6px"></div><div class="sk" style="height:14px;flex:1;border-radius:6px"></div><div class="sk" style="height:14px;flex:1;border-radius:6px"></div></div>
+      </div>
+      <div style="font-size:12px;color:#707883;text-align:center;margin-top:-16px">Skeleton de tabela</div>
+    </div>
+  </div>
+</section></div></section>
+<section data-label="Marca" style="background:#F9F9F9;color:#1A1C1C;font-family:Inter,sans-serif;padding:72px 96px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px;overflow:hidden"><div style="zoom:1.3;width:1329px"><section style="display:flex;flex-direction:column;gap:24px">
+  <h2 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:28px;line-height:1.2">16. Marca e logo</h2>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;align-items:stretch">
+    <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center">
+      <img data-om-raster src="brand/logo-stacked.svg" alt="Guia Jovem" style="width:220px;display:block">
+      <div style="font-size:12px;font-family:monospace;color:#707883">gj.brand.logo.stacked</div>
+      <div style="font-size:12px;color:#404752;text-align:center">Login, cadastro, sucesso, carregamento. Mínimo 120 px de largura.</div>
+    </div>
+    <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center">
+      <img data-om-raster src="brand/logo-horizontal.svg" alt="Guia Jovem" style="height:40px;width:auto;display:block">
+      <div style="font-size:12px;font-family:monospace;color:#707883">gj.brand.logo.horizontal</div>
+      <div style="font-size:12px;color:#404752;text-align:center">Header público, header de painel, e-mails. 140 x 40 px.</div>
+    </div>
+    <div style="background:#FFFFFF;border-radius:16px;padding:32px;box-shadow:0 1px 2px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center">
+      <div style="display:flex;gap:24px;align-items:flex-end">
+        <img data-om-raster src="brand/symbol.svg" alt="Símbolo Guia Jovem" style="width:64px;display:block">
+        <img data-om-raster src="brand/symbol.svg" alt="" style="width:24px;display:block">
+        <div style="width:40px;height:40px;border-radius:50%;background:#D1E4FF;display:flex;align-items:center;justify-content:center"><img data-om-raster src="brand/symbol.svg" alt="" style="width:24px;display:block"></div>
+      </div>
+      <div style="font-size:12px;font-family:monospace;color:#707883">gj.brand.symbol</div>
+      <div style="font-size:12px;color:#404752;text-align:center">Favicon, ícone do app, avatar padrão, marcador de mapa. Mínimo 24 px.</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;align-items:stretch">
+    <div style="background:#0061A4;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:16px;align-items:center;justify-content:center">
+      <img data-om-raster src="brand/logo-horizontal-white.svg" alt="Guia Jovem" style="height:40px;width:auto;display:block">
+      <div style="font-size:12px;font-family:monospace;color:rgba(255,255,255,.8)">gj.brand.logo.mono.light</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.8);text-align:center">Footer e cards com fundo primary.</div>
+    </div>
+    <div style="position:relative;border-radius:16px;overflow:hidden;min-height:180px;display:flex;align-items:center;justify-content:center">
+      <img src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&q=80" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+      <div style="position:absolute;inset:0;background:rgba(26,28,28,.4)"></div>
+      <div style="position:relative;display:flex;flex-direction:column;gap:12px;align-items:center"><img data-om-raster src="brand/logo-stacked-white.svg" alt="Guia Jovem" style="width:150px;display:block"><div style="font-size:12px;color:#FFFFFF">Sobre fotos: versão branca com overlay 40%</div></div>
+    </div>
+    <div style="background:#F3F3F3;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:12px">
+      <h4 style="margin:0;font-family:'Plus Jakarta Sans';font-weight:700;font-size:18px">Regras de uso</h4>
+      <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.7;color:#404752">
+        <li>Texto em text.primary (#1A1C1C), traços em primary (#0061A4). Versão branca toda em #FFFFFF.</li>
+        <li>Todas as versões são 100% vetoriais, sem elementos rasterizados.</li>
+        <li>Área de respiro mínima: altura da letra G.</li>
+        <li>Não deformar, rotacionar, sombrear nem aplicar gradiente.</li>
+        <li>O wordmark em texto só é permitido como fallback, onde o logo horizontal não couber.</li>
+      </ul>
+    </div>
+  </div>
+</section></div></section>
+</x-import>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      colors: [
+        {token:'primary',hex:'#0061A4',use:'Marca, links, ícones ativos, rodapé'},
+        {token:'primary.container',hex:'#2196F3',use:'Botão primário, tabs ativas'},
+        {token:'primary.dark',hex:'#00497D',use:'Hover/pressed do primário'},
+        {token:'primary.fixed',hex:'#D1E4FF',use:'Seleção, tag Entrada, hover suave'},
+        {token:'primary.fixed.dim',hex:'#9ECAFF',use:'Bordas de destaque'},
+        {token:'primary.container.on',hex:'#002C4F',use:'Texto sobre container claro'},
+        {token:'secondary',hex:'#005FAF',use:'Categoria Bolsas'},
+        {token:'secondary.container',hex:'#54A0FE',use:'Progresso secundário'},
+        {token:'secondary.fixed',hex:'#D4E3FF',use:'Fundo tag Bolsa'},
+        {token:'tertiary',hex:'#B3272A',use:'Categoria Financiamento'},
+        {token:'tertiary.container',hex:'#FA5B57',use:'Destaques quentes'},
+        {token:'tertiary.fixed',hex:'#FFDAD7',use:'Fundo tag Financiamento'},
+        {token:'error',hex:'#BA1A1A',use:'Erro, botão danger'},
+        {token:'error.container',hex:'#FFDAD6',use:'Fundo de alerta de erro'},
+        {token:'error.on.container',hex:'#93000A',use:'Texto de alerta de erro'},
+        {token:'success',hex:'#1B7F3B',use:'Aprovado, publicado'},
+        {token:'success.container',hex:'#D8F3DC',use:'Fundo tag Aprovada'},
+        {token:'warning',hex:'#B26A00',use:'Em análise, pendente'},
+        {token:'warning.container',hex:'#FFE8B8',use:'Fundo tag Em análise'},
+        {token:'rating',hex:'#F5A623',use:'Estrelas'},
+        {token:'background',hex:'#F9F9F9',use:'Fundo da página'},
+        {token:'surface.lowest',hex:'#FFFFFF',use:'Cards principais, modais'},
+        {token:'surface.low',hex:'#F3F3F3',use:'Cards secundários, inputs painel'},
+        {token:'surface',hex:'#EEEEEE',use:'Hover de card, trilho'},
+        {token:'surface.high',hex:'#E8E8E8',use:'Divisores fortes'},
+        {token:'surface.highest',hex:'#E2E2E2',use:'Skeleton'},
+        {token:'surface.dim',hex:'#DADADA',use:'Bordas de tabela'},
+        {token:'text.primary',hex:'#1A1C1C',use:'Títulos e corpo'},
+        {token:'text.secondary',hex:'#404752',use:'Descrições, labels'},
+        {token:'text.disabled',hex:'#707883',use:'Placeholder, inativo'},
+        {token:'border',hex:'#BFC7D4',use:'Bordas de input, tabela'},
+        {token:'inverse.surface',hex:'#2F3131',use:'Toast, tooltip'}
+      ],
+      type: [
+        {token:'display',family:"'Plus Jakarta Sans'",size:'48px',weight:800,lh:1.1,ls:'-0.02em',tt:'none',sample:'Encontre seu caminho para a universidade',spec:'Jakarta 800, 48/36 px, lh 1.1'},
+        {token:'h1',family:"'Plus Jakarta Sans'",size:'36px',weight:800,lh:1.15,ls:'0',tt:'none',sample:'Configurações Gerais',spec:'Jakarta 800, 36/28 px'},
+        {token:'h2',family:"'Plus Jakarta Sans'",size:'28px',weight:700,lh:1.2,ls:'0',tt:'none',sample:'Programas de Entrada',spec:'Jakarta 700, 28/24 px'},
+        {token:'h3',family:"'Plus Jakarta Sans'",size:'22px',weight:700,lh:1.3,ls:'0',tt:'none',sample:'Fatec Sorocaba',spec:'Jakarta 700, 22/20 px'},
+        {token:'h4',family:"'Plus Jakarta Sans'",size:'18px',weight:700,lh:1.35,ls:'0',tt:'none',sample:'Alterar senha',spec:'Jakarta 700, 18 px'},
+        {token:'eyebrow',family:"'Plus Jakarta Sans'",size:'14px',weight:800,lh:1.4,ls:'0.12em',tt:'uppercase',sample:'Programa principal',spec:'Jakarta 800, 14 px, caixa alta'},
+        {token:'logo',family:"'Plus Jakarta Sans'",size:'24px',weight:800,lh:1.2,ls:'-0.03em',tt:'none',sample:'Guia Jovem',spec:'Jakarta 800, 24 px, tracking -0.03em'},
+        {token:'body.lg',family:'Inter',size:'18px',weight:400,lh:1.6,ls:'0',tt:'none',sample:'A principal porta de entrada para o ensino superior no Brasil.',spec:'Inter 400, 18 px, lh 1.6'},
+        {token:'body',family:'Inter',size:'16px',weight:400,lh:1.6,ls:'0',tt:'none',sample:'Utilize sua nota para SiSU, ProUni e FIES.',spec:'Inter 400, 16 px, lh 1.6'},
+        {token:'body.sm',family:'Inter',size:'14px',weight:400,lh:1.5,ls:'0',tt:'none',sample:'Sorocaba, SP. 128 avaliações.',spec:'Inter 400, 14 px, lh 1.5'},
+        {token:'label',family:'Inter',size:'14px',weight:600,lh:1.4,ls:'0',tt:'none',sample:'Salvar alterações',spec:'Inter 600, 14 px'},
+        {token:'caption',family:'Inter',size:'12px',weight:500,lh:1.4,ls:'0',tt:'none',sample:'Atualizado há 2 horas · 120/500',spec:'Inter 500, 12 px'}
+      ],
+      spaces: [1,2,3,4,5,6,8,12,16,24].map(n=>({token:'space.'+n,v:n*4,w:(n*4)+'px'})),
+      radii: [
+        {token:'radius.xs',v:'4 px',css:'4px'},{token:'radius.sm',v:'8 px',css:'8px'},{token:'radius.md',v:'12 px',css:'12px'},
+        {token:'radius.lg',v:'16 px',css:'16px'},{token:'radius.xl',v:'20 px',css:'20px'},{token:'radius.full',v:'9999',css:'9999px'}
+      ],
+      icons: [
+        ['Universidades','account_balance'],['Campus','location_on'],['Cursos','menu_book'],['Programas','school'],['Bolsas','workspace_premium'],['Financiamento','account_balance_wallet'],['Sugestões','chat_bubble'],['Notificações','notifications'],['Avaliação','star'],
+        ['Favorito','bookmark'],['Perfil','person'],['Sair','logout'],['Excluir','delete'],['Editar','edit'],['Salvar','save'],['Pesquisar','search'],['Voltar','arrow_back'],['Link externo','open_in_new'],
+        ['Simulados','quiz'],['Informações','info'],['Dashboard','dashboard'],['Usuários','group'],['Aprovar','check_circle'],['Reprovar','cancel'],['Decorativo','auto_awesome'],['Decorativo','bolt'],['Decorativo','visibility']
+      ].map(([label,icon])=>({label,icon})),
+      rows: [
+        {nome:'Análise e Desenvolvimento de Sistemas',area:'Tecnologia',grau:'Tecnólogo',mod:'Presencial'},
+        {nome:'Gestão Empresarial',area:'Negócios',grau:'Tecnólogo',mod:'EaD'},
+        {nome:'Logística',area:'Negócios',grau:'Tecnólogo',mod:'Presencial'}
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
