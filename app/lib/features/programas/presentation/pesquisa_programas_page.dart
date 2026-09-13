@@ -4,16 +4,15 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/paginated_result.dart';
-import '../../../core/theme/gj_colors.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/public_layout.dart';
+import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/widgets/gj_card.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
 import '../../../shared/widgets/gj_input.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tabs.dart';
-import '../../../shared/widgets/gj_tag.dart';
 import '../data/programas_repository.dart';
 import '../domain/programa.dart';
 
@@ -66,7 +65,7 @@ class _PesquisaProgramasPageState extends State<PesquisaProgramasPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Escolha o Programa de Entrada que deseja ver', style: GJTypography.h1()),
+            Text('Programas de entrada, financiamento e bolsas de estudo', style: GJTypography.h1()),
             const SizedBox(height: GJSpace.s6),
             SizedBox(
               width: isMobile ? double.infinity : 480,
@@ -96,9 +95,9 @@ class _PesquisaProgramasPageState extends State<PesquisaProgramasPage> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState != ConnectionState.done) {
                   return Wrap(
-                    spacing: GJSpace.s4,
-                    runSpacing: GJSpace.s4,
-                    children: List.generate(6, (_) => const SizedBox(width: 280, child: GJSkeletonCard())),
+                    spacing: GJSpace.s6,
+                    runSpacing: GJSpace.s6,
+                    children: List.generate(4, (_) => const SizedBox(width: 280, child: GJSkeletonCard())),
                   );
                 }
 
@@ -118,53 +117,28 @@ class _PesquisaProgramasPageState extends State<PesquisaProgramasPage> {
                 }
 
                 return Wrap(
-                  spacing: GJSpace.s4,
-                  runSpacing: GJSpace.s4,
+                  spacing: GJSpace.s6,
+                  runSpacing: GJSpace.s6,
                   children: [
                     for (final programa in programas)
-                      SizedBox(width: isMobile ? double.infinity : 280, child: _CardPrograma(programa: programa)),
+                      SizedBox(
+                        width: isMobile ? double.infinity : 280,
+                        child: GJCard.programa(
+                          imagemUrl: programa.imagemUrl ?? imagemProgramaPadrao,
+                          icone: iconePrograma(programa.sigla, programa.tipo),
+                          cor: corPrograma(programa.tipo),
+                          sigla: programa.sigla ?? programa.tipo,
+                          nome: programa.nome,
+                          descricao: programa.descricao,
+                          onTap: () => context.go('/programas/${programa.id}'),
+                        ),
+                      ),
                   ],
                 );
               },
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _CardPrograma extends StatelessWidget {
-  const _CardPrograma({required this.programa});
-
-  final ProgramaResumo programa;
-
-  @override
-  Widget build(BuildContext context) {
-    final tone = switch (programa.tipo) {
-      'FINANCIAMENTO' => GJTagTone.financiamento,
-      'BOLSA' => GJTagTone.bolsa,
-      _ => GJTagTone.entrada,
-    };
-    final cor = switch (programa.tipo) {
-      'FINANCIAMENTO' => GJColors.tertiary,
-      'BOLSA' => GJColors.secondary,
-      _ => GJColors.primary,
-    };
-
-    return GJCard(
-      onTap: () => context.go('/programas/${programa.id}'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Symbols.school, color: cor, size: 28),
-          const SizedBox(height: GJSpace.s3),
-          GJTag(label: programa.sigla ?? programa.tipo, tone: tone),
-          const SizedBox(height: GJSpace.s2),
-          Text(programa.nome, style: GJTypography.h4(), maxLines: 2, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: GJSpace.s1),
-          Text(programa.descricao, style: GJTypography.bodySm(), maxLines: 3, overflow: TextOverflow.ellipsis),
-        ],
       ),
     );
   }
