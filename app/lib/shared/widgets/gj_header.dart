@@ -82,7 +82,20 @@ class GJHeader extends StatelessWidget implements PreferredSizeWidget {
                 Container(width: 1, height: 24, color: GJColors.border),
                 const SizedBox(width: GJSpace.s4),
                 if (!isMobile)
-                  Text(tituloPainel!, style: GJTypography.body().copyWith(color: GJColors.textSecondary)),
+                  // Flexible com ellipsis: sem isso, um título de painel
+                  // comprido (ex.: "Painel de Administração da
+                  // Universidade") tem largura livre num Row sem Expanded
+                  // (não há navItems no header de painel), e em janelas
+                  // estreitas o Row estoura e o ClipRect externo corta o
+                  // que vem depois (sino/avatar/Entrar).
+                  Flexible(
+                    child: Text(
+                      tituloPainel!,
+                      style: GJTypography.body().copyWith(color: GJColors.textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
               ],
               if (!isMobile && navItems.isNotEmpty)
                 Expanded(

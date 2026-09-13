@@ -1,41 +1,81 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
+import '../../features/auth/data/session_controller.dart';
+import '../../features/auth/domain/usuario_sessao.dart';
+import '../../features/auth/presentation/widgets/excluir_conta_dialog.dart';
+import '../widgets/gj_avatar_menu.dart';
 import '../widgets/gj_footer.dart';
 import '../widgets/gj_header.dart';
 
 enum PublicRota { inicio, programas, universidades, outra }
 
 /// Layout das telas públicas (Home, pesquisa, detalhes): header fixo +
-/// conteúdo + footer. Ainda sem sessão (Fase 1 do frontend não existe),
-/// então o header é sempre a variante visitante.
+/// conteúdo + footer. O header reage à sessão (visitante x logado, seção
+/// 8, "Layout público").
 class PublicLayout extends StatelessWidget {
   const PublicLayout({super.key, required this.child, this.rotaAtiva = PublicRota.outra});
 
   final Widget child;
   final PublicRota rotaAtiva;
 
+  List<GJHeaderNavItem> _navItems(BuildContext context) => [
+        GJHeaderNavItem(label: 'Início', ativo: rotaAtiva == PublicRota.inicio, onTap: () => context.go('/')),
+        GJHeaderNavItem(
+          label: 'Programas de Entrada',
+          ativo: rotaAtiva == PublicRota.programas,
+          onTap: () => context.go('/programas'),
+        ),
+        GJHeaderNavItem(
+          label: 'Universidades',
+          ativo: rotaAtiva == PublicRota.universidades,
+          onTap: () => context.go('/universidades'),
+        ),
+      ];
+
+  PreferredSizeWidget _header(BuildContext context) {
+    final usuario = sessionController.usuario;
+
+    if (usuario == null) {
+      return GJHeader.visitante(
+        navItems: _navItems(context),
+        onEntrar: () => context.go('/login', extra: {'redirect': GoRouterState.of(context).uri.toString()}),
+      );
+    }
+
+    return GJHeader.logado(
+      navItems: _navItems(context),
+      avatarMenu: GJAvatarMenu(
+        iniciais: usuario.primeiroNome.isNotEmpty ? usuario.primeiroNome[0].toUpperCase() : '?',
+        fotoUrl: usuario.fotoUrl,
+        itens: [
+          GJAvatarMenuItem(label: 'Visualizar Perfil', icon: Symbols.person, onTap: () => context.go('/perfil')),
+          if (usuario.tipoUsuario == TipoUsuario.universidade)
+            GJAvatarMenuItem(
+              label: 'Painel Administrativo',
+              icon: Symbols.dashboard,
+              onTap: () => context.go('/painel-universidade'),
+            ),
+          if (usuario.tipoUsuario == TipoUsuario.admin)
+            GJAvatarMenuItem(label: 'Painel Administrativo', icon: Symbols.dashboard, onTap: () => context.go('/admin')),
+          GJAvatarMenuItem(label: 'Desligar', icon: Symbols.logout, onTap: () => mostrarDialogoDesligar(context)),
+          GJAvatarMenuItem(
+            label: 'Excluir Conta',
+            icon: Symbols.delete,
+            destructivo: true,
+            dividerAcima: true,
+            onTap: () => mostrarDialogoExcluirConta(context),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: GJHeader.visitante(
-        navItems: [
-          GJHeaderNavItem(label: 'Início', ativo: rotaAtiva == PublicRota.inicio, onTap: () => context.go('/')),
-          GJHeaderNavItem(
-            label: 'Programas de Entrada',
-            ativo: rotaAtiva == PublicRota.programas,
-            onTap: () => context.go('/programas'),
-          ),
-          GJHeaderNavItem(
-            label: 'Universidades',
-            ativo: rotaAtiva == PublicRota.universidades,
-            onTap: () => context.go('/universidades'),
-          ),
-        ],
-        onEntrar: () => ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login chega em uma próxima fase do app.')),
-        ),
-      ),
+      appBar: _ReactiveHeader(builder: _header),
       // Nem IntrinsicHeight nem SliverFillRemaining com Expanded no conteúdo
       // funcionam aqui: os dois pedem pro Column esticar o conteúdo dentro
       // de uma altura pré-calculada, e essa altura é calculada a partir da
@@ -80,5 +120,21 @@ class PublicLayout extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+/// Reconstrói o header quando a sessão muda (login/logout), sem precisar
+/// que a página inteira vire StatefulWidget.
+class _ReactiveHeader extends StatelessWidget implements PreferredSizeWidget {
+  const _ReactiveHeader({required this.builder});
+
+  final PreferredSizeWidget Function(BuildContext) builder;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(72);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(listenable: sessionController, builder: (context, _) => builder(context));
   }
 }

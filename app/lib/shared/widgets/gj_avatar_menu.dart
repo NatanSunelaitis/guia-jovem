@@ -61,11 +61,19 @@ class GJAvatarMenu extends StatelessWidget {
                           color: item.destructivo ? GJColors.error : GJColors.textSecondary,
                         ),
                         const SizedBox(width: GJSpace.s3),
-                        Text(
-                          item.label,
-                          style: GJTypography.body().copyWith(
-                            fontSize: 14,
-                            color: item.destructivo ? GJColors.error : GJColors.textPrimary,
+                        // Expanded com ellipsis: rótulos mais longos (ex.:
+                        // "Painel Administrativo") não cabem na largura fixa
+                        // do menu (240px) menos ícone e paddings, e sem isso
+                        // dá RenderFlex overflow em vez de truncar.
+                        Expanded(
+                          child: Text(
+                            item.label,
+                            style: GJTypography.body().copyWith(
+                              fontSize: 14,
+                              color: item.destructivo ? GJColors.error : GJColors.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
