@@ -12,7 +12,7 @@ async function listar(req, res, next) {
 
 async function destaques(req, res, next) {
   try {
-    const cursos = await service.listarDestaques(prisma, req.query.limite);
+    const cursos = await service.listarDestaques(prisma, req.query);
     res.json({ data: cursos, meta: {} });
   } catch (erro) {
     next(erro);

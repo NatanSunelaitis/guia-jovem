@@ -54,6 +54,16 @@ describe('GET /api/v1/cursos/destaques', () => {
     expect(resposta.body.data[0]).toEqual({ nome: 'Administração', areaCurso: 'Negócios', totalOfertas: 2 });
     expect(resposta.body.data[1]).toEqual({ nome: 'Farmácia', areaCurso: 'Saúde', totalOfertas: 1 });
   });
+
+  it('aplica os filtros q e areaCurso (usado por T07)', async () => {
+    prisma.curso.findMany.mockResolvedValue([]);
+
+    await request(app).get('/api/v1/cursos/destaques?q=Farm&areaCurso=Sa%C3%BAde&limite=100');
+
+    const chamada = prisma.curso.findMany.mock.calls[0][0];
+    expect(chamada.where.nome).toEqual({ contains: 'Farm' });
+    expect(chamada.where.areaCurso).toEqual({ contains: 'Saúde' });
+  });
 });
 
 describe('GET /api/v1/cursos/:id', () => {

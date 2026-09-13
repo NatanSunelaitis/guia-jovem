@@ -577,7 +577,9 @@ paths:
       tags: [Cursos]
       summary: Cursos mais ofertados, agrupados por nome (RF21)
       parameters:
-        - { in: query, name: limite, schema: { type: integer, default: 8 } }
+        - { in: query, name: limite, schema: { type: integer, default: 8, maximum: 200 } }
+        - { in: query, name: q, schema: { type: string }, description: 'Usado por T07 (lista de cursos) para buscar por nome' }
+        - { in: query, name: areaCurso, schema: { type: string } }
       responses:
         '200':
           description: Lista de destaques

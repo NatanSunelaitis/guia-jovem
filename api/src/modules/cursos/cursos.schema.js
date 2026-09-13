@@ -24,7 +24,9 @@ const listQuerySchema = {
 
 const destaquesQuerySchema = {
   query: z.object({
-    limite: z.coerce.number().int().positive().max(50).optional(),
+    limite: z.coerce.number().int().positive().max(200).optional(),
+    q: z.string().trim().min(1).optional(),
+    areaCurso: z.string().trim().min(1).optional(),
   }),
 };
 

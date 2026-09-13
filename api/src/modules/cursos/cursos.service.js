@@ -52,8 +52,9 @@ async function listar(prisma, query) {
   return { data: cursos.map(paraLista), meta: buildMeta({ page, pageSize, total }) };
 }
 
-async function listarDestaques(prisma, limite = DESTAQUES_PADRAO) {
-  const cursos = await repo.nomesAtivos(prisma);
+async function listarDestaques(prisma, { limite = DESTAQUES_PADRAO, q, areaCurso } = {}) {
+  const where = buildWhere({ q, areaCurso });
+  const cursos = await repo.nomesAtivos(prisma, where);
 
   const contagemPorNome = new Map();
   const areaPorNome = new Map();
