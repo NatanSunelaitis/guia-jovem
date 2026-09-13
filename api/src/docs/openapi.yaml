@@ -18,6 +18,12 @@ tags:
     description: Login, cadastro de aluno, Google, tokens e recuperação de senha (RF07, RF08, RF09)
   - name: Usuários
     description: Gestão de usuários, alteração de senha e exclusão de conta (RF11)
+  - name: Universidades
+    description: Catálogo público de universidades, campus e avaliações (RF01, RF02, RF04, RF05, RF06)
+  - name: Cursos
+    description: Catálogo público de cursos (RF21, RF22)
+  - name: Programas
+    description: Catálogo público de programas de entrada, financiamento e bolsas (RF12, RF13, RF19)
 paths:
   /health:
     get:
@@ -384,6 +390,335 @@ paths:
         '400': { $ref: '#/components/responses/ValidationError' }
         '403': { $ref: '#/components/responses/Proibido' }
 
+  /universidades:
+    get:
+      tags: [Universidades]
+      summary: Pesquisa dinâmica de universidades (RF06)
+      description: Só retorna universidades com status=A.
+      parameters:
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: cidade, schema: { type: string } }
+        - { in: query, name: estado, schema: { type: string, minLength: 2, maxLength: 2 } }
+        - { in: query, name: natureza, schema: { type: string, enum: [P, V] } }
+        - { in: query, name: programaId, schema: { type: integer } }
+        - { in: query, name: cursoId, schema: { type: integer } }
+        - { in: query, name: areaCurso, schema: { type: string } }
+        - { in: query, name: sort, schema: { type: string, enum: [nome, media, avaliacoes] } }
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/UniversidadeResumo' }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+
+  /universidades/destaques:
+    get:
+      tags: [Universidades]
+      summary: Carrossel de destaques da home (RF06)
+      parameters:
+        - { in: query, name: limite, schema: { type: integer, default: 8 } }
+      responses:
+        '200':
+          description: Lista de destaques
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/UniversidadeResumo' }
+                  meta: { type: object }
+
+  /universidades/{id}:
+    get:
+      tags: [Universidades]
+      summary: Detalhe da universidade (RF04, RF05)
+      description: Registra visita_pagina. Só retorna universidades com status=A.
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: Universidade encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/UniversidadeDetalhe' }
+                  meta: { type: object }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/campus:
+    get:
+      tags: [Universidades]
+      summary: Lista os campus da universidade, com os cursos ofertados em cada um
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: Lista de campus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Campus' }
+                  meta: { type: object }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/cursos:
+    get:
+      tags: [Universidades]
+      summary: Lista os cursos da universidade
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: Lista de cursos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Curso' }
+                  meta: { type: object }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/avaliacoes:
+    get:
+      tags: [Universidades]
+      summary: Lista paginada de avaliações da universidade (RF02)
+      description: Mostra só o primeiro nome do autor (RNF17/RNF24). Vazio até a Fase 4 criar avaliações.
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Lista paginada de avaliações
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Avaliacao' }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /campus/{id}:
+    get:
+      tags: [Universidades]
+      summary: Detalhe do campus, com endereço e cursos ofertados (RF23, RF24)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Campus encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Campus' }
+                  meta: { type: object }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /cursos:
+    get:
+      tags: [Cursos]
+      summary: Pesquisa de cursos (RF21)
+      parameters:
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: areaCurso, schema: { type: string } }
+        - { in: query, name: modalidade, schema: { type: string } }
+        - { in: query, name: grau, schema: { type: string } }
+        - { in: query, name: universidadeId, schema: { type: integer } }
+        - { in: query, name: cidade, schema: { type: string } }
+        - { in: query, name: estado, schema: { type: string, minLength: 2, maxLength: 2 } }
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Curso' }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+
+  /cursos/destaques:
+    get:
+      tags: [Cursos]
+      summary: Cursos mais ofertados, agrupados por nome (RF21)
+      parameters:
+        - { in: query, name: limite, schema: { type: integer, default: 8 } }
+      responses:
+        '200':
+          description: Lista de destaques
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        nome: { type: string }
+                        totalOfertas: { type: integer }
+                  meta: { type: object }
+
+  /cursos/nome/{nome}:
+    get:
+      tags: [Cursos]
+      summary: Universidades onde um curso (pelo nome) está disponível
+      parameters:
+        - in: path
+          name: nome
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Universidades encontradas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      nome: { type: string }
+                      universidades: { type: array, items: { type: object } }
+                  meta: { type: object }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /cursos/{id}:
+    get:
+      tags: [Cursos]
+      summary: Detalhe do curso, com os campus onde é ofertado (RF22)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Curso encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Curso' }
+                  meta: { type: object }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /programas:
+    get:
+      tags: [Programas]
+      summary: Pesquisa de programas de entrada, financiamento e bolsas (RF12, RF13, RF19)
+      parameters:
+        - { in: query, name: tipo, schema: { type: string, enum: [ENTRADA, FINANCIAMENTO, BOLSA] } }
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: universidadeId, schema: { type: integer } }
+        - { in: query, name: apenasGlobais, schema: { type: boolean } }
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Programa' }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+
+  /programas/destaques:
+    get:
+      tags: [Programas]
+      summary: Carrossel de destaques da home
+      parameters:
+        - { in: query, name: limite, schema: { type: integer, default: 8 } }
+      responses:
+        '200':
+          description: Lista de destaques
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Programa' }
+                  meta: { type: object }
+
+  /programas/{id}:
+    get:
+      tags: [Programas]
+      summary: Detalhe do programa, com cronograma e universidades que aceitam
+      description: Registra visita_pagina.
+      parameters:
+        - $ref: '#/components/parameters/ProgramaId'
+      responses:
+        '200':
+          description: Programa encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProgramaDetalhe' }
+                  meta: { type: object }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /programas/{id}/universidades:
+    get:
+      tags: [Programas]
+      summary: Universidades que aceitam este programa
+      parameters:
+        - $ref: '#/components/parameters/ProgramaId'
+      responses:
+        '200':
+          description: Lista de universidades
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { type: object } }
+                  meta: { type: object }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -392,6 +727,16 @@ components:
       bearerFormat: JWT
   parameters:
     UsuarioId:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer }
+    UniversidadeId:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer }
+    ProgramaId:
       in: path
       name: id
       required: true
@@ -449,6 +794,98 @@ components:
             refreshToken: { type: string }
             usuario: { $ref: '#/components/schemas/UsuarioResumo' }
         meta: { type: object }
+    UniversidadeResumo:
+      type: object
+      properties:
+        id: { type: integer }
+        nomeFantasia: { type: string }
+        logoUrl: { type: string, nullable: true }
+        natureza: { type: string, enum: [P, V] }
+        mediaAvaliacao: { type: number, nullable: true }
+        totalAvaliacoes: { type: integer }
+        cidade: { type: string, nullable: true }
+        estado: { type: string, nullable: true }
+        programas:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              nome: { type: string }
+              sigla: { type: string, nullable: true }
+              tipo: { type: string, enum: [ENTRADA, FINANCIAMENTO, BOLSA] }
+    UniversidadeDetalhe:
+      type: object
+      properties:
+        id: { type: integer }
+        nomeFantasia: { type: string }
+        razaoSocial: { type: string }
+        descricao: { type: string, nullable: true }
+        logoUrl: { type: string, nullable: true }
+        natureza: { type: string, enum: [P, V] }
+        linkPagina: { type: string, nullable: true }
+        linkSimulados: { type: string, nullable: true }
+        mediaAvaliacao: { type: number, nullable: true }
+        totalAvaliacoes: { type: integer }
+        enderecoPrincipal: { type: object, nullable: true }
+        campus: { type: array, items: { type: object } }
+        programas:
+          type: object
+          properties:
+            ENTRADA: { type: array, items: { type: object } }
+            FINANCIAMENTO: { type: array, items: { type: object } }
+            BOLSA: { type: array, items: { type: object } }
+    Campus:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        telefoneCelular: { type: string, nullable: true }
+        telefoneFixo: { type: string, nullable: true }
+        emailCampus: { type: string, nullable: true }
+        principal: { type: boolean }
+        endereco: { type: object }
+        cursos: { type: array, items: { type: object } }
+    Curso:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        areaCurso: { type: string, nullable: true }
+        modalidade: { type: string, nullable: true }
+        grau: { type: string, nullable: true }
+        duracaoSemestres: { type: integer, nullable: true }
+        descricao: { type: string, nullable: true }
+        universidade: { type: object }
+        campus: { type: array, items: { type: object } }
+    Avaliacao:
+      type: object
+      properties:
+        id: { type: integer }
+        nota: { type: integer, minimum: 1, maximum: 5 }
+        comentario: { type: string, nullable: true }
+        criadoEm: { type: string, format: date-time }
+        autor: { type: string, nullable: true, description: 'Só o primeiro nome; null se a conta foi excluída' }
+    Programa:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        sigla: { type: string, nullable: true }
+        tipo: { type: string, enum: [ENTRADA, FINANCIAMENTO, BOLSA] }
+        descricao: { type: string }
+        imagemUrl: { type: string, nullable: true }
+        universidadeId: { type: integer, nullable: true }
+    ProgramaDetalhe:
+      allOf:
+        - $ref: '#/components/schemas/Programa'
+        - type: object
+          properties:
+            requisitos: { type: string, nullable: true }
+            comoFunciona: { type: string, nullable: true }
+            linkOficial: { type: string, nullable: true }
+            eventos: { type: array, items: { type: object } }
+            universidades: { type: array, items: { type: object } }
   responses:
     Sucesso:
       description: Operação concluída
