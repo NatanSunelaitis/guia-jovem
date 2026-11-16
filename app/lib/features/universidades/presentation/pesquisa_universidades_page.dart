@@ -20,10 +20,14 @@ import '../../../shared/widgets/gj_empty_state.dart';
 import '../../../shared/widgets/gj_input.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tag.dart';
+import '../../auth/data/session_controller.dart';
+import '../../auth/presentation/exigir_aluno.dart';
+import '../../favoritos/data/favoritos_repository.dart';
 import '../../programas/data/programas_repository.dart';
 import '../../programas/domain/programa.dart';
 import '../data/universidades_repository.dart';
 import '../domain/universidade.dart';
+import 'salvar_pesquisa_dialog.dart';
 
 class PesquisaUniversidadesPage extends StatefulWidget {
   const PesquisaUniversidadesPage({super.key, this.filtrosIniciais});
@@ -47,19 +51,76 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
   int? _programaId;
   String? _programaNome;
   String? _estado;
+  int? _cursoId;
   double _notaMinima = 0;
   bool _filtrosAvancadosAbertos = false;
+
+  // Pesquisa salva aberta por `/universidades?pesquisaSalva=<id>` (perfil T19).
+  String? _nomePesquisaSalva;
+  String? _avisoPesquisaSalva;
 
   @override
   void initState() {
     super.initState();
     final iniciais = widget.filtrosIniciais ?? const {};
-    _qController.text = iniciais['q'] ?? '';
-    _cidadeController.text = iniciais['cidade'] ?? '';
-    _areaCursoController.text = iniciais['areaCurso'] ?? '';
-    _natureza = iniciais['natureza'];
-    _programaId = int.tryParse(iniciais['programaId'] ?? '');
-    _buscar();
+    final pesquisaSalvaId = int.tryParse(iniciais['pesquisaSalva'] ?? '');
+
+    if (pesquisaSalvaId != null) {
+      _filtros = const FiltrosUniversidades();
+      _future = _abrirPesquisaSalva(pesquisaSalvaId);
+    } else {
+      _aplicarFiltros(iniciais);
+      _buscar();
+    }
+  }
+
+  /// Preenche os campos a partir de filtros em texto, no mesmo formato da
+  /// query string de GET /universidades (rota, retorno do login, pesquisa salva).
+  void _aplicarFiltros(Map<String, String> filtros) {
+    _qController.text = filtros['q'] ?? '';
+    _cidadeController.text = filtros['cidade'] ?? '';
+    _areaCursoController.text = filtros['areaCurso'] ?? '';
+    _natureza = filtros['natureza'];
+    _estado = filtros['estado'];
+    _programaId = int.tryParse(filtros['programaId'] ?? '');
+    _cursoId = int.tryParse(filtros['cursoId'] ?? '');
+    _notaMinima = (double.tryParse(filtros['notaMinima'] ?? '') ?? 0).clamp(0, 5).toDouble();
+    _sort = const {'nome', 'media', 'avaliacoes'}.contains(filtros['sort']) ? filtros['sort']! : 'nome';
+    _resolverNomePrograma();
+  }
+
+  /// O chip "Aceita X" precisa do nome do programa, que não vem nos filtros.
+  void _resolverNomePrograma() {
+    final programaId = _programaId;
+    if (programaId == null) return;
+    _futureProgramas ??= programasRepository.listar(const FiltrosProgramas()).then((r) => r.data);
+    _futureProgramas!.then((programas) {
+      final programa = programas.where((p) => p.id == programaId).firstOrNull;
+      if (mounted && programa != null && _programaId == programaId) {
+        setState(() => _programaNome = programa.sigla ?? programa.nome);
+      }
+    }).catchError((_) {});
+  }
+
+  Future<PaginatedResult<UniversidadeResumo>> _abrirPesquisaSalva(int id) async {
+    if (!sessionController.autenticado) {
+      _avisoPesquisaSalva = 'Entre na sua conta para abrir suas pesquisas salvas.';
+    } else {
+      try {
+        final pesquisa = await favoritosRepository.obterPesquisa(id);
+        if (mounted) {
+          setState(() {
+            _aplicarFiltros(pesquisa.filtrosComoTexto);
+            _nomePesquisaSalva = pesquisa.nome;
+          });
+        }
+      } on ApiException catch (erro) {
+        if (mounted) setState(() => _avisoPesquisaSalva = erro.message);
+      }
+    }
+
+    _filtros = _montarFiltros();
+    return universidadesRepository.listar(_filtros);
   }
 
   @override
@@ -70,21 +131,46 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
     super.dispose();
   }
 
+  FiltrosUniversidades _montarFiltros({int page = 1}) {
+    return FiltrosUniversidades(
+      q: _qController.text,
+      cidade: _cidadeController.text,
+      estado: _estado,
+      natureza: _natureza,
+      programaId: _programaId,
+      cursoId: _cursoId,
+      areaCurso: _areaCursoController.text,
+      notaMinima: _notaMinima > 0 ? _notaMinima : null,
+      sort: _sort,
+      page: page,
+    );
+  }
+
   void _buscar({int page = 1}) {
     setState(() {
-      _filtros = FiltrosUniversidades(
-        q: _qController.text,
-        cidade: _cidadeController.text,
-        estado: _estado,
-        natureza: _natureza,
-        programaId: _programaId,
-        areaCurso: _areaCursoController.text,
-        notaMinima: _notaMinima > 0 ? _notaMinima : null,
-        sort: _sort,
-        page: page,
-      );
+      _filtros = _montarFiltros(page: page);
       _future = universidadesRepository.listar(_filtros);
     });
+  }
+
+  /// Filtros da última pesquisa feita, sem paginação: é o que se salva e o
+  /// que volta na URL depois do login.
+  Map<String, dynamic> get _parametrosDaPesquisa => _filtros.toQuery()..remove('page');
+
+  String get _rotaAtual {
+    final parametros = {for (final e in _parametrosDaPesquisa.entries) e.key: e.value.toString()};
+    return Uri(path: '/universidades', queryParameters: parametros.isEmpty ? null : parametros).toString();
+  }
+
+  void _avisar(String mensagem) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensagem)));
+  }
+
+  Future<void> _salvarPesquisa() async {
+    if (!exigirAluno(context, voltarPara: _rotaAtual)) return;
+
+    final salva = await mostrarDialogoSalvarPesquisa(context, parametros: _parametrosDaPesquisa);
+    if (salva != null && mounted) _avisar('Pesquisa "${salva.nome}" salva.');
   }
 
   void _limparTudo() {
@@ -121,6 +207,14 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Escolha sua faculdade e a cidade para buscar as melhores vagas', style: GJTypography.h1()),
+            if (_nomePesquisaSalva != null) ...[
+              const SizedBox(height: GJSpace.s2),
+              Text('Pesquisa salva: $_nomePesquisaSalva', style: GJTypography.h4().copyWith(color: GJColors.primary)),
+            ],
+            if (_avisoPesquisaSalva != null) ...[
+              const SizedBox(height: GJSpace.s2),
+              Text(_avisoPesquisaSalva!, style: GJTypography.label(color: GJColors.error)),
+            ],
             const SizedBox(height: GJSpace.s6),
             _filtrosCard(isMobile),
             const SizedBox(height: GJSpace.s8),
@@ -297,9 +391,11 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
   }
 
   Widget _botaoSalvarPesquisa() {
-    return const Tooltip(
-      message: 'Entre para salvar pesquisas',
-      child: GJButton(label: 'Salvar pesquisa', icon: Symbols.bookmark_add, variant: GJButtonVariant.ghost),
+    return GJButton(
+      label: 'Salvar pesquisa',
+      icon: Symbols.bookmark_add,
+      variant: GJButtonVariant.ghost,
+      onPressed: _salvarPesquisa,
     );
   }
 
