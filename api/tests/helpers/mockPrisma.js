@@ -19,6 +19,7 @@ const prisma = {
   notificacao: createModel(['create', 'createMany']),
   avaliacao: createModel(['findUnique', 'findMany', 'count', 'create', 'update', 'delete', 'aggregate']),
   universidadeSalva: createModel(['findUnique', 'findMany', 'count', 'create', 'deleteMany']),
+  pesquisaSalva: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'delete']),
   logAuditoria: createModel(['create']),
   visitaPagina: createModel(['create']),
   $queryRaw: jest.fn().mockResolvedValue([]),

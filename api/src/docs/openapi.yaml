@@ -30,6 +30,8 @@ tags:
     description: Avaliação de universidade pelo aluno, uma por aluno por universidade (RF02)
   - name: Favoritos
     description: Faculdades salvas do aluno (Figura 25)
+  - name: Pesquisas salvas
+    description: Pesquisas de universidades salvas pelo aluno para reexecução (classe pesquisaSalva)
 paths:
   /health:
     get:
@@ -989,6 +991,97 @@ paths:
         '401': { $ref: '#/components/responses/NaoAutenticado' }
         '403': { $ref: '#/components/responses/Proibido' }
 
+  /pesquisas-salvas:
+    get:
+      tags: [Pesquisas salvas]
+      summary: Pesquisas salvas do aluno logado
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Lista paginada, da mais recente para a mais antiga
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/PesquisaSalva' }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+    post:
+      tags: [Pesquisas salvas]
+      summary: Salva a pesquisa de universidades atual
+      description: >
+        `parametros` passa pelo mesmo schema de GET /universidades (sem page e
+        pageSize); filtro inválido ou desconhecido responde 400. A data é
+        gravada pelo servidor. Nome repetido para o mesmo aluno responde 409
+        PESQUISA_DUPLICADA.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nome]
+              properties:
+                nome: { type: string, maxLength: 100 }
+                tipo: { type: string, enum: [UNIVERSIDADE], default: UNIVERSIDADE }
+                parametros: { $ref: '#/components/schemas/FiltrosPesquisa' }
+      responses:
+        '201':
+          description: Pesquisa salva
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PesquisaSalva' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '409': { $ref: '#/components/responses/Conflito' }
+
+  /pesquisas-salvas/{id}:
+    get:
+      tags: [Pesquisas salvas]
+      summary: Obtém uma pesquisa salva, com os filtros para reexecução
+      description: Só o dono; pesquisa de outro aluno responde 403.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: Pesquisa salva
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/PesquisaSalva' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Pesquisas salvas]
+      summary: Exclui uma pesquisa salva
+      description: Só o dono; pesquisa de outro aluno responde 403.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
   /relatorios/pesquisa:
     get:
       tags: [Relatorios]
@@ -1192,6 +1285,28 @@ components:
         - type: object
           properties:
             universidade: { $ref: '#/components/schemas/MediaUniversidade' }
+    FiltrosPesquisa:
+      type: object
+      additionalProperties: false
+      description: Mesmos filtros de GET /universidades
+      properties:
+        q: { type: string }
+        cidade: { type: string }
+        estado: { type: string, minLength: 2, maxLength: 2 }
+        natureza: { type: string, enum: [P, V] }
+        programaId: { type: integer }
+        cursoId: { type: integer }
+        areaCurso: { type: string }
+        notaMinima: { type: number, minimum: 0, maximum: 5 }
+        sort: { type: string, enum: [nome, media, avaliacoes] }
+    PesquisaSalva:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        tipo: { type: string, enum: [UNIVERSIDADE] }
+        parametros: { $ref: '#/components/schemas/FiltrosPesquisa' }
+        criadoEm: { type: string, format: date-time }
     Programa:
       type: object
       properties:
