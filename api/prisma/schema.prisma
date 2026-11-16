@@ -72,6 +72,7 @@ model Universidade {
   logoUrl           String?   @map("logo_url") @db.VarChar(255)
   natureza          String    @default("V") @db.Char(1) // P pública | V privada
   status            String    @default("P") @db.Char(1) // P pendente | A aprovada | R reprovada | I inativa
+  motivoReprovacao  String?   @map("motivo_reprovacao") @db.Text // RF25: preenchido ao reprovar
   aprovadoEm        DateTime? @map("aprovado_em") @db.DateTime(3)
   aprovadoPor       Int?      @map("aprovado_por")
   mediaAvaliacao    Decimal?  @map("media_avaliacao") @db.Decimal(3, 2)
@@ -117,6 +118,7 @@ model Campus {
   universidadeId  Int     @map("id_universidade")
   enderecoId      Int     @map("id_endereco")
   nome            String  @db.VarChar(100)
+  cnpj            String? @db.Char(14) // opcional; CNPJ alfanumérico (14 caracteres)
   telefoneCelular String? @map("telefone_celular") @db.VarChar(15)
   telefoneFixo    String? @map("telefone_fixo") @db.VarChar(15)
   emailCampus     String? @map("email_campus") @db.VarChar(100)
@@ -286,6 +288,7 @@ model PesquisaSalva {
 
   usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
+  @@unique([usuarioId, nome], map: "uk_pesquisa_salva_usuario_nome")
   @@map("pesquisa_salva")
 }
 
