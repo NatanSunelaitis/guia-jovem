@@ -10,16 +10,17 @@ const prisma = {
   usuario: createModel(['findUnique', 'findMany', 'count', 'create', 'update', 'delete']),
   refreshToken: createModel(['create', 'findUnique', 'update', 'updateMany']),
   tokenRecuperacao: createModel(['create', 'findUnique', 'update']),
-  universidade: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'updateMany']),
+  universidade: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update', 'updateMany']),
   campus: createModel(['findUnique', 'findFirst', 'findMany', 'create']),
   curso: createModel(['findUnique', 'findFirst', 'findMany', 'count']),
   programa: createModel(['findUnique', 'findFirst', 'findMany', 'count']),
   universidadePrograma: createModel(['createMany']),
   endereco: createModel(['create']),
   notificacao: createModel(['create', 'createMany']),
-  avaliacao: createModel(['findMany', 'count']),
+  avaliacao: createModel(['findUnique', 'findMany', 'count', 'create', 'update', 'delete', 'aggregate']),
   logAuditoria: createModel(['create']),
   visitaPagina: createModel(['create']),
+  $queryRaw: jest.fn().mockResolvedValue([]),
   $transaction: jest.fn((operacoes) => {
     if (Array.isArray(operacoes)) return Promise.all(operacoes);
     return operacoes(prisma);
@@ -30,6 +31,10 @@ function resetMockPrisma() {
   for (const [chave, modelo] of Object.entries(prisma)) {
     if (chave === '$transaction') {
       prisma.$transaction.mockClear();
+      continue;
+    }
+    if (chave === '$queryRaw') {
+      prisma.$queryRaw.mockClear();
       continue;
     }
     for (const metodo of Object.values(modelo)) {

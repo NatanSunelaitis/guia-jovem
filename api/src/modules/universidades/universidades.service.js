@@ -1,5 +1,6 @@
 const AppError = require('../../shared/errors/AppError');
 const { buildMeta, parsePagination } = require('../../shared/utils/pagination');
+const avaliacoesService = require('../avaliacoes/avaliacoes.service');
 const repo = require('./universidades.repository');
 
 function campusPrincipalResumo(universidade) {
@@ -113,6 +114,8 @@ async function obterDetalhe(prisma, id, req) {
   req.registrarVisita({ entidade: 'universidade', entidadeId: id });
 
   const principal = universidade.campus.find((c) => c.principal) ?? universidade.campus[0] ?? null;
+  const ehAluno = req.user?.tipoUsuario === 'A';
+  const minhaAvaliacao = ehAluno ? await avaliacoesService.minhaAvaliacao(prisma, req.user.id, id) : null;
 
   return {
     id: universidade.id,
@@ -143,6 +146,8 @@ async function obterDetalhe(prisma, id, req) {
       principal: c.principal,
     })),
     programas: agruparProgramasPorTipo(universidade.universidadeProgramas),
+    // null para visitante, para quem não é aluno ou para aluno que ainda não avaliou.
+    minhaAvaliacao,
   };
 }
 

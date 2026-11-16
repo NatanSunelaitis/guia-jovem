@@ -24,4 +24,18 @@ function auth(req, res, next) {
   }
 }
 
+/**
+ * Para rotas públicas que mudam a resposta quando há sessão (ex.: detalhe da
+ * universidade dizendo se o aluno já avaliou). Sem cabeçalho, segue como
+ * visitante; com token inválido ou expirado, responde 401 para o app renovar
+ * a sessão em vez de mostrar o estado de visitante.
+ */
+function opcional(req, res, next) {
+  if (!req.headers.authorization) {
+    return next();
+  }
+  return auth(req, res, next);
+}
+
 module.exports = auth;
+module.exports.opcional = opcional;

@@ -26,6 +26,8 @@ tags:
     description: Catálogo público de programas de entrada, financiamento e bolsas (RF12, RF13, RF19)
   - name: Relatorios
     description: Relatório de pesquisa exportável em CSV/PDF (RF03)
+  - name: Avaliações
+    description: Avaliação de universidade pelo aluno, uma por aluno por universidade (RF02)
 paths:
   /health:
     get:
@@ -507,7 +509,11 @@ paths:
     get:
       tags: [Universidades]
       summary: Detalhe da universidade (RF04, RF05)
-      description: Registra visita_pagina. Só retorna universidades com status=A.
+      description: >
+        Registra visita_pagina. Só retorna universidades com status=A. Pública;
+        o token é opcional. Com token de aluno, `minhaAvaliacao` traz a
+        avaliação dele (ou null). Token inválido ou expirado responde 401.
+      security: [{}, { bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/UniversidadeId'
       responses:
@@ -520,6 +526,7 @@ paths:
                 properties:
                   data: { $ref: '#/components/schemas/UniversidadeDetalhe' }
                   meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
   /universidades/{id}/campus:
@@ -566,7 +573,7 @@ paths:
     get:
       tags: [Universidades]
       summary: Lista paginada de avaliações da universidade (RF02)
-      description: Mostra só o primeiro nome do autor (RNF17/RNF24). Vazio até a Fase 4 criar avaliações.
+      description: Mostra só o primeiro nome do autor (RNF17/RNF24), da mais recente para a mais antiga.
       parameters:
         - $ref: '#/components/parameters/UniversidadeId'
         - { in: query, name: page, schema: { type: integer, default: 1 } }
@@ -583,6 +590,122 @@ paths:
                     type: array
                     items: { $ref: '#/components/schemas/Avaliacao' }
                   meta: { $ref: '#/components/schemas/Paginacao' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    post:
+      tags: [Avaliações]
+      summary: Aluno avalia a universidade (RF02)
+      description: >
+        Só perfil aluno e só universidade com status=A. Uma avaliação por aluno
+        por universidade: se já existe, responde 409 AVALIACAO_DUPLICADA (editar
+        com PUT /avaliacoes/{id}). A data é gravada pelo servidor. Recalcula
+        mediaAvaliacao e totalAvaliacoes na mesma transação.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AvaliacaoEntrada' }
+      responses:
+        '201':
+          description: Avaliação criada, com a média atualizada da universidade
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AvaliacaoGravada' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflito' }
+
+  /avaliacoes/minhas:
+    get:
+      tags: [Avaliações]
+      summary: Avaliações do aluno logado
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/MinhaAvaliacao'
+                        - type: object
+                          properties:
+                            universidade:
+                              type: object
+                              properties:
+                                id: { type: integer }
+                                nomeFantasia: { type: string }
+                                logoUrl: { type: string, nullable: true }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+
+  /avaliacoes/{id}:
+    put:
+      tags: [Avaliações]
+      summary: Aluno edita a própria avaliação (RF02)
+      description: Só o autor. Recalcula a média na mesma transação.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AvaliacaoEntrada' }
+      responses:
+        '200':
+          description: Avaliação atualizada, com a média atualizada da universidade
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/AvaliacaoGravada' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Avaliações]
+      summary: Remove a avaliação (autor ou administrador)
+      description: Recalcula a média na mesma transação; sem avaliações, a média volta a null.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: Avaliação removida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      sucesso: { type: boolean }
+                      universidade: { $ref: '#/components/schemas/MediaUniversidade' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
   /campus/{id}:
@@ -926,6 +1049,10 @@ components:
             ENTRADA: { type: array, items: { type: object } }
             FINANCIAMENTO: { type: array, items: { type: object } }
             BOLSA: { type: array, items: { type: object } }
+        minhaAvaliacao:
+          allOf: [{ $ref: '#/components/schemas/MinhaAvaliacao' }]
+          nullable: true
+          description: Avaliação do aluno logado; null para visitante, outros perfis ou quem ainda não avaliou
     Campus:
       type: object
       properties:
@@ -957,6 +1084,32 @@ components:
         comentario: { type: string, nullable: true }
         criadoEm: { type: string, format: date-time }
         autor: { type: string, nullable: true, description: 'Só o primeiro nome; null se a conta foi excluída' }
+    AvaliacaoEntrada:
+      type: object
+      required: [nota]
+      properties:
+        nota: { type: integer, minimum: 1, maximum: 5 }
+        comentario: { type: string, maxLength: 500, nullable: true }
+    MinhaAvaliacao:
+      type: object
+      properties:
+        id: { type: integer }
+        universidadeId: { type: integer }
+        nota: { type: integer, minimum: 1, maximum: 5 }
+        comentario: { type: string, nullable: true }
+        criadoEm: { type: string, format: date-time }
+    MediaUniversidade:
+      type: object
+      properties:
+        id: { type: integer }
+        mediaAvaliacao: { type: number, nullable: true }
+        totalAvaliacoes: { type: integer }
+    AvaliacaoGravada:
+      allOf:
+        - $ref: '#/components/schemas/MinhaAvaliacao'
+        - type: object
+          properties:
+            universidade: { $ref: '#/components/schemas/MediaUniversidade' }
     Programa:
       type: object
       properties:
@@ -1011,7 +1164,7 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Erro' }
     Conflito:
-      description: E-mail ou outro identificador já em uso
+      description: E-mail, avaliação, nome de pesquisa ou outro identificador já em uso
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Erro' }

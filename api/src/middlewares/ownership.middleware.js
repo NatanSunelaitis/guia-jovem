@@ -36,4 +36,36 @@ function ownership(resolverUniversidadeId) {
   };
 }
 
+/**
+ * Garante que o usuário logado só altere recursos que ele mesmo criou
+ * (avaliação, pesquisa salva). `resolverUsuarioId` recebe o `req` e retorna
+ * (ou resolve) o id_usuario dono do recurso; deve lançar AppError.notFound
+ * quando o recurso não existe. Com `permitirAdmin`, o Administrador (D)
+ * passa sem checar o dono.
+ */
+function porUsuario(resolverUsuarioId, { permitirAdmin = false } = {}) {
+  return async function ownershipPorUsuarioMiddleware(req, res, next) {
+    try {
+      if (!req.user) {
+        return next(AppError.unauthenticated());
+      }
+
+      const usuarioIdDoRecurso = await resolverUsuarioId(req);
+
+      if (permitirAdmin && req.user.tipoUsuario === 'D') {
+        return next();
+      }
+
+      if (usuarioIdDoRecurso == null || Number(usuarioIdDoRecurso) !== Number(req.user.id)) {
+        return next(AppError.forbidden());
+      }
+
+      return next();
+    } catch (erro) {
+      return next(erro);
+    }
+  };
+}
+
 module.exports = ownership;
+module.exports.porUsuario = porUsuario;

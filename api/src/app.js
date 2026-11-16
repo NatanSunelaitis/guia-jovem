@@ -15,6 +15,7 @@ const campusRoutes = require('./modules/campus/campus.routes');
 const cursosRoutes = require('./modules/cursos/cursos.routes');
 const programasRoutes = require('./modules/programas/programas.routes');
 const relatoriosRoutes = require('./modules/relatorios/relatorios.routes');
+const avaliacoesRoutes = require('./modules/avaliacoes/avaliacoes.routes');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/v1/campus', campusRoutes);
 app.use('/api/v1/cursos', cursosRoutes);
 app.use('/api/v1/programas', programasRoutes);
 app.use('/api/v1/relatorios', relatoriosRoutes);
+app.use('/api/v1/avaliacoes', avaliacoesRoutes);
 
 app.use((req, res, next) => {
   next(AppError.notFound('Rota não encontrada'));
