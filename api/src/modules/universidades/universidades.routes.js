@@ -11,9 +11,9 @@ const schemas = require('./universidades.schema');
 const router = Router();
 
 // RF06: pesquisa dinâmica de universidades (pública, só status=A).
-router.get('/', validate(schemas.listQuerySchema), controller.listar);
+router.get('/', auth.opcional, validate(schemas.listQuerySchema), controller.listar);
 router.get('/destaques', validate(schemas.destaquesQuerySchema), controller.destaques);
-// Com sessão de aluno, o detalhe diz se ele já avaliou (minhaAvaliacao).
+// Com sessão de aluno, o detalhe diz se ele já avaliou (minhaAvaliacao) e se salvou (salva).
 router.get('/:id', auth.opcional, validate(schemas.idParamSchema), controller.obter);
 router.get('/:id/campus', validate(schemas.idParamSchema), controller.campus);
 router.get('/:id/cursos', validate(schemas.idParamSchema), controller.cursos);

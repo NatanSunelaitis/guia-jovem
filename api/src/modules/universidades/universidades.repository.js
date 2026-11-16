@@ -85,6 +85,9 @@ function countAvaliacoes(prisma, universidadeId) {
 }
 
 module.exports = {
+  // Reaproveitados por favoritos.repository.js: o card da faculdade salva é o mesmo da pesquisa.
+  RESUMO_CAMPUS_PRINCIPAL,
+  RESUMO_PROGRAMAS,
   list,
   count,
   destaques,

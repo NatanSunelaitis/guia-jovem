@@ -3,7 +3,7 @@ const service = require('./universidades.service');
 
 async function listar(req, res, next) {
   try {
-    const resultado = await service.listar(prisma, req.query);
+    const resultado = await service.listar(prisma, req.query, req.user);
     res.json(resultado);
   } catch (erro) {
     next(erro);

@@ -1,6 +1,7 @@
 const AppError = require('../../shared/errors/AppError');
 const { buildMeta, parsePagination } = require('../../shared/utils/pagination');
 const avaliacoesService = require('../avaliacoes/avaliacoes.service');
+const favoritosService = require('../favoritos/favoritos.service');
 const repo = require('./universidades.repository');
 
 function campusPrincipalResumo(universidade) {
@@ -72,7 +73,7 @@ function buildOrderBy(sort) {
   }
 }
 
-async function listar(prisma, query) {
+async function listar(prisma, query, usuario = null) {
   const { page, pageSize, skip, take } = parsePagination(query);
   const where = buildWhere(query);
   const orderBy = buildOrderBy(query.sort);
@@ -82,7 +83,16 @@ async function listar(prisma, query) {
     repo.count(prisma, where),
   ]);
 
-  return { data: universidades.map(paraLista), meta: buildMeta({ page, pageSize, total }) };
+  // Com sessão de aluno, cada card diz se a universidade já está salva.
+  const salvas =
+    usuario?.tipoUsuario === 'A'
+      ? await favoritosService.idsSalvas(prisma, usuario.id, universidades.map((u) => u.id))
+      : new Set();
+
+  return {
+    data: universidades.map((universidade) => ({ ...paraLista(universidade), salva: salvas.has(universidade.id) })),
+    meta: buildMeta({ page, pageSize, total }),
+  };
 }
 
 async function listarDestaques(prisma, limite = 8) {
@@ -115,7 +125,12 @@ async function obterDetalhe(prisma, id, req) {
 
   const principal = universidade.campus.find((c) => c.principal) ?? universidade.campus[0] ?? null;
   const ehAluno = req.user?.tipoUsuario === 'A';
-  const minhaAvaliacao = ehAluno ? await avaliacoesService.minhaAvaliacao(prisma, req.user.id, id) : null;
+  const [minhaAvaliacao, salva] = ehAluno
+    ? await Promise.all([
+        avaliacoesService.minhaAvaliacao(prisma, req.user.id, id),
+        favoritosService.estaSalva(prisma, req.user.id, id),
+      ])
+    : [null, false];
 
   return {
     id: universidade.id,
@@ -148,6 +163,7 @@ async function obterDetalhe(prisma, id, req) {
     programas: agruparProgramasPorTipo(universidade.universidadeProgramas),
     // null para visitante, para quem não é aluno ou para aluno que ainda não avaliou.
     minhaAvaliacao,
+    salva,
   };
 }
 
@@ -232,6 +248,7 @@ async function listarAvaliacoes(prisma, universidadeId, query) {
 }
 
 module.exports = {
+  paraLista,
   listar,
   listarDestaques,
   obterDetalhe,

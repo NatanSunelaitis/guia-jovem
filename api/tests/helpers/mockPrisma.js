@@ -18,6 +18,7 @@ const prisma = {
   endereco: createModel(['create']),
   notificacao: createModel(['create', 'createMany']),
   avaliacao: createModel(['findUnique', 'findMany', 'count', 'create', 'update', 'delete', 'aggregate']),
+  universidadeSalva: createModel(['findUnique', 'findMany', 'count', 'create', 'deleteMany']),
   logAuditoria: createModel(['create']),
   visitaPagina: createModel(['create']),
   $queryRaw: jest.fn().mockResolvedValue([]),
