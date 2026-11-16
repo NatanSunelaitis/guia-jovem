@@ -17,6 +17,7 @@ import '../../../shared/widgets/gj_input.dart';
 import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tag.dart';
+import '../../auth/presentation/exigir_aluno.dart';
 import '../data/universidades_repository.dart';
 import '../domain/avaliacao.dart';
 import '../domain/universidade.dart';
@@ -34,13 +35,54 @@ class DetalheUniversidadePage extends StatefulWidget {
 class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
   late Future<UniversidadeDetalhe> _future;
   Future<List<Avaliacao>>? _futureAvaliacoes;
-  bool _salvo = false;
   final _campusQueryController = TextEditingController();
+
+  // Vêm do detalhe e mudam sem recarregar a página: salvar/remover e avaliar.
+  bool _salvo = false;
+  MinhaAvaliacao? _minhaAvaliacao;
+  double? _media;
+  int _total = 0;
+  String get _rotaAtual => '/universidades/${widget.id}';
 
   @override
   void initState() {
     super.initState();
-    _future = universidadesRepository.detalhe(widget.id);
+    _future = _carregar();
+  }
+
+  Future<UniversidadeDetalhe> _carregar() async {
+    final detalhe = await universidadesRepository.detalhe(widget.id);
+    _minhaAvaliacao = detalhe.minhaAvaliacao;
+    _media = detalhe.mediaAvaliacao;
+    _total = detalhe.totalAvaliacoes;
+    return detalhe;
+  }
+
+  void _avisar(String mensagem) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensagem)));
+  }
+
+  /// RF02: visitante vai ao login e volta para cá; aluno que já avaliou
+  /// abre o modal preenchido para editar.
+  Future<void> _avaliar(UniversidadeDetalhe universidade) async {
+    if (!exigirAluno(context, voltarPara: _rotaAtual)) return;
+
+    final editando = _minhaAvaliacao != null;
+    final gravada = await mostrarModalAvaliar(
+      context,
+      universidadeId: universidade.id,
+      nomeUniversidade: universidade.nomeFantasia,
+      avaliacaoAtual: _minhaAvaliacao,
+    );
+    if (gravada == null || !mounted) return;
+
+    setState(() {
+      _minhaAvaliacao = gravada.avaliacao;
+      _media = gravada.mediaAvaliacao;
+      _total = gravada.totalAvaliacoes;
+      _futureAvaliacoes = universidadesRepository.avaliacoes(widget.id, page: 1).then((r) => r.data);
+    });
+    _avisar(editando ? 'Avaliação atualizada.' : 'Avaliação enviada. Obrigado!');
   }
 
   @override
@@ -66,7 +108,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
               texto: snapshot.error is ApiException ? (snapshot.error as ApiException).message : 'Tente novamente.',
               icone: Symbols.wifi_off,
               acaoLabel: 'Tentar novamente',
-              onAcao: () => setState(() => _future = universidadesRepository.detalhe(widget.id)),
+              onAcao: () => setState(() => _future = _carregar()),
             );
           }
 
@@ -193,13 +235,13 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                           Icon(
                             Symbols.star,
                             size: 18,
-                            fill: universidade.mediaAvaliacao != null && i <= universidade.mediaAvaliacao!.round() ? 1 : 0,
-                            color: universidade.mediaAvaliacao != null ? GJColors.rating : GJColors.border,
+                            fill: _media != null && i <= _media!.round() ? 1 : 0,
+                            color: _media != null ? GJColors.rating : GJColors.border,
                           ),
                         const SizedBox(width: GJSpace.s1),
                         Text(
-                          universidade.mediaAvaliacao != null
-                              ? '${universidade.mediaAvaliacao!.toStringAsFixed(1)} (${universidade.totalAvaliacoes} avaliações)'
+                          _media != null
+                              ? '${_media!.toStringAsFixed(1)} ($_total avaliações)'
                               : 'Sem avaliações ainda',
                           style: GJTypography.bodySm(),
                         ),
@@ -226,10 +268,10 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                         onPressed: () => abrirLinkExterno(universidade.linkSimulados!),
                       ),
                     GJButton(
-                      label: 'Avaliar',
+                      label: _minhaAvaliacao != null ? 'Editar avaliação' : 'Avaliar',
                       variant: GJButtonVariant.ghost,
                       icon: Symbols.star,
-                      onPressed: () => mostrarModalAvaliar(context, nomeUniversidade: universidade.nomeFantasia),
+                      onPressed: () => _avaliar(universidade),
                     ),
                   ],
                 ),
@@ -384,10 +426,12 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
 
           final avaliacoes = snapshot.data ?? <Avaliacao>[];
           if (avaliacoes.isEmpty) {
-            return const GJEmptyState(
+            return GJEmptyState(
               titulo: 'Nenhuma avaliação ainda',
               texto: 'Seja o primeiro a avaliar essa universidade.',
               icone: Symbols.rate_review,
+              acaoLabel: 'Avaliar universidade',
+              onAcao: () => _avaliar(universidade),
             );
           }
 
@@ -405,7 +449,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                   Column(
                     children: [
                       Text(
-                        universidade.mediaAvaliacao?.toStringAsFixed(1) ?? '-',
+                        _media?.toStringAsFixed(1) ?? '-',
                         style: GJTypography.display(size: 40).copyWith(color: GJColors.primary),
                       ),
                       Row(
@@ -415,12 +459,12 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                             Icon(
                               Symbols.star,
                               size: 16,
-                              fill: universidade.mediaAvaliacao != null && i <= universidade.mediaAvaliacao!.round() ? 1 : 0,
+                              fill: _media != null && i <= _media!.round() ? 1 : 0,
                               color: GJColors.rating,
                             ),
                         ],
                       ),
-                      Text('${universidade.totalAvaliacoes} avaliações', style: GJTypography.caption()),
+                      Text('$_total avaliações', style: GJTypography.caption()),
                     ],
                   ),
                   const SizedBox(width: GJSpace.s6),
@@ -460,9 +504,9 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
               ),
               const SizedBox(height: GJSpace.s4),
               GJButton(
-                label: 'Avaliar universidade',
+                label: _minhaAvaliacao != null ? 'Editar minha avaliação' : 'Avaliar universidade',
                 expand: true,
-                onPressed: () => mostrarModalAvaliar(context, nomeUniversidade: universidade.nomeFantasia),
+                onPressed: () => _avaliar(universidade),
               ),
               const SizedBox(height: GJSpace.s4),
               const Divider(height: 1, color: GJColors.surfaceHigh),

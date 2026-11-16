@@ -1,5 +1,7 @@
 import '../../../core/network/api_client.dart';
+import '../../../core/network/auth_api_client.dart';
 import '../../../core/network/paginated_result.dart';
+import '../../auth/data/session_controller.dart';
 import '../domain/avaliacao.dart';
 import '../domain/universidade.dart';
 
@@ -72,8 +74,18 @@ class UniversidadesRepository {
   final ApiClient? _override;
   ApiClient get _client => _override ?? apiClient;
 
+  /// Pesquisa e detalhe são públicos, mas com sessão a API diz se a
+  /// universidade está salva e qual é a avaliação do aluno: nesse caso a
+  /// leitura vai pelo AuthApiClient, que manda o token e renova a sessão.
+  Future<Map<String, dynamic>> _getCatalogo(String path, {Map<String, dynamic>? query}) {
+    if (_override == null && sessionController.autenticado) {
+      return authApiClient.get(path, query: query);
+    }
+    return _client.get(path, query: query);
+  }
+
   Future<PaginatedResult<UniversidadeResumo>> listar(FiltrosUniversidades filtros) async {
-    final json = await _client.get('/universidades', query: filtros.toQuery());
+    final json = await _getCatalogo('/universidades', query: filtros.toQuery());
     return PaginatedResult.fromJson(json, UniversidadeResumo.fromJson);
   }
 
@@ -85,7 +97,7 @@ class UniversidadesRepository {
   }
 
   Future<UniversidadeDetalhe> detalhe(int id) async {
-    final json = await _client.get('/universidades/$id');
+    final json = await _getCatalogo('/universidades/$id');
     return UniversidadeDetalhe.fromJson(json['data'] as Map<String, dynamic>);
   }
 
@@ -106,6 +118,20 @@ class UniversidadesRepository {
   Future<PaginatedResult<Avaliacao>> avaliacoes(int id, {int page = 1}) async {
     final json = await _client.get('/universidades/$id/avaliacoes', query: {'page': page});
     return PaginatedResult.fromJson(json, Avaliacao.fromJson);
+  }
+
+  /// RF02: uma avaliação por aluno por universidade (a API responde 409 se já existe).
+  Future<AvaliacaoGravada> avaliar(int universidadeId, {required int nota, String? comentario}) async {
+    final json = await authApiClient.post(
+      '/universidades/$universidadeId/avaliacoes',
+      body: {'nota': nota, 'comentario': comentario},
+    );
+    return AvaliacaoGravada.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  Future<AvaliacaoGravada> editarAvaliacao(int avaliacaoId, {required int nota, String? comentario}) async {
+    final json = await authApiClient.put('/avaliacoes/$avaliacaoId', body: {'nota': nota, 'comentario': comentario});
+    return AvaliacaoGravada.fromJson(json['data'] as Map<String, dynamic>);
   }
 }
 

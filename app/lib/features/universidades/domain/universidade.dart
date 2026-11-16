@@ -1,3 +1,5 @@
+import 'avaliacao.dart';
+
 /// Prisma serializa campos `Decimal` (ex.: media_avaliacao) como string em
 /// JSON, não como número, para preservar precisão — então aceita os dois.
 double? _parseDecimal(dynamic valor) {
@@ -83,6 +85,7 @@ class UniversidadeResumo {
     this.cidade,
     this.estado,
     required this.programas,
+    this.salva = false,
   });
 
   factory UniversidadeResumo.fromJson(Map<String, dynamic> json) => UniversidadeResumo(
@@ -97,6 +100,7 @@ class UniversidadeResumo {
         programas: (json['programas'] as List<dynamic>? ?? [])
             .map((item) => ProgramaTag.fromJson(item as Map<String, dynamic>))
             .toList(),
+        salva: json['salva'] as bool? ?? false,
       );
 
   final int id;
@@ -108,6 +112,9 @@ class UniversidadeResumo {
   final String? cidade;
   final String? estado;
   final List<ProgramaTag> programas;
+
+  /// Com sessão de aluno, se ele salvou a universidade (sempre false para visitante).
+  final bool salva;
 }
 
 class UniversidadeDetalhe {
@@ -125,6 +132,8 @@ class UniversidadeDetalhe {
     this.enderecoPrincipal,
     required this.campus,
     required this.programasPorTipo,
+    this.minhaAvaliacao,
+    this.salva = false,
   });
 
   factory UniversidadeDetalhe.fromJson(Map<String, dynamic> json) {
@@ -153,6 +162,10 @@ class UniversidadeDetalhe {
               .map((item) => ProgramaTag.fromJson({...item as Map<String, dynamic>, 'tipo': tipo}))
               .toList(),
       },
+      minhaAvaliacao: json['minhaAvaliacao'] != null
+          ? MinhaAvaliacao.fromJson(json['minhaAvaliacao'] as Map<String, dynamic>)
+          : null,
+      salva: json['salva'] as bool? ?? false,
     );
   }
 
@@ -169,6 +182,12 @@ class UniversidadeDetalhe {
   final EnderecoResumo? enderecoPrincipal;
   final List<CampusResumo> campus;
   final Map<String, List<ProgramaTag>> programasPorTipo;
+
+  /// Avaliação do aluno logado (null para visitante ou quem ainda não avaliou).
+  final MinhaAvaliacao? minhaAvaliacao;
+
+  /// Com sessão de aluno, se ele salvou a universidade.
+  final bool salva;
 }
 
 class UniversidadeCampusItem {

@@ -38,6 +38,71 @@ void mockAuthApiComAdapter(Dio dio) {
   authApiClient = AuthApiClient(dio: dio);
 }
 
+/// Resposta falsa de uma rota do [mockAuthApiRotas].
+class RespostaFalsa {
+  const RespostaFalsa(this.corpo, {this.status = 200});
+
+  final Map<String, dynamic> corpo;
+  final int status;
+}
+
+/// Requisições recebidas pelo [mockAuthApiRotas], na ordem, para o teste
+/// conferir método, caminho, query e corpo enviados.
+final requisicoesAuthApi = <RequestOptions>[];
+
+/// Como [mockAuthApi], mas com rotas por método e caminho (chave
+/// `'POST /pesquisas-salvas'`), cada uma com seu status: para fluxos que
+/// fazem várias chamadas autenticadas (ex.: GET 200 e POST 409).
+void mockAuthApiRotas(Map<String, RespostaFalsa> rotas) {
+  requisicoesAuthApi.clear();
+  final dio = Dio();
+  dio.httpClientAdapter = _RotasHttpClientAdapter(rotas);
+  authApiClient = AuthApiClient(dio: dio);
+}
+
+class _RotasHttpClientAdapter implements HttpClientAdapter {
+  _RotasHttpClientAdapter(this.rotas);
+
+  final Map<String, RespostaFalsa> rotas;
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    requisicoesAuthApi.add(options);
+    final caminho = options.uri.path;
+
+    RespostaFalsa? resposta;
+    for (final entrada in rotas.entries) {
+      final partes = entrada.key.split(' ');
+      if (partes[0] == options.method && caminho.endsWith(partes[1])) {
+        resposta = entrada.value;
+        break;
+      }
+    }
+
+    resposta ??= RespostaFalsa(
+      {
+        'error': {'code': 'NOT_MOCKED', 'message': 'Sem mock para ${options.method} $caminho', 'details': <dynamic>[]},
+      },
+      status: 404,
+    );
+
+    return ResponseBody.fromBytes(
+      utf8.encode(jsonEncode(resposta.corpo)),
+      resposta.status,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
+}
+
 class _FakeHttpClientAdapter implements HttpClientAdapter {
   _FakeHttpClientAdapter({required this.respostas, required this.status});
 

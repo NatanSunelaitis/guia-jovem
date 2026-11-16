@@ -1,39 +1,85 @@
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../../core/network/api_exception.dart';
 import '../../../core/theme/gj_colors.dart';
 import '../../../core/theme/gj_radius.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/widgets/gj_button.dart';
+import '../data/universidades_repository.dart';
+import '../domain/avaliacao.dart';
 
-/// T03a: modal de avaliação (RF02). O envio ainda não persiste: o POST
-/// /universidades/:id/avaliacoes é RF02/Fase 4, que ainda não existe, e
-/// não há sessão de usuário na Fase 2 do frontend (ver docs/DECISOES.md).
-Future<void> mostrarModalAvaliar(BuildContext context, {required String nomeUniversidade}) {
-  return showDialog<void>(
+/// T03a: modal de avaliação (RF02). Sem [avaliacaoAtual], cria a avaliação
+/// do aluno; com ela, abre preenchido e edita. Retorna a avaliação gravada
+/// (com a média recalculada) ou null se o aluno fechou sem enviar.
+Future<AvaliacaoGravada?> mostrarModalAvaliar(
+  BuildContext context, {
+  required int universidadeId,
+  required String nomeUniversidade,
+  MinhaAvaliacao? avaliacaoAtual,
+}) {
+  return showDialog<AvaliacaoGravada>(
     context: context,
-    builder: (context) => _AvaliarDialog(nomeUniversidade: nomeUniversidade),
+    builder: (context) => _AvaliarDialog(
+      universidadeId: universidadeId,
+      nomeUniversidade: nomeUniversidade,
+      avaliacaoAtual: avaliacaoAtual,
+    ),
   );
 }
 
 class _AvaliarDialog extends StatefulWidget {
-  const _AvaliarDialog({required this.nomeUniversidade});
+  const _AvaliarDialog({required this.universidadeId, required this.nomeUniversidade, this.avaliacaoAtual});
 
+  final int universidadeId;
   final String nomeUniversidade;
+  final MinhaAvaliacao? avaliacaoAtual;
 
   @override
   State<_AvaliarDialog> createState() => _AvaliarDialogState();
 }
 
 class _AvaliarDialogState extends State<_AvaliarDialog> {
-  int _nota = 0;
-  final _comentarioController = TextEditingController();
+  late int _nota = widget.avaliacaoAtual?.nota ?? 0;
+  late final _comentarioController = TextEditingController(text: widget.avaliacaoAtual?.comentario ?? '');
+  bool _enviando = false;
+  String? _erro;
+
+  bool get _editando => widget.avaliacaoAtual != null;
 
   @override
   void dispose() {
     _comentarioController.dispose();
     super.dispose();
+  }
+
+  Future<void> _enviar() async {
+    setState(() {
+      _enviando = true;
+      _erro = null;
+    });
+
+    final comentario = _comentarioController.text.trim();
+    try {
+      final gravada = _editando
+          ? await universidadesRepository.editarAvaliacao(
+              widget.avaliacaoAtual!.id,
+              nota: _nota,
+              comentario: comentario.isEmpty ? null : comentario,
+            )
+          : await universidadesRepository.avaliar(
+              widget.universidadeId,
+              nota: _nota,
+              comentario: comentario.isEmpty ? null : comentario,
+            );
+      if (!mounted) return;
+      Navigator.of(context).pop(gravada);
+    } on ApiException catch (erro) {
+      if (mounted) setState(() => _erro = erro.message);
+    } finally {
+      if (mounted) setState(() => _enviando = false);
+    }
   }
 
   @override
@@ -51,7 +97,12 @@ class _AvaliarDialogState extends State<_AvaliarDialog> {
               Row(
                 children: [
                   Expanded(
-                    child: Text('Como foi sua experiência com a ${widget.nomeUniversidade}?', style: GJTypography.h4()),
+                    child: Text(
+                      _editando
+                          ? 'Editar sua avaliação da ${widget.nomeUniversidade}'
+                          : 'Como foi sua experiência com a ${widget.nomeUniversidade}?',
+                      style: GJTypography.h4(),
+                    ),
                   ),
                   GestureDetector(onTap: () => Navigator.of(context).pop(), child: const Icon(Symbols.close)),
                 ],
@@ -61,7 +112,8 @@ class _AvaliarDialogState extends State<_AvaliarDialog> {
                 children: [
                   for (var i = 1; i <= 5; i++)
                     IconButton(
-                      onPressed: () => setState(() => _nota = i),
+                      tooltip: '$i ${i == 1 ? 'estrela' : 'estrelas'}',
+                      onPressed: _enviando ? null : () => setState(() => _nota = i),
                       icon: Icon(
                         Symbols.star,
                         fill: i <= _nota ? 1 : 0,
@@ -74,6 +126,7 @@ class _AvaliarDialogState extends State<_AvaliarDialog> {
               const SizedBox(height: GJSpace.s2),
               TextField(
                 controller: _comentarioController,
+                enabled: !_enviando,
                 maxLength: 500,
                 maxLines: 4,
                 decoration: InputDecoration(
@@ -83,6 +136,10 @@ class _AvaliarDialogState extends State<_AvaliarDialog> {
                   hintText: 'Conte para outros estudantes...',
                 ),
               ),
+              if (_erro != null) ...[
+                const SizedBox(height: GJSpace.s2),
+                Text(_erro!, style: GJTypography.label(color: GJColors.error)),
+              ],
               const SizedBox(height: GJSpace.s2),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -90,15 +147,8 @@ class _AvaliarDialogState extends State<_AvaliarDialog> {
                   GJButton(label: 'Cancelar', variant: GJButtonVariant.ghost, onPressed: () => Navigator.of(context).pop()),
                   const SizedBox(width: GJSpace.s3),
                   GJButton(
-                    label: 'Enviar avaliação',
-                    onPressed: _nota == 0
-                        ? null
-                        : () {
-                            Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Avaliações chegam em uma próxima fase do app.')),
-                            );
-                          },
+                    label: _editando ? 'Salvar alterações' : 'Enviar avaliação',
+                    onPressed: _nota == 0 || _enviando ? null : _enviar,
                   ),
                 ],
               ),
