@@ -59,6 +59,10 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
   String? _nomePesquisaSalva;
   String? _avisoPesquisaSalva;
 
+  // Salvar/remover faculdade direto no card, sem refazer a pesquisa.
+  final _salvasAlteradas = <int, bool>{};
+  final _salvandoIds = <int>{};
+
   @override
   void initState() {
     super.initState();
@@ -149,6 +153,7 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
   void _buscar({int page = 1}) {
     setState(() {
       _filtros = _montarFiltros(page: page);
+      _salvasAlteradas.clear();
       _future = universidadesRepository.listar(_filtros);
     });
   }
@@ -171,6 +176,29 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
 
     final salva = await mostrarDialogoSalvarPesquisa(context, parametros: _parametrosDaPesquisa);
     if (salva != null && mounted) _avisar('Pesquisa "${salva.nome}" salva.');
+  }
+
+  bool _estaSalva(UniversidadeResumo universidade) => _salvasAlteradas[universidade.id] ?? universidade.salva;
+
+  Future<void> _alternarSalva(UniversidadeResumo universidade) async {
+    if (_salvandoIds.contains(universidade.id) || !exigirAluno(context, voltarPara: _rotaAtual)) return;
+
+    final salvar = !_estaSalva(universidade);
+    setState(() => _salvandoIds.add(universidade.id));
+    try {
+      if (salvar) {
+        await favoritosRepository.salvarUniversidade(universidade.id);
+      } else {
+        await favoritosRepository.removerUniversidade(universidade.id);
+      }
+      if (!mounted) return;
+      setState(() => _salvasAlteradas[universidade.id] = salvar);
+      _avisar(salvar ? 'Faculdade salva.' : 'Faculdade removida das salvas.');
+    } on ApiException catch (erro) {
+      if (mounted) _avisar(erro.message);
+    } finally {
+      if (mounted) setState(() => _salvandoIds.remove(universidade.id));
+    }
   }
 
   void _limparTudo() {
@@ -247,7 +275,15 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
                         texto: 'Tente remover alguns filtros ou pesquisar por outra cidade.',
                       )
                     else ...[
-                      _grade(isMobile, [for (final u in resultado.data) _CardUniversidadeGrid(universidade: u)]),
+                      _grade(isMobile, [
+                        for (final u in resultado.data)
+                          _CardUniversidadeGrid(
+                            universidade: u,
+                            salva: _estaSalva(u),
+                            salvando: _salvandoIds.contains(u.id),
+                            onAlternarSalva: () => _alternarSalva(u),
+                          ),
+                      ]),
                       const SizedBox(height: GJSpace.s6),
                       if (resultado.totalPages > 1) _paginacao(resultado),
                     ],
@@ -596,9 +632,17 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
 String _formatarNota(double nota) => nota.toStringAsFixed(1).replaceAll('.', ',');
 
 class _CardUniversidadeGrid extends StatelessWidget {
-  const _CardUniversidadeGrid({required this.universidade});
+  const _CardUniversidadeGrid({
+    required this.universidade,
+    required this.salva,
+    required this.salvando,
+    required this.onAlternarSalva,
+  });
 
   final UniversidadeResumo universidade;
+  final bool salva;
+  final bool salvando;
+  final VoidCallback onAlternarSalva;
 
   @override
   Widget build(BuildContext context) {
@@ -613,6 +657,11 @@ class _CardUniversidadeGrid extends StatelessWidget {
         for (final programa in universidade.programas.take(3))
           GJTag(label: programa.sigla ?? programa.nome, tone: tonePrograma(programa.tipo)),
       ],
+      acao: IconButton(
+        tooltip: salva ? 'Remover das salvas' : 'Salvar faculdade',
+        onPressed: salvando ? null : onAlternarSalva,
+        icon: Icon(Symbols.bookmark, fill: salva ? 1 : 0, color: GJColors.primary),
+      ),
       onTap: () => context.go('/universidades/${universidade.id}'),
     );
   }

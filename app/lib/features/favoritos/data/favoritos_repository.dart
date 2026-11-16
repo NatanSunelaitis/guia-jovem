@@ -9,6 +9,16 @@ class FavoritosRepository {
   final AuthApiClient? _override;
   AuthApiClient get _client => _override ?? authApiClient;
 
+  /// Idempotente: salvar de novo uma universidade já salva não é erro.
+  Future<void> salvarUniversidade(int universidadeId) async {
+    await _client.post('/favoritos/universidades', body: {'universidadeId': universidadeId});
+  }
+
+  /// Idempotente: remover o que não está salvo não é erro.
+  Future<void> removerUniversidade(int universidadeId) async {
+    await _client.delete('/favoritos/universidades/$universidadeId');
+  }
+
   /// A API responde 409 (PESQUISA_DUPLICADA) se o aluno já usou esse nome.
   Future<PesquisaSalva> salvarPesquisa({required String nome, required Map<String, dynamic> parametros}) async {
     final json = await _client.post('/pesquisas-salvas', body: {'nome': nome, 'parametros': parametros});

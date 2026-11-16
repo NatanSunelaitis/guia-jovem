@@ -18,6 +18,7 @@ import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tag.dart';
 import '../../auth/presentation/exigir_aluno.dart';
+import '../../favoritos/data/favoritos_repository.dart';
 import '../data/universidades_repository.dart';
 import '../domain/avaliacao.dart';
 import '../domain/universidade.dart';
@@ -39,6 +40,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
 
   // Vêm do detalhe e mudam sem recarregar a página: salvar/remover e avaliar.
   bool _salvo = false;
+  bool _salvando = false;
   MinhaAvaliacao? _minhaAvaliacao;
   double? _media;
   int _total = 0;
@@ -52,6 +54,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
 
   Future<UniversidadeDetalhe> _carregar() async {
     final detalhe = await universidadesRepository.detalhe(widget.id);
+    _salvo = detalhe.salva;
     _minhaAvaliacao = detalhe.minhaAvaliacao;
     _media = detalhe.mediaAvaliacao;
     _total = detalhe.totalAvaliacoes;
@@ -83,6 +86,27 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
       _futureAvaliacoes = universidadesRepository.avaliacoes(widget.id, page: 1).then((r) => r.data);
     });
     _avisar(editando ? 'Avaliação atualizada.' : 'Avaliação enviada. Obrigado!');
+  }
+
+  Future<void> _alternarSalvo() async {
+    if (_salvando || !exigirAluno(context, voltarPara: _rotaAtual)) return;
+
+    final salvar = !_salvo;
+    setState(() => _salvando = true);
+    try {
+      if (salvar) {
+        await favoritosRepository.salvarUniversidade(widget.id);
+      } else {
+        await favoritosRepository.removerUniversidade(widget.id);
+      }
+      if (!mounted) return;
+      setState(() => _salvo = salvar);
+      _avisar(salvar ? 'Faculdade salva.' : 'Faculdade removida das salvas.');
+    } on ApiException catch (erro) {
+      if (mounted) _avisar(erro.message);
+    } finally {
+      if (mounted) setState(() => _salvando = false);
+    }
   }
 
   @override
@@ -200,8 +224,8 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                   children: [
                     Expanded(child: Text(universidade.nomeFantasia, style: GJTypography.h1(size: isMobile ? 26 : 32))),
                     IconButton(
-                      tooltip: _salvo ? 'Remover dos favoritos' : 'Salvar faculdade',
-                      onPressed: () => setState(() => _salvo = !_salvo),
+                      tooltip: _salvo ? 'Remover das salvas' : 'Salvar faculdade',
+                      onPressed: _salvando ? null : _alternarSalvo,
                       icon: Icon(Symbols.bookmark, fill: _salvo ? 1 : 0, color: GJColors.primary),
                     ),
                   ],

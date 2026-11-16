@@ -25,7 +25,8 @@ class GJCard extends StatefulWidget {
 
   /// Card de uma universidade (Design System Deck, seção 15): logo (ou
   /// iniciais sobre `primaryFixed` quando `logoUrl` é nulo), nome, cidade/UF,
-  /// nota com estrelas e tags de programas aceitos.
+  /// nota com estrelas e tags de programas aceitos. [acao], quando informada
+  /// (ex.: botão de salvar faculdade), fica no canto superior direito do logo.
   factory GJCard.universidade({
     Key? key,
     required String nomeFantasia,
@@ -35,6 +36,7 @@ class GJCard extends StatefulWidget {
     double? mediaAvaliacao,
     int? totalAvaliacoes,
     List<Widget> tags = const [],
+    Widget? acao,
     required VoidCallback onTap,
   }) {
     return GJCard(
@@ -44,7 +46,12 @@ class GJCard extends StatefulWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          _CaixaLogo(logoUrl: logoUrl, nome: nomeFantasia),
+          Stack(
+            children: [
+              _CaixaLogo(logoUrl: logoUrl, nome: nomeFantasia),
+              if (acao != null) Positioned(top: 0, right: 0, child: acao),
+            ],
+          ),
           const SizedBox(height: GJSpace.s4),
           Text(nomeFantasia, style: GJTypography.h4(), maxLines: 2, overflow: TextOverflow.ellipsis),
           if (cidade != null) ...[
