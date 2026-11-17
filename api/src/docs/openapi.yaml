@@ -864,8 +864,10 @@ paths:
     get:
       tags: [Programas]
       summary: Carrossel de destaques da home
+      description: A home usa tipo=ENTRADA (carrossel de programas de entrada).
       parameters:
         - { in: query, name: limite, schema: { type: integer, default: 8 } }
+        - { in: query, name: tipo, schema: { type: string, enum: [ENTRADA, FINANCIAMENTO, BOLSA] } }
       responses:
         '200':
           description: Lista de destaques

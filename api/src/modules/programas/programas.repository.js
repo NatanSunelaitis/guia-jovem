@@ -11,9 +11,9 @@ function count(prisma, where) {
   return prisma.programa.count({ where });
 }
 
-function destaques(prisma, take) {
+function destaques(prisma, take, tipo) {
   return prisma.programa.findMany({
-    where: { ativo: true },
+    where: { ativo: true, ...(tipo ? { tipo } : {}) },
     orderBy: { criadoEm: 'asc' },
     take,
   });

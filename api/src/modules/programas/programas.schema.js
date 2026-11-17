@@ -23,6 +23,8 @@ const listQuerySchema = {
 const destaquesQuerySchema = {
   query: z.object({
     limite: z.coerce.number().int().positive().max(50).optional(),
+    // A home mostra só os programas de entrada (seção 4.5 do TG).
+    tipo: z.enum(['ENTRADA', 'FINANCIAMENTO', 'BOLSA']).optional(),
   }),
 };
 

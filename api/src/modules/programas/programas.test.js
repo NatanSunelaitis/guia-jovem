@@ -65,6 +65,24 @@ describe('GET /api/v1/programas/destaques', () => {
 
     expect(resposta.status).toBe(200);
     expect(resposta.body.data).toHaveLength(1);
+    expect(prisma.programa.findMany.mock.calls[0][0].where).toEqual({ ativo: true });
+  });
+
+  it('filtra os destaques por tipo (home: programas de entrada)', async () => {
+    prisma.programa.findMany.mockResolvedValue([programaFake()]);
+
+    const resposta = await request(app).get('/api/v1/programas/destaques?tipo=ENTRADA&limite=4');
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.programa.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { ativo: true, tipo: 'ENTRADA' }, take: 4 }),
+    );
+  });
+
+  it('responde 400 com tipo inválido', async () => {
+    const resposta = await request(app).get('/api/v1/programas/destaques?tipo=OUTRO');
+
+    expect(resposta.status).toBe(400);
   });
 });
 

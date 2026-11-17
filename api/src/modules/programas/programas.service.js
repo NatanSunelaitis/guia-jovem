@@ -44,8 +44,8 @@ async function listar(prisma, query) {
   return { data: programas.map(paraLista), meta: buildMeta({ page, pageSize, total }) };
 }
 
-async function listarDestaques(prisma, limite = DESTAQUES_PADRAO) {
-  const programas = await repo.destaques(prisma, limite);
+async function listarDestaques(prisma, limite = DESTAQUES_PADRAO, tipo = undefined) {
+  const programas = await repo.destaques(prisma, limite, tipo);
   return programas.map(paraLista);
 }
 
