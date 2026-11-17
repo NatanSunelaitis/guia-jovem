@@ -55,7 +55,7 @@ void main() {
     await tester.tap(find.text('Salvar'));
     await tester.pumpAndSettle();
 
-    expect(requisicoesAuthApi.single.data, {'nome': 'Ana Paula Souza'});
+    expect(requisicoesAuthApi.singleWhere((r) => r.method == 'PATCH').data, {'nome': 'Ana Paula Souza'});
     expect(find.text('Ana Paula Souza'), findsOneWidget);
     expect(find.text('Editar perfil'), findsOneWidget);
     expect(find.text('Dados atualizados.'), findsOneWidget);
@@ -73,7 +73,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Informe o nome'), findsOneWidget);
-    expect(requisicoesAuthApi, isEmpty);
+    expect(requisicoesAuthApi.where((r) => r.method != 'GET'), isEmpty);
   });
 
   testWidgets('erro da API ao salvar aparece no campo e mantém a edição', (tester) async {
@@ -113,7 +113,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Ana Souza'), findsOneWidget);
-    expect(requisicoesAuthApi, isEmpty);
+    expect(requisicoesAuthApi.where((r) => r.method != 'GET'), isEmpty);
   });
 
   testWidgets('"Alterar senha" abre o componente de troca de senha', (tester) async {

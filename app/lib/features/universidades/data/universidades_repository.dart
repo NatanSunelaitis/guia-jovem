@@ -129,6 +129,14 @@ class UniversidadesRepository {
     return AvaliacaoGravada.fromJson(json['data'] as Map<String, dynamic>);
   }
 
+  /// Avaliações do aluno logado, com a universidade de cada uma (perfil).
+  Future<List<AvaliacaoDoAluno>> minhasAvaliacoes() async {
+    final json = await authApiClient.get('/avaliacoes/minhas', query: {'pageSize': 100});
+    return (json['data'] as List<dynamic>)
+        .map((item) => AvaliacaoDoAluno.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<AvaliacaoGravada> editarAvaliacao(int avaliacaoId, {required int nota, String? comentario}) async {
     final json = await authApiClient.put('/avaliacoes/$avaliacaoId', body: {'nota': nota, 'comentario': comentario});
     return AvaliacaoGravada.fromJson(json['data'] as Map<String, dynamic>);

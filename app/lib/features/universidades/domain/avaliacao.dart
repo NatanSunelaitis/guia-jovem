@@ -33,6 +33,40 @@ class MinhaAvaliacao {
   final String? comentario;
 }
 
+/// Item de GET /avaliacoes/minhas: a avaliação e a universidade avaliada.
+class AvaliacaoDoAluno {
+  AvaliacaoDoAluno({
+    required this.id,
+    required this.nota,
+    this.comentario,
+    required this.criadoEm,
+    required this.universidadeId,
+    required this.nomeUniversidade,
+    this.logoUrl,
+  });
+
+  factory AvaliacaoDoAluno.fromJson(Map<String, dynamic> json) {
+    final universidade = json['universidade'] as Map<String, dynamic>;
+    return AvaliacaoDoAluno(
+      id: json['id'] as int,
+      nota: json['nota'] as int,
+      comentario: json['comentario'] as String?,
+      criadoEm: DateTime.parse(json['criadoEm'] as String),
+      universidadeId: universidade['id'] as int,
+      nomeUniversidade: universidade['nomeFantasia'] as String,
+      logoUrl: universidade['logoUrl'] as String?,
+    );
+  }
+
+  final int id;
+  final int nota;
+  final String? comentario;
+  final DateTime criadoEm;
+  final int universidadeId;
+  final String nomeUniversidade;
+  final String? logoUrl;
+}
+
 /// Resposta de POST/PUT de avaliação: a avaliação gravada e a média já
 /// recalculada da universidade, para o detalhe atualizar sem recarregar.
 class AvaliacaoGravada {

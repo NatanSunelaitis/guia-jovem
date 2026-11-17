@@ -40,10 +40,13 @@ void mockAuthApiComAdapter(Dio dio) {
 
 /// Resposta falsa de uma rota do [mockAuthApiRotas].
 class RespostaFalsa {
-  const RespostaFalsa(this.corpo, {this.status = 200});
+  const RespostaFalsa(this.corpo, {this.status = 200, this.atraso = Duration.zero});
 
   final Map<String, dynamic> corpo;
   final int status;
+
+  /// Demora da resposta, para o teste ver o estado de carregamento.
+  final Duration atraso;
 }
 
 /// Requisições recebidas pelo [mockAuthApiRotas], na ordem, para o teste
@@ -92,6 +95,8 @@ class _RotasHttpClientAdapter implements HttpClientAdapter {
       },
       status: 404,
     );
+
+    if (resposta.atraso > Duration.zero) await Future<void>.delayed(resposta.atraso);
 
     return ResponseBody.fromBytes(
       utf8.encode(jsonEncode(resposta.corpo)),
