@@ -32,6 +32,10 @@ tags:
     description: Faculdades salvas do aluno (Figura 25)
   - name: Pesquisas salvas
     description: Pesquisas de universidades salvas pelo aluno para reexecução (classe pesquisaSalva)
+  - name: Sugestões
+    description: Sugestões enviadas pelo aluno à administração ou a uma universidade (RF08, RF15)
+  - name: Notificações
+    description: Sino do cabeçalho do usuário logado (RF14)
 paths:
   /health:
     get:
@@ -1084,6 +1088,234 @@ paths:
         '403': { $ref: '#/components/responses/Proibido' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
+  /sugestoes:
+    post:
+      tags: [Sugestões]
+      summary: Aluno envia uma sugestão (RF08)
+      description: |
+        Sem `universidadeId`, a sugestão vai para a administração e notifica todos os administradores ativos.
+        Com `universidadeId` (universidade com status A), notifica a conta que administra a universidade (RF14).
+        Nasce com status EM_ANALISE e data do servidor.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [titulo, texto]
+              properties:
+                titulo: { type: string, minLength: 3, maxLength: 100 }
+                texto: { type: string, minLength: 10, maxLength: 2000 }
+                universidadeId: { type: integer, nullable: true }
+      responses:
+        '201':
+          description: Sugestão criada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Sugestao' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+    get:
+      tags: [Sugestões]
+      summary: Sugestões recebidas (RF15)
+      description: Administrador vê as sugestões sem universidade; a conta de universidade vê as destinadas à universidade que administra.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: status, schema: { type: string, enum: [EM_ANALISE, APROVADA, REPROVADA] } }
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Lista paginada, mais recentes primeiro
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/SugestaoRecebida' }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+
+  /sugestoes/minhas:
+    get:
+      tags: [Sugestões]
+      summary: Histórico de sugestões do aluno logado (T18)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Lista paginada, mais recentes primeiro
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Sugestao' }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+
+  /sugestoes/{id}:
+    get:
+      tags: [Sugestões]
+      summary: Detalhe de uma sugestão
+      description: Só o autor e o destinatário. `podeAvaliar` é true para o destinatário enquanto a sugestão estiver EM_ANALISE.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: Sugestão
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/SugestaoDetalhe' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /sugestoes/{id}/status:
+    patch:
+      tags: [Sugestões]
+      summary: Destinatário avalia a sugestão (RF15)
+      description: Só enquanto EM_ANALISE. Grava a resposta, quem avaliou e a data, e notifica o autor (SUGESTAO_AVALIADA). Uma segunda avaliação responde 409 SUGESTAO_JA_AVALIADA.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status, resposta]
+              properties:
+                status: { type: string, enum: [APROVADA, REPROVADA] }
+                resposta: { type: string, minLength: 1, maxLength: 2000 }
+      responses:
+        '200':
+          description: Sugestão avaliada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/SugestaoDetalhe' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409': { $ref: '#/components/responses/Conflito' }
+
+  /notificacoes:
+    get:
+      tags: [Notificações]
+      summary: Notificações do usuário logado (RF14)
+      description: Mais recentes primeiro. `meta.naoLidas` traz o total de não lidas para o contador do sino.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: lida, schema: { type: boolean } }
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Notificacao' }
+                  meta:
+                    allOf:
+                      - $ref: '#/components/schemas/Paginacao'
+                      - type: object
+                        properties:
+                          naoLidas: { type: integer }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+
+  /notificacoes/nao-lidas:
+    get:
+      tags: [Notificações]
+      summary: Total de notificações não lidas do usuário logado
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Contagem
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      naoLidas: { type: integer }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+
+  /notificacoes/{id}/lida:
+    patch:
+      tags: [Notificações]
+      summary: Marca uma notificação como lida
+      description: Só a própria; notificação de outro usuário responde 403.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: Notificação lida
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Notificacao' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /notificacoes/lidas:
+    patch:
+      tags: [Notificações]
+      summary: Marca todas as notificações do usuário logado como lidas
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Quantidade marcada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      atualizadas: { type: integer }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+
   /relatorios/pesquisa:
     get:
       tags: [Relatorios]
@@ -1149,6 +1381,51 @@ components:
         pageSize: { type: integer }
         total: { type: integer }
         totalPages: { type: integer }
+    Sugestao:
+      type: object
+      properties:
+        id: { type: integer }
+        titulo: { type: string }
+        texto: { type: string }
+        status: { type: string, enum: [EM_ANALISE, APROVADA, REPROVADA] }
+        resposta: { type: string, nullable: true }
+        criadoEm: { type: string, format: date-time }
+        avaliadoEm: { type: string, format: date-time, nullable: true }
+        universidade:
+          type: object
+          nullable: true
+          description: Universidade de destino; null quando foi para a administração.
+          properties:
+            id: { type: integer }
+            nomeFantasia: { type: string }
+    SugestaoRecebida:
+      allOf:
+        - $ref: '#/components/schemas/Sugestao'
+        - type: object
+          properties:
+            autor:
+              type: object
+              nullable: true
+              description: null quando a conta do autor foi excluída.
+              properties:
+                nome: { type: string }
+    SugestaoDetalhe:
+      allOf:
+        - $ref: '#/components/schemas/SugestaoRecebida'
+        - type: object
+          properties:
+            podeAvaliar: { type: boolean }
+    Notificacao:
+      type: object
+      properties:
+        id: { type: integer }
+        tipo: { type: string, enum: [NOVA_SUGESTAO, SUGESTAO_AVALIADA, UNIVERSIDADE_PENDENTE, UNIVERSIDADE_APROVADA] }
+        titulo: { type: string }
+        mensagem: { type: string }
+        referenciaTipo: { type: string, nullable: true, description: 'Item a abrir no app: sugestao ou universidade' }
+        referenciaId: { type: integer, nullable: true }
+        lida: { type: boolean }
+        criadoEm: { type: string, format: date-time }
     Usuario:
       type: object
       properties:
