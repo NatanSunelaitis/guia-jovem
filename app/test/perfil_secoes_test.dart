@@ -2,6 +2,8 @@ import 'package:app/features/auth/data/session_controller.dart';
 import 'package:app/features/auth/domain/usuario_sessao.dart';
 import 'package:app/features/perfil/presentation/perfil_page.dart';
 import 'package:app/features/perfil/presentation/widgets/pesquisas_salvas_secao.dart';
+import 'package:app/features/sugestoes/data/sugestoes_repository.dart';
+import 'package:app/features/sugestoes/domain/sugestao.dart';
 import 'package:app/shared/widgets/gj_skeleton.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,9 +48,20 @@ const _erroServidor = RespostaFalsa(
   status: 500,
 );
 
+/// Enquanto a API de sugestões não existe, o teste injeta o histórico.
+class _SugestoesFalsas extends SugestoesRepository {
+  _SugestoesFalsas(this.resultado);
+
+  final Future<List<Sugestao>> Function() resultado;
+
+  @override
+  Future<List<Sugestao>> minhas() => resultado();
+}
+
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   setUp(configurarAmbienteDeTeste);
+  tearDown(() => sugestoesRepository = SugestoesRepository());
 
   Future<void> pumpPerfil(WidgetTester tester, {bool aguardar = true}) async {
     sessionController.redefinirParaTestes(usuario: _aluno);
@@ -65,7 +78,11 @@ void main() {
     if (aguardar) await tester.pumpAndSettle();
   }
 
+  // A fonte de teste é mais larga que a real: a última aba pode ficar fora da
+  // área visível da faixa de abas (que rola na horizontal) e precisa de scroll.
   Future<void> abrirAba(WidgetTester tester, String aba) async {
+    await tester.ensureVisible(find.text(aba));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(aba));
     await tester.pumpAndSettle();
   }
@@ -261,6 +278,58 @@ void main() {
       mockAuthApiRotas(rotas(_erroServidor));
       await pumpPerfil(tester);
       await abrirAba(tester, 'Avaliações');
+
+      expect(find.text('Não foi possível carregar'), findsOneWidget);
+    });
+  });
+
+  group('Histórico de sugestões', () {
+    final rotas = {'GET /favoritos/universidades': RespostaFalsa(_pagina([]))};
+
+    testWidgets('sem a API de sugestões, mostra o estado vazio', (tester) async {
+      mockAuthApiRotas(rotas);
+      await pumpPerfil(tester);
+      await abrirAba(tester, 'Sugestões');
+
+      expect(find.text('Você ainda não enviou sugestões'), findsOneWidget);
+    });
+
+    testWidgets('lista título, destino, status e resposta', (tester) async {
+      sugestoesRepository = _SugestoesFalsas(() async => [
+            Sugestao(
+              id: 1,
+              titulo: 'Filtro por cursos noturnos',
+              texto: 'Seria útil filtrar por turno.',
+              status: statusSugestaoDe('APROVADA'),
+              resposta: 'O filtro entrou no planejamento.',
+              criadoEm: DateTime.utc(2026, 11, 10, 12),
+            ),
+            Sugestao(
+              id: 2,
+              titulo: 'Mais fotos do campus',
+              texto: 'Fotos ajudariam a conhecer o espaço.',
+              status: statusSugestaoDe('EM_ANALISE'),
+              criadoEm: DateTime.utc(2026, 11, 12, 12),
+              universidadeNome: 'Fatec Sorocaba',
+            ),
+          ]);
+      mockAuthApiRotas(rotas);
+      await pumpPerfil(tester);
+      await abrirAba(tester, 'Sugestões');
+
+      expect(find.text('Filtro por cursos noturnos'), findsOneWidget);
+      expect(find.text('Aprovada'), findsOneWidget);
+      expect(find.text('Resposta: O filtro entrou no planejamento.'), findsOneWidget);
+      expect(find.text('10/11/2026 · Para: Equipe Guia Jovem'), findsOneWidget);
+      expect(find.text('Em análise'), findsOneWidget);
+      expect(find.text('12/11/2026 · Para: Fatec Sorocaba'), findsOneWidget);
+    });
+
+    testWidgets('erro mostra a mensagem com "Tentar novamente"', (tester) async {
+      sugestoesRepository = _SugestoesFalsas(() async => throw Exception('falhou'));
+      mockAuthApiRotas(rotas);
+      await pumpPerfil(tester);
+      await abrirAba(tester, 'Sugestões');
 
       expect(find.text('Não foi possível carregar'), findsOneWidget);
     });

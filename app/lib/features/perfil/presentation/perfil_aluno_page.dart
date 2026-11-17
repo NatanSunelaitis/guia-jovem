@@ -9,12 +9,13 @@ import '../../../shared/widgets/gj_tabs.dart';
 import '../../auth/data/session_controller.dart';
 import 'widgets/dados_perfil_card.dart';
 import 'widgets/faculdades_salvas_secao.dart';
+import 'widgets/historico_sugestoes_secao.dart';
 import 'widgets/minhas_avaliacoes_secao.dart';
 import 'widgets/pesquisas_salvas_secao.dart';
 
 /// T16 Perfil do Aluno (`/perfil`, Figuras 25 e 26): dados e ações da conta
-/// no cartão e, nas abas, faculdades salvas, pesquisas salvas (T19) e as
-/// avaliações do aluno.
+/// no cartão e, nas abas, faculdades salvas, pesquisas salvas (T19), as
+/// avaliações do aluno e o histórico de sugestões (T18).
 class PerfilAlunoPage extends StatefulWidget {
   const PerfilAlunoPage({super.key});
 
@@ -31,6 +32,7 @@ class _PerfilAlunoPageState extends State<PerfilAlunoPage> {
     GJTabItem(label: 'Faculdades', icon: Symbols.bookmark),
     GJTabItem(label: 'Pesquisas salvas', icon: Symbols.saved_search),
     GJTabItem(label: 'Avaliações', icon: Symbols.star),
+    GJTabItem(label: 'Sugestões', icon: Symbols.history),
   ];
 
   // Só a aba aberta é montada: voltar a uma aba recarrega a lista, que pode
@@ -38,7 +40,8 @@ class _PerfilAlunoPageState extends State<PerfilAlunoPage> {
   Widget _conteudoDaAba() => switch (_aba) {
         0 => const FaculdadesSalvasSecao(),
         1 => const PesquisasSalvasSecao(),
-        _ => const MinhasAvaliacoesSecao(),
+        2 => const MinhasAvaliacoesSecao(),
+        _ => const HistoricoSugestoesSecao(),
       };
 
   Widget _secoes() {
