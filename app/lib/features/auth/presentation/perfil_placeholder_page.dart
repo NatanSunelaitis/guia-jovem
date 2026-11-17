@@ -8,7 +8,7 @@ import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
 import '../data/session_controller.dart';
 
-/// Placeholder de T16/T17 (perfil do aluno/universidade) até a Pendência 3
+/// Placeholder de T17 (perfil da universidade) e do perfil do administrador até a Pendência 3
 /// (docs/DECISOES.md): o menu do avatar já funciona (RF08 etc.), mas as
 /// telas de perfil de verdade ainda não foram construídas.
 class PerfilPlaceholderPage extends StatelessWidget {

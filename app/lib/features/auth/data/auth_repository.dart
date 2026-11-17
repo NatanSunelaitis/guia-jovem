@@ -55,6 +55,12 @@ class AuthRepository {
     await _client.post('/auth/reset-password', body: {'token': token, 'novaSenha': novaSenha});
   }
 
+  /// T16 Editar perfil: o próprio usuário só altera o nome (o e-mail é fixo).
+  Future<String> atualizarNome(int usuarioId, String nome) async {
+    final json = await _client.patch('/usuarios/$usuarioId', body: {'nome': nome});
+    return (json['data'] as Map<String, dynamic>)['nome'] as String;
+  }
+
   /// T21: a API confere a senha atual e revoga todas as sessões do usuário.
   Future<void> alterarSenha(
     int usuarioId, {

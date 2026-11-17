@@ -47,6 +47,14 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> atualizarNome(String nome) async {
+    final usuarioAtual = _usuario;
+    if (usuarioAtual == null) return;
+    final nomeGravado = await _repository.atualizarNome(usuarioAtual.id, nome);
+    _usuario = usuarioAtual.copyWith(nome: nomeGravado);
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     await _repository.logout();
     _usuario = null;

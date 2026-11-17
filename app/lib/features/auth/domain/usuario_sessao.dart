@@ -49,4 +49,13 @@ class UsuarioSessao {
   final UniversidadeDoUsuario? universidade;
 
   String get primeiroNome => nome.split(' ').first;
+
+  UsuarioSessao copyWith({String? nome}) => UsuarioSessao(
+        id: id,
+        nome: nome ?? this.nome,
+        email: email,
+        tipoUsuario: tipoUsuario,
+        fotoUrl: fotoUrl,
+        universidade: universidade,
+      );
 }

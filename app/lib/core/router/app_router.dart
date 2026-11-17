@@ -12,7 +12,6 @@ import '../../features/auth/presentation/cadastro_universidade_sucesso_page.dart
 import '../../features/auth/presentation/esqueci_senha_page.dart';
 import '../../features/auth/presentation/login_page.dart';
 import '../../features/auth/presentation/painel_placeholder_page.dart';
-import '../../features/auth/presentation/perfil_placeholder_page.dart';
 import '../../features/auth/presentation/redefinir_senha_page.dart';
 import '../../features/auth/presentation/tipo_cadastro_page.dart';
 import '../../features/campus/presentation/detalhe_campus_page.dart';
@@ -20,6 +19,7 @@ import '../../features/cursos/presentation/detalhe_curso_page.dart';
 import '../../features/cursos/presentation/lista_cursos_page.dart';
 import '../../features/dev_components/dev_components_page.dart';
 import '../../features/home/presentation/home_page.dart';
+import '../../features/perfil/presentation/perfil_page.dart';
 import '../../features/programas/presentation/detalhe_programa_page.dart';
 import '../../features/programas/presentation/pesquisa_programas_page.dart';
 import '../../features/universidades/presentation/detalhe_universidade_page.dart';
@@ -159,8 +159,9 @@ final appRouter = GoRouter(
       builder: (context, state) => const CadastroUniversidadeSucessoPage(),
     ),
 
-    // Fase 1: perfil e painéis (placeholders até a Pendência 3).
-    GoRoute(path: '/perfil', builder: (context, state) => const PerfilPlaceholderPage()),
+    // Perfil: T16 para o aluno; universidade e administrador seguem nos
+    // placeholders até a Pendência 3 (painéis).
+    GoRoute(path: '/perfil', builder: (context, state) => const PerfilPage()),
     GoRoute(
       path: '/painel-universidade',
       builder: (context, state) => const PainelPlaceholderPage(titulo: 'Painel de Administração da Universidade'),
