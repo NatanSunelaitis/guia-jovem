@@ -71,7 +71,9 @@ class _CadastroUniversidadePasso2PageState extends State<CadastroUniversidadePas
               texto: snapshot.error is ApiException ? (snapshot.error as ApiException).message : 'Tente novamente.',
               icone: Symbols.wifi_off,
               acaoLabel: 'Tentar novamente',
-              onAcao: () => setState(() => _future = programasRepository.listar(const FiltrosProgramas()).then((r) => r.data)),
+              onAcao: () => setState(() {
+                _future = programasRepository.listar(const FiltrosProgramas()).then((r) => r.data);
+              }),
             );
           }
 

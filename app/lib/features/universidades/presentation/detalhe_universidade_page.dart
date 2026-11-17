@@ -132,7 +132,10 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
               texto: snapshot.error is ApiException ? (snapshot.error as ApiException).message : 'Tente novamente.',
               icone: Symbols.wifi_off,
               acaoLabel: 'Tentar novamente',
-              onAcao: () => setState(() => _future = _carregar()),
+              // Bloco (não arrow): setState não aceita callback que devolve Future.
+              onAcao: () => setState(() {
+                _future = _carregar();
+              }),
             );
           }
 

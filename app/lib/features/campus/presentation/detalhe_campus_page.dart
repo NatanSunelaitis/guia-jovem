@@ -48,7 +48,9 @@ class _DetalheCampusPageState extends State<DetalheCampusPage> {
               texto: snapshot.error is ApiException ? (snapshot.error as ApiException).message : 'Tente novamente.',
               icone: Symbols.wifi_off,
               acaoLabel: 'Tentar novamente',
-              onAcao: () => setState(() => _future = campusRepository.detalhe(widget.id)),
+              onAcao: () => setState(() {
+                _future = campusRepository.detalhe(widget.id);
+              }),
             );
           }
 

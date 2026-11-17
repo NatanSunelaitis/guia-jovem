@@ -64,4 +64,29 @@ void main() {
 
     expect(find.text('Não foi possível carregar'), findsOneWidget);
   });
+
+  testWidgets('"Tentar novamente" recarrega o detalhe depois de um erro', (tester) async {
+    mockApiError('/universidades/1', message: 'Erro', status: 500);
+    await pump(tester);
+    expect(find.text('Não foi possível carregar'), findsOneWidget);
+
+    mockApi({
+      '/universidades/1/avaliacoes': envelope(<dynamic>[], {'page': 1, 'pageSize': 20, 'total': 0, 'totalPages': 1}),
+      '/universidades/1': envelope({
+        'id': 1,
+        'nomeFantasia': 'Fatec Sorocaba',
+        'razaoSocial': 'Faculdade de Tecnologia de Sorocaba',
+        'natureza': 'P',
+        'totalAvaliacoes': 0,
+        'campus': <dynamic>[],
+        'programas': <String, dynamic>{},
+      }),
+    });
+    await tester.tap(find.text('Tentar novamente'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Não foi possível carregar'), findsNothing);
+    expect(find.text('Fatec Sorocaba'), findsWidgets);
+  });
 }
