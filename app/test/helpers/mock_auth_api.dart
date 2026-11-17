@@ -57,6 +57,12 @@ final requisicoesAuthApi = <RequestOptions>[];
 /// `'POST /pesquisas-salvas'`), cada uma com seu status: para fluxos que
 /// fazem várias chamadas autenticadas (ex.: GET 200 e POST 409).
 void mockAuthApiRotas(Map<String, RespostaFalsa> rotas) {
+  mockAuthApiRotasDinamicas({for (final entrada in rotas.entries) entrada.key: (_) => entrada.value});
+}
+
+/// Como [mockAuthApiRotas], mas a resposta é calculada a cada requisição
+/// (ex.: pela query `page`, ou diferente na segunda leitura da mesma rota).
+void mockAuthApiRotasDinamicas(Map<String, RespostaFalsa Function(RequestOptions requisicao)> rotas) {
   requisicoesAuthApi.clear();
   final dio = Dio();
   dio.httpClientAdapter = _RotasHttpClientAdapter(rotas);
@@ -66,7 +72,7 @@ void mockAuthApiRotas(Map<String, RespostaFalsa> rotas) {
 class _RotasHttpClientAdapter implements HttpClientAdapter {
   _RotasHttpClientAdapter(this.rotas);
 
-  final Map<String, RespostaFalsa> rotas;
+  final Map<String, RespostaFalsa Function(RequestOptions requisicao)> rotas;
 
   @override
   void close({bool force = false}) {}
@@ -84,7 +90,7 @@ class _RotasHttpClientAdapter implements HttpClientAdapter {
     for (final entrada in rotas.entries) {
       final partes = entrada.key.split(' ');
       if (partes[0] == options.method && caminho.endsWith(partes[1])) {
-        resposta = entrada.value;
+        resposta = entrada.value(options);
         break;
       }
     }

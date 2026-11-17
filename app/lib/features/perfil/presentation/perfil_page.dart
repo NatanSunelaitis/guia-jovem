@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../auth/data/session_controller.dart';
 import '../../auth/domain/usuario_sessao.dart';
@@ -13,6 +14,8 @@ class PerfilPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ehAluno = sessionController.usuario?.tipoUsuario == TipoUsuario.aluno;
-    return ehAluno ? const PerfilAlunoPage() : const PerfilPlaceholderPage();
+    if (!ehAluno) return const PerfilPlaceholderPage();
+    final aba = GoRouterState.of(context).uri.queryParameters['aba'];
+    return PerfilAlunoPage(abaInicial: PerfilAlunoPage.abaDe(aba));
   }
 }

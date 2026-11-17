@@ -17,14 +17,25 @@ import 'widgets/pesquisas_salvas_secao.dart';
 /// no cartão e, nas abas, faculdades salvas, pesquisas salvas (T19), as
 /// avaliações do aluno e o histórico de sugestões (T18).
 class PerfilAlunoPage extends StatefulWidget {
-  const PerfilAlunoPage({super.key});
+  const PerfilAlunoPage({super.key, this.abaInicial = 0});
+
+  /// Aba aberta ao chegar (ex.: `/perfil?aba=sugestoes` volta ao histórico).
+  final int abaInicial;
+
+  /// Nome da aba na URL para o índice; desconhecido abre a primeira.
+  static int abaDe(String? nome) => switch (nome) {
+        'pesquisas' => 1,
+        'avaliacoes' => 2,
+        'sugestoes' => 3,
+        _ => 0,
+      };
 
   @override
   State<PerfilAlunoPage> createState() => _PerfilAlunoPageState();
 }
 
 class _PerfilAlunoPageState extends State<PerfilAlunoPage> {
-  int _aba = 0;
+  late int _aba = widget.abaInicial;
 
   static const _abas = [
     // Rótulos curtos (como "Faculdades" no protótipo do T19): as abas cabem

@@ -22,6 +22,8 @@ import '../../features/home/presentation/home_page.dart';
 import '../../features/perfil/presentation/perfil_page.dart';
 import '../../features/programas/presentation/detalhe_programa_page.dart';
 import '../../features/programas/presentation/pesquisa_programas_page.dart';
+import '../../features/sugestoes/presentation/detalhe_sugestao_page.dart';
+import '../../features/sugestoes/presentation/sugestoes_recebidas_page.dart';
 import '../../features/universidades/presentation/detalhe_universidade_page.dart';
 import '../../features/universidades/presentation/pesquisa_universidades_page.dart';
 
@@ -35,7 +37,10 @@ const _rotasSomenteVisitante = {
   '/cadastro/universidade/campus',
 };
 
-const _rotasAutenticadas = {'/perfil', '/painel-universidade', '/admin'};
+const _rotasAutenticadas = {'/perfil', '/painel-universidade', '/admin', '/sugestoes-recebidas'};
+
+/// `/sugestoes/:id` (detalhe aberto pela notificação) também exige sessão.
+bool _exigeSessao(String destino) => _rotasAutenticadas.contains(destino) || destino.startsWith('/sugestoes/');
 
 /// Rotas do app (seção 8 da especificação). Fase 2: catálogo público
 /// (T01-T08). Fase 1: sessão e cadastro (T09-T15, T25, T26).
@@ -50,7 +55,7 @@ final appRouter = GoRouter(
     final autenticado = sessionController.autenticado;
     final destino = state.uri.path;
 
-    if (!autenticado && _rotasAutenticadas.contains(destino)) {
+    if (!autenticado && _exigeSessao(destino)) {
       return '/login';
     }
 
@@ -65,6 +70,13 @@ final appRouter = GoRouter(
     }
 
     if (destino == '/admin' && autenticado && sessionController.usuario!.tipoUsuario != TipoUsuario.admin) {
+      return '/perfil';
+    }
+
+    // Sugestões recebidas: só administrador e universidade (RF15).
+    if (destino == '/sugestoes-recebidas' &&
+        autenticado &&
+        sessionController.usuario!.tipoUsuario == TipoUsuario.aluno) {
       return '/perfil';
     }
 
@@ -169,6 +181,17 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin',
       builder: (context, state) => const PainelPlaceholderPage(titulo: 'Painel de Administração'),
+    ),
+
+    // Sugestões (RF08, RF14, RF15). A lista de recebidas é rota própria até
+    // ser encaixada nos painéis (Pendência 3).
+    GoRoute(path: '/sugestoes-recebidas', builder: (context, state) => const SugestoesRecebidasPage()),
+    GoRoute(
+      path: '/sugestoes/:id',
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        return DetalheSugestaoPage(key: ValueKey('sugestao-$id'), id: id);
+      },
     ),
 
     GoRoute(path: '/dev/components', builder: (context, state) => const DevComponentsPage()),
