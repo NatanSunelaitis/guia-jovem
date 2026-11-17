@@ -102,6 +102,34 @@ flutter pub get
 flutter run -d chrome
 ```
 
+#### Endereço da API (`API_BASE_URL`)
+
+O app lê o endereço da API na compilação, pela variável `API_BASE_URL` (`--dart-define`). Ela deve incluir o prefixo `/api/v1`. Sem a variável, o padrão é `http://localhost:3000/api/v1`, que é a API local subida por qualquer um dos dois caminhos acima.
+
+Para rodar o app apontando para a API local:
+
+1. Suba a API (`docker compose up` ou `npm start` em `api/`) e confira `http://localhost:3000/api/v1/health`.
+2. Rode o app na porta 8080, a mesma do `APP_URL` do `api/.env`, para os links de recuperação de senha enviados por e-mail abrirem o app:
+
+   ```bash
+   cd app
+   flutter run -d chrome --web-port 8080 --dart-define=API_BASE_URL=http://localhost:3000/api/v1
+   ```
+
+Para apontar para outra API (ex.: um servidor de testes), troque só o valor:
+
+```bash
+flutter run -d chrome --dart-define=API_BASE_URL=https://api.exemplo.com.br/api/v1
+```
+
+O mesmo vale para o build web, que fica em `app/build/web`:
+
+```bash
+flutter build web --dart-define=API_BASE_URL=https://api.exemplo.com.br/api/v1
+```
+
+Como o valor entra na compilação, mudar a API exige rodar ou gerar o build de novo.
+
 ## Documentação
 
 - [docs/ESPECIFICACAO.md](docs/ESPECIFICACAO.md): especificação técnica completa, fases de desenvolvimento e contrato da API.
