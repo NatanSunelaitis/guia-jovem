@@ -843,6 +843,9 @@ paths:
     get:
       tags: [Programas]
       summary: Pesquisa de programas de entrada, financiamento e bolsas (RF12, RF13, RF19)
+      description: |
+        Sem `universidadeId`, traz só os programas globais. As bolsas institucionais (programas de uma universidade)
+        aparecem apenas filtrando por aquela universidade, que precisa estar aprovada (RF11). Também ficam fora dos destaques.
       parameters:
         - { in: query, name: tipo, schema: { type: string, enum: [ENTRADA, FINANCIAMENTO, BOLSA] } }
         - { in: query, name: q, schema: { type: string } }

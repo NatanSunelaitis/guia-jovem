@@ -100,15 +100,34 @@ async function listarDestaques(prisma, limite = 8) {
   return universidades.map(paraLista);
 }
 
-function agruparProgramasPorTipo(universidadeProgramas) {
+/**
+ * Programas aceitos (relação "aceita") e, junto, os programas próprios da
+ * universidade (bolsas institucionais, relação "Mantém"), marcados com
+ * `institucional: true`. RF11: esta é a única vitrine pública deles.
+ */
+function agruparProgramasPorTipo(universidadeProgramas, programasProprios = []) {
   const grupos = { ENTRADA: [], FINANCIAMENTO: [], BOLSA: [] };
+  const incluidos = new Set();
 
   for (const relacao of universidadeProgramas) {
+    incluidos.add(relacao.programa.id);
     grupos[relacao.programa.tipo].push({
       id: relacao.programa.id,
       nome: relacao.programa.nome,
       sigla: relacao.programa.sigla,
       observacao: relacao.observacao,
+      institucional: relacao.programa.universidadeId != null,
+    });
+  }
+
+  for (const programa of programasProprios) {
+    if (incluidos.has(programa.id)) continue;
+    grupos[programa.tipo].push({
+      id: programa.id,
+      nome: programa.nome,
+      sigla: programa.sigla,
+      observacao: null,
+      institucional: true,
     });
   }
 
@@ -160,7 +179,7 @@ async function obterDetalhe(prisma, id, req) {
       estado: c.endereco.estado,
       principal: c.principal,
     })),
-    programas: agruparProgramasPorTipo(universidade.universidadeProgramas),
+    programas: agruparProgramasPorTipo(universidade.universidadeProgramas, universidade.programas),
     // null para visitante, para quem não é aluno ou para aluno que ainda não avaliou.
     minhaAvaliacao,
     salva,

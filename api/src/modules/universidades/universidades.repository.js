@@ -44,6 +44,8 @@ function findDetalhePublicado(prisma, id) {
     include: {
       campus: { include: { endereco: true } },
       universidadeProgramas: { include: { programa: true } },
+      // Bolsas institucionais (relação "Mantém", RF11): só aparecem aqui.
+      programas: { where: { ativo: true }, orderBy: { criadoEm: 'asc' } },
     },
   });
 }

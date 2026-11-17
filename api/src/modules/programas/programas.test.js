@@ -46,6 +46,31 @@ describe('GET /api/v1/programas', () => {
     expect(resposta.status).toBe(400);
   });
 
+  it('pesquisa geral não traz bolsas institucionais: só programas globais (RF11)', async () => {
+    prisma.programa.findMany.mockResolvedValue([]);
+    prisma.programa.count.mockResolvedValue(0);
+
+    await request(app).get('/api/v1/programas?tipo=BOLSA');
+
+    const { where } = prisma.programa.findMany.mock.calls[0][0];
+    expect(where.universidadeId).toBeNull();
+    expect(prisma.programa.count).toHaveBeenCalledWith({ where });
+  });
+
+  it('com universidadeId, traz as bolsas institucionais daquela universidade', async () => {
+    prisma.programa.findMany.mockResolvedValue([programaFake({ id: 30, tipo: 'BOLSA', universidadeId: 7 })]);
+    prisma.programa.count.mockResolvedValue(1);
+
+    const resposta = await request(app).get('/api/v1/programas?universidadeId=7');
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data[0]).toMatchObject({ id: 30, universidadeId: 7 });
+    const { where } = prisma.programa.findMany.mock.calls[0][0];
+    expect(where.universidadeId).toBe(7);
+    // A universidade dona continua precisando estar aprovada.
+    expect(where.AND[0]).toEqual({ OR: [{ universidadeId: null }, { universidade: { status: 'A' } }] });
+  });
+
   it('filtra apenas globais quando apenasGlobais=true', async () => {
     prisma.programa.findMany.mockResolvedValue([]);
     prisma.programa.count.mockResolvedValue(0);
@@ -65,7 +90,8 @@ describe('GET /api/v1/programas/destaques', () => {
 
     expect(resposta.status).toBe(200);
     expect(resposta.body.data).toHaveLength(1);
-    expect(prisma.programa.findMany.mock.calls[0][0].where).toEqual({ ativo: true });
+    // Sem bolsas institucionais nos destaques (RF11).
+    expect(prisma.programa.findMany.mock.calls[0][0].where).toEqual({ ativo: true, universidadeId: null });
   });
 
   it('filtra os destaques por tipo (home: programas de entrada)', async () => {
@@ -75,7 +101,7 @@ describe('GET /api/v1/programas/destaques', () => {
 
     expect(resposta.status).toBe(200);
     expect(prisma.programa.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { ativo: true, tipo: 'ENTRADA' }, take: 4 }),
+      expect.objectContaining({ where: { ativo: true, universidadeId: null, tipo: 'ENTRADA' }, take: 4 }),
     );
   });
 

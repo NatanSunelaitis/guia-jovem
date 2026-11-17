@@ -26,8 +26,10 @@ function buildWhere(query) {
   if (query.q) {
     where.AND.push({ OR: [{ nome: { contains: query.q } }, { sigla: { contains: query.q } }] });
   }
-  if (query.universidadeId) where.universidadeId = query.universidadeId;
-  if (query.apenasGlobais) where.universidadeId = null;
+  // RF11: a bolsa institucional é visível só no perfil da universidade. Sem
+  // o filtro por universidade, a pesquisa traz apenas os programas globais;
+  // `apenasGlobais` continua aceito, e já é o comportamento padrão.
+  where.universidadeId = query.universidadeId && !query.apenasGlobais ? query.universidadeId : null;
 
   return where;
 }

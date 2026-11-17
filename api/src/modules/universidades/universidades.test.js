@@ -110,6 +110,29 @@ describe('GET /api/v1/universidades/:id', () => {
     );
   });
 
+  it('exibe as bolsas institucionais da universidade junto das bolsas aceitas (RF11)', async () => {
+    prisma.universidade.findFirst.mockResolvedValue(
+      universidadeFake({
+        universidadeProgramas: [
+          { programa: { id: 3, nome: 'ProUni', sigla: 'PROUNI', tipo: 'BOLSA', universidadeId: null }, observacao: null },
+        ],
+        programas: [{ id: 30, nome: 'Bolsa Mérito Fatec', sigla: null, tipo: 'BOLSA', universidadeId: 1 }],
+      }),
+    );
+
+    const resposta = await request(app).get('/api/v1/universidades/1');
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data.programas.BOLSA).toEqual([
+      { id: 3, nome: 'ProUni', sigla: 'PROUNI', observacao: null, institucional: false },
+      { id: 30, nome: 'Bolsa Mérito Fatec', sigla: null, observacao: null, institucional: true },
+    ]);
+    expect(prisma.universidade.findFirst.mock.calls[0][0].include.programas).toEqual({
+      where: { ativo: true },
+      orderBy: { criadoEm: 'asc' },
+    });
+  });
+
   it('responde 404 quando a universidade não existe ou não está aprovada', async () => {
     prisma.universidade.findFirst.mockResolvedValue(null);
 

@@ -13,7 +13,8 @@ function count(prisma, where) {
 
 function destaques(prisma, take, tipo) {
   return prisma.programa.findMany({
-    where: { ativo: true, ...(tipo ? { tipo } : {}) },
+    // Só programas globais: bolsas institucionais ficam no perfil da universidade (RF11).
+    where: { ativo: true, universidadeId: null, ...(tipo ? { tipo } : {}) },
     orderBy: { criadoEm: 'asc' },
     take,
   });
