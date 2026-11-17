@@ -122,6 +122,15 @@ class AuthApiClient {
     }
   }
 
+  Future<Map<String, dynamic>> patch(String path, {Map<String, dynamic>? body}) async {
+    try {
+      final resposta = await _dio.patch<Map<String, dynamic>>(path, data: body);
+      return _corpoOuErro(resposta);
+    } on DioException catch (erro) {
+      _lancarExcecaoDe(erro);
+    }
+  }
+
   Future<Map<String, dynamic>> put(String path, {Map<String, dynamic>? body}) async {
     try {
       final resposta = await _dio.put<Map<String, dynamic>>(path, data: body);

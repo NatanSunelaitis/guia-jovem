@@ -55,6 +55,19 @@ class AuthRepository {
     await _client.post('/auth/reset-password', body: {'token': token, 'novaSenha': novaSenha});
   }
 
+  /// T21: a API confere a senha atual e revoga todas as sessões do usuário.
+  Future<void> alterarSenha(
+    int usuarioId, {
+    required String senhaAtual,
+    required String novaSenha,
+    required String confirmacao,
+  }) async {
+    await _client.patch(
+      '/usuarios/$usuarioId/senha',
+      body: {'senhaAtual': senhaAtual, 'novaSenha': novaSenha, 'confirmacao': confirmacao},
+    );
+  }
+
   Future<void> excluirConta(int usuarioId) async {
     await _client.delete('/usuarios/$usuarioId', body: {'confirmacao': 'EXCLUIR'});
     await tokenStorage.limpar();
