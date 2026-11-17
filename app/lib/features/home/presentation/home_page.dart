@@ -48,7 +48,8 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _universidades = universidadesRepository.destaques();
-    _programas = programasRepository.destaques();
+    // Carrossel de programas de entrada (seção 4.5 do TG).
+    _programas = programasRepository.destaques(tipo: 'ENTRADA');
     _cursos = cursosRepository.destaques();
   }
 

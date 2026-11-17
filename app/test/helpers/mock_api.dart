@@ -9,8 +9,10 @@ import 'package:http/testing.dart';
 /// `/universidades/destaques`) para o corpo JSON já decodificado que a
 /// API retornaria (o envelope `{data, meta}` completo).
 void mockApi(Map<String, Map<String, dynamic>> respostas, {int status = 200}) {
+  requisicoesApi.clear();
   apiClient = ApiClient(
     client: MockClient((request) async {
+      requisicoesApi.add(request);
       // Uri.path não decodifica porcentagens (ex.: "Farm%C3%A1cia"
       // continua assim); pathSegments decodifica cada segmento.
       final caminho = '/${request.url.pathSegments.join('/')}';
@@ -34,6 +36,9 @@ void mockApi(Map<String, Map<String, dynamic>> respostas, {int status = 200}) {
     }),
   );
 }
+
+/// Requisições recebidas pelo [mockApi], na ordem, para o teste conferir a query.
+final requisicoesApi = <http.BaseRequest>[];
 
 void mockApiError(String path, {String code = 'INTERNAL_ERROR', String message = 'Erro', int status = 500}) {
   apiClient = ApiClient(

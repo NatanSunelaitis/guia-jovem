@@ -29,8 +29,9 @@ class ProgramasRepository {
     return PaginatedResult.fromJson(json, ProgramaResumo.fromJson);
   }
 
-  Future<List<ProgramaResumo>> destaques({int limite = 8}) async {
-    final json = await _client.get('/programas/destaques', query: {'limite': limite});
+  /// [tipo] filtra por ENTRADA, FINANCIAMENTO ou BOLSA (a home usa ENTRADA).
+  Future<List<ProgramaResumo>> destaques({int limite = 8, String? tipo}) async {
+    final json = await _client.get('/programas/destaques', query: {'limite': limite, 'tipo': tipo});
     return (json['data'] as List<dynamic>).map((item) => ProgramaResumo.fromJson(item as Map<String, dynamic>)).toList();
   }
 

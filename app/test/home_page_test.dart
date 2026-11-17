@@ -55,6 +55,19 @@ void main() {
     expect(find.text('Administração'), findsOneWidget);
   });
 
+  testWidgets('o carrossel de programas pede só os programas de entrada', (tester) async {
+    mockApi({
+      '/universidades/destaques': envelope(<dynamic>[]),
+      '/programas/destaques': envelope(<dynamic>[]),
+      '/cursos/destaques': envelope(<dynamic>[]),
+    });
+
+    await pump(tester);
+
+    final requisicao = requisicoesApi.singleWhere((r) => r.url.path.endsWith('/programas/destaques'));
+    expect(requisicao.url.queryParameters['tipo'], 'ENTRADA');
+  });
+
   testWidgets('mostra estado de erro quando a API falha', (tester) async {
     mockApiError('/universidades/destaques');
 
