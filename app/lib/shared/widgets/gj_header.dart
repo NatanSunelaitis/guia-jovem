@@ -10,7 +10,6 @@ import '../../core/theme/gj_spacing.dart';
 import '../../core/theme/gj_typography.dart';
 import 'gj_avatar_menu.dart';
 import 'gj_button.dart';
-import 'gj_notification_bell.dart';
 
 class GJHeaderNavItem {
   const GJHeaderNavItem({required this.label, required this.onTap, this.ativo = false});
@@ -50,7 +49,8 @@ class GJHeader extends StatelessWidget implements PreferredSizeWidget {
   final bool logado;
   final VoidCallback? onEntrar;
   final GJAvatarMenu? avatarMenu;
-  final GJNotificationBell? notificationBell;
+  /// Um [GJNotificationBell], ou um widget que o monta com dados da API.
+  final Widget? notificationBell;
   final String? tituloPainel;
 
   @override

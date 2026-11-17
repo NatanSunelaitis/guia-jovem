@@ -5,6 +5,7 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../features/auth/data/session_controller.dart';
 import '../../features/auth/domain/usuario_sessao.dart';
 import '../../features/auth/presentation/widgets/excluir_conta_dialog.dart';
+import '../../features/notificacoes/presentation/notificacoes_bell.dart';
 import '../widgets/gj_avatar_menu.dart';
 import '../widgets/gj_footer.dart';
 import '../widgets/gj_header.dart';
@@ -46,6 +47,8 @@ class PublicLayout extends StatelessWidget {
 
     return GJHeader.logado(
       navItems: _navItems(context),
+      // Key pelo usuário: trocar de conta recarrega as notificações.
+      notificationBell: NotificacoesBell(key: ValueKey('sino-${usuario.id}')),
       avatarMenu: GJAvatarMenu(
         iniciais: usuario.primeiroNome.isNotEmpty ? usuario.primeiroNome[0].toUpperCase() : '?',
         fotoUrl: usuario.fotoUrl,

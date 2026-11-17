@@ -166,7 +166,8 @@ void main() {
       expect(find.byTooltip('Salvar faculdade'), findsOneWidget);
 
       // A pesquisa só foi feita uma vez.
-      expect(requisicoesAuthApi.where((r) => r.method == 'GET'), hasLength(1));
+      // (O outro GET autenticado é o sino de notificações do header.)
+      expect(requisicoesAuthApi.where((r) => r.method == 'GET' && r.path == '/universidades'), hasLength(1));
     });
 
     testWidgets('visitante que clica em salvar vai ao login e volta para a pesquisa', (tester) async {
