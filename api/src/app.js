@@ -18,6 +18,7 @@ const relatoriosRoutes = require('./modules/relatorios/relatorios.routes');
 const avaliacoesRoutes = require('./modules/avaliacoes/avaliacoes.routes');
 const favoritosRoutes = require('./modules/favoritos/favoritos.routes');
 const pesquisasSalvasRoutes = require('./modules/pesquisas-salvas/pesquisas-salvas.routes');
+const notificacoesRoutes = require('./modules/notificacoes/notificacoes.routes');
 
 const app = express();
 
@@ -43,6 +44,7 @@ app.use('/api/v1/relatorios', relatoriosRoutes);
 app.use('/api/v1/avaliacoes', avaliacoesRoutes);
 app.use('/api/v1/favoritos', favoritosRoutes);
 app.use('/api/v1/pesquisas-salvas', pesquisasSalvasRoutes);
+app.use('/api/v1/notificacoes', notificacoesRoutes);
 
 app.use((req, res, next) => {
   next(AppError.notFound('Rota não encontrada'));

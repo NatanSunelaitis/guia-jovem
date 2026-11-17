@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const env = require('../../config/env');
 const { enviarEmail } = require('../../config/mailer');
 const AppError = require('../../shared/errors/AppError');
+const notificacoesService = require('../notificacoes/notificacoes.service');
 const { verifyGoogleIdToken } = require('./google.util');
 const { issueTokenPair, hashToken } = require('./token.util');
 
@@ -119,19 +120,13 @@ async function registrarUniversidade(prisma, dados, req) {
   });
 
   // RF25: avisa os administradores para a análise do cadastro (seção 5.1).
-  const admins = await prisma.usuario.findMany({ where: { tipoUsuario: 'D', ativo: true }, select: { id: true } });
-  if (admins.length > 0) {
-    await prisma.notificacao.createMany({
-      data: admins.map((admin) => ({
-        usuarioId: admin.id,
-        tipo: 'UNIVERSIDADE_PENDENTE',
-        titulo: 'Nova universidade aguardando aprovação',
-        mensagem: `${universidade.nomeFantasia} enviou um cadastro para análise.`,
-        referenciaTipo: 'universidade',
-        referenciaId: universidade.id,
-      })),
-    });
-  }
+  await notificacoesService.notificar(prisma, await notificacoesService.idsAdministradoresAtivos(prisma), {
+    tipo: 'UNIVERSIDADE_PENDENTE',
+    titulo: 'Nova universidade aguardando aprovação',
+    mensagem: `${universidade.nomeFantasia} enviou um cadastro para análise.`,
+    referenciaTipo: 'universidade',
+    referenciaId: universidade.id,
+  });
 
   const tokens = await issueTokenPair(prisma, usuario);
   return {
