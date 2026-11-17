@@ -3,7 +3,7 @@
     "short_name": "Guia Jovem",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#F9F9F9",
+    "background_color": "#FFFFFF",
     "theme_color": "#0061A4",
     "description": "Guia Jovem: seu guia completo para financiamento estudantil, ingresso universitário e bolsas de estudo.",
     "orientation": "portrait-primary",

@@ -32,10 +32,11 @@ class GJFooter extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Logo empilhado em branco sobre o fundo primary (proporção ~1,27:1).
         SizedBox(
-          height: 32,
-          width: 140,
-          child: SvgPicture.asset(GJBrand.logoHorizontalWhite, fit: BoxFit.contain, alignment: Alignment.centerLeft),
+          height: 72,
+          width: 92,
+          child: SvgPicture.asset(GJBrand.logoBranco, fit: BoxFit.contain, alignment: Alignment.centerLeft),
         ),
         const SizedBox(height: GJSpace.s3),
         ConstrainedBox(

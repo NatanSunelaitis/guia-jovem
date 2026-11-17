@@ -72,9 +72,10 @@ class GJHeader extends StatelessWidget implements PreferredSizeWidget {
           ),
           child: Row(
             children: [
+              // Logo horizontal (proporção ~6,5:1): 32 px de altura.
               SizedBox(
                 height: 32,
-                width: 140,
+                width: 208,
                 child: SvgPicture.asset(GJBrand.logoHorizontal, fit: BoxFit.contain, alignment: Alignment.centerLeft),
               ),
               if (tituloPainel != null) ...[

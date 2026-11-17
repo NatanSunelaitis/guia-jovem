@@ -83,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 56, child: SvgPicture.asset(GJBrand.logoStacked)),
+              SizedBox(height: 56, child: SvgPicture.asset(GJBrand.logo)),
               const SizedBox(height: GJSpace.s4),
               Text('Acesse sua conta!', style: GJTypography.h1(size: 28), textAlign: TextAlign.center),
               const SizedBox(height: GJSpace.s1),

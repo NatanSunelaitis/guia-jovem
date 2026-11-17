@@ -72,7 +72,7 @@ class _EsqueciSenhaPageState extends State<EsqueciSenhaPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 48, child: SvgPicture.asset(GJBrand.logoStacked)),
+              SizedBox(height: 48, child: SvgPicture.asset(GJBrand.logo)),
               const SizedBox(height: GJSpace.s4),
               Text('Esqueci minha senha', style: GJTypography.h1(size: 26), textAlign: TextAlign.center),
               const SizedBox(height: GJSpace.s1),

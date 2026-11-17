@@ -103,7 +103,7 @@ class _CadastroAlunoPageState extends State<CadastroAlunoPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SizedBox(height: 56, child: SvgPicture.asset(GJBrand.logoStacked)),
+              SizedBox(height: 56, child: SvgPicture.asset(GJBrand.logo)),
               const SizedBox(height: GJSpace.s4),
               Text('Vamos criar sua conta no Guia Jovem?', style: GJTypography.h1(size: 28), textAlign: TextAlign.center),
               const SizedBox(height: GJSpace.s1),

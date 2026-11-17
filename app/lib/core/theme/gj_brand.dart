@@ -1,12 +1,17 @@
 /// Caminhos dos arquivos de marca do Guia Jovem (GJDS, seção 2.10).
-/// Todos em `app/assets/brand/`, declarados em `pubspec.yaml`.
+/// Todos em `app/assets/brand/`, declarados em `pubspec.yaml`. O favicon e a
+/// animação de carregamento ficam em `app/web/`, servidos fora do Flutter.
 abstract final class GJBrand {
-  static const String logoStacked = 'assets/brand/logo-stacked.svg';
-  static const String logoStackedWhite = 'assets/brand/logo-stacked-white.svg';
-  static const String logoHorizontal = 'assets/brand/logo-horizontal.svg';
+  /// Logo empilhado (símbolo sobre o nome): login, cadastro e recuperação de senha.
+  static const String logo = 'assets/brand/guia-jovem-logo.svg';
 
-  /// `gj.brand.logo.mono.light`: usado no footer e em cards com fundo `primary`.
-  static const String logoHorizontalWhite = 'assets/brand/logo-horizontal-white.svg';
+  /// Logo empilhado em branco, para fundo `primary` (rodapé).
+  static const String logoBranco = 'assets/brand/guia-jovem-logo-branco.svg';
 
-  static const String symbol = 'assets/brand/symbol.svg';
+  /// Logo horizontal do header.
+  static const String logoHorizontal = 'assets/brand/guia-jovem-logo-horizontal.svg';
+
+  /// Logo empilhado com a animação de entrada (CSS); reservado para telas de
+  /// destaque, não usado no app por enquanto.
+  static const String logoAnimado = 'assets/brand/guia-jovem-logo-animado.svg';
 }
