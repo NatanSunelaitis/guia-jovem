@@ -9,12 +9,15 @@ import '../../../../shared/widgets/gj_input.dart';
 import '../../data/session_controller.dart';
 
 /// T22 Excluir Conta (diálogo, Figura 36): confirmação digitando "EXCLUIR".
-Future<void> mostrarDialogoExcluirConta(BuildContext context) {
-  return showDialog<void>(context: context, builder: (context) => const _ExcluirContaDialog());
+/// [aviso] explica o efeito para o perfil (ex.: a universidade fica inativa).
+Future<void> mostrarDialogoExcluirConta(BuildContext context, {String? aviso}) {
+  return showDialog<void>(context: context, builder: (context) => _ExcluirContaDialog(aviso: aviso));
 }
 
 class _ExcluirContaDialog extends StatefulWidget {
-  const _ExcluirContaDialog();
+  const _ExcluirContaDialog({this.aviso});
+
+  final String? aviso;
 
   @override
   State<_ExcluirContaDialog> createState() => _ExcluirContaDialogState();
@@ -70,6 +73,10 @@ class _ExcluirContaDialogState extends State<_ExcluirContaDialog> {
               'Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.',
               style: GJTypography.body(),
             ),
+            if (widget.aviso != null) ...[
+              const SizedBox(height: GJSpace.s2),
+              Text(widget.aviso!, style: GJTypography.bodySm()),
+            ],
             const SizedBox(height: GJSpace.s4),
             GJInput(
               label: 'Digite EXCLUIR para confirmar',

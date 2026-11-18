@@ -193,11 +193,13 @@ class _SecaoCursosState extends State<SecaoCursos> {
 }
 
 /// Criar ou editar curso. No novo, escolhe a universidade (que não muda
-/// depois: as ofertas em campus dependem dela).
+/// depois: as ofertas em campus dependem dela). No painel da universidade,
+/// [universidadeId] fixa a universidade e o seletor não aparece.
 class FormularioCurso extends StatefulWidget {
-  const FormularioCurso({super.key, this.curso});
+  const FormularioCurso({super.key, this.curso, this.universidadeId});
 
   final CursoAdmin? curso;
+  final int? universidadeId;
 
   @override
   State<FormularioCurso> createState() => _FormularioCursoState();
@@ -211,7 +213,7 @@ class _FormularioCursoState extends State<FormularioCurso> {
   late final _descricao = TextEditingController(text: widget.curso?.descricao);
   late String? _grau = widget.curso?.grau;
   late String? _modalidade = widget.curso?.modalidade;
-  int? _universidadeId;
+  late int? _universidadeId = widget.universidadeId;
 
   Future<List<UniversidadeAdminItem>>? _universidades;
   Map<String, String> _erros = const {};
@@ -221,7 +223,7 @@ class _FormularioCursoState extends State<FormularioCurso> {
   @override
   void initState() {
     super.initState();
-    if (widget.curso == null) {
+    if (widget.curso == null && widget.universidadeId == null) {
       _universidades = adminRepository.universidades(pageSize: 100).then((pagina) => pagina.resultado.data);
     }
   }
@@ -312,9 +314,9 @@ class _FormularioCursoState extends State<FormularioCurso> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (curso == null)
+        if (curso == null && widget.universidadeId == null)
           _seletorUniversidade()
-        else
+        else if (curso != null && widget.universidadeId == null)
           Padding(
             padding: const EdgeInsets.only(bottom: GJSpace.s4),
             child: Text('Universidade: ${curso.universidadeNome}', style: GJTypography.bodySm()),
