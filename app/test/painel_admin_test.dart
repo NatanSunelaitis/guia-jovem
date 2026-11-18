@@ -88,25 +88,39 @@ void main() {
   setUp(configurarAmbienteDeTeste);
 
   group('Estrutura do painel', () {
-    testWidgets('mostra as oito abas do protótipo e as ainda não feitas como "em breve"', (tester) async {
+    testWidgets('mostra as oito abas do protótipo, todas prontas, e troca de seção', (tester) async {
       mockAuthApiRotas({
         'GET /notificacoes': _semNotificacoes,
         'GET /universidades/administracao': RespostaFalsa(_pagina([])),
+        'GET /cursos/administracao': RespostaFalsa(_pagina([])),
       });
 
       await _pumpAdmin(tester, '/admin/universidades');
 
       expect(find.text('Painel de Administração'), findsOneWidget);
-      for (final rotulo in ['Usuários', 'Universidades', 'Sugestões']) {
+      for (final rotulo in [
+        'Dashboard',
+        'Usuários',
+        'Universidades',
+        'Cursos',
+        'Financiamento',
+        'Bolsas de Estudo',
+        'Programas de Entrada',
+        'Sugestões',
+      ]) {
         expect(find.text(rotulo), findsWidgets);
       }
-      expect(find.text('Dashboard (em breve)'), findsOneWidget);
-      expect(find.text('Cursos (em breve)'), findsOneWidget);
+      expect(find.textContaining('em breve'), findsNothing);
 
-      await tester.tap(find.text('Cursos (em breve)'));
+      await tester.tap(find.text('Cursos'));
       await tester.pumpAndSettle();
-      expect(find.text('Em breve'), findsOneWidget);
-      expect(find.text('A seção Cursos ainda está em construção.'), findsOneWidget);
+      expect(find.text('Novo curso'), findsOneWidget);
+    });
+
+    test('sem seção na URL (ou desconhecida), o painel abre no Dashboard', () {
+      expect(SecaoAdmin.doCaminho(null), SecaoAdmin.dashboard);
+      expect(SecaoAdmin.doCaminho('inexistente'), SecaoAdmin.dashboard);
+      expect(SecaoAdmin.doCaminho('bolsas'), SecaoAdmin.bolsas);
     });
 
     testWidgets('seção Sugestões traz a lista de recebidas e abre o detalhe', (tester) async {

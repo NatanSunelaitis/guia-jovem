@@ -183,7 +183,7 @@ final appRouter = GoRouter(
     GoRoute(path: '/painel-universidade', builder: (context, state) => const PainelUniversidadePage()),
 
     // T24 Painel do administrador: uma URL por seção (abas do protótipo).
-    GoRoute(path: '/admin', redirect: (context, state) => '/admin/${SecaoAdmin.universidades.caminho}'),
+    GoRoute(path: '/admin', redirect: (context, state) => '/admin/${SecaoAdmin.dashboard.caminho}'),
     GoRoute(
       path: '/admin/universidades/:id',
       builder: (context, state) {
