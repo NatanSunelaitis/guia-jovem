@@ -223,8 +223,25 @@ describe('POST /api/v1/auth/login', () => {
 });
 
 describe('POST /api/v1/auth/google', () => {
-  it('cria uma nova conta quando não existe usuário com o e-mail ou googleId (200)', async () => {
+  it('recusa o token cujo e-mail o Google não verificou (401), sem criar nem vincular conta', async () => {
     verifyGoogleIdToken.mockResolvedValue({
+      googleId: 'g-nv',
+      email: 'nao-verificado@example.com',
+      emailVerificado: false,
+      nome: 'Sem Verificação',
+      fotoUrl: null,
+    });
+
+    const resposta = await request(app).post('/api/v1/auth/google').send({ idToken: 'token-valido' });
+
+    expect(resposta.status).toBe(401);
+    expect(prisma.usuario.findUnique).not.toHaveBeenCalled();
+    expect(prisma.usuario.create).not.toHaveBeenCalled();
+    expect(prisma.usuario.update).not.toHaveBeenCalled();
+  });
+
+  it('cria uma nova conta quando não existe usuário com o e-mail ou googleId (200)', async () => {
+    verifyGoogleIdToken.mockResolvedValue({ emailVerificado: true,
       googleId: 'g-123',
       email: 'novo@example.com',
       nome: 'Novo Aluno',
@@ -245,7 +262,7 @@ describe('POST /api/v1/auth/google', () => {
   });
 
   it('conta Google desativada não entra e não grava LOGIN (401)', async () => {
-    verifyGoogleIdToken.mockResolvedValue({ googleId: 'g-1', email: 'aluno@example.com', nome: 'Aluno', fotoUrl: null });
+    verifyGoogleIdToken.mockResolvedValue({ emailVerificado: true, googleId: 'g-1', email: 'aluno@example.com', nome: 'Aluno', fotoUrl: null });
     prisma.usuario.findUnique.mockResolvedValue(usuarioFake({ googleId: 'g-1', ativo: false }));
 
     const resposta = await request(app).post('/api/v1/auth/google').send({ idToken: 'token-valido' });
@@ -257,7 +274,7 @@ describe('POST /api/v1/auth/google', () => {
   });
 
   it('vincula a conta existente por e-mail quando o tipo é aluno (200)', async () => {
-    verifyGoogleIdToken.mockResolvedValue({
+    verifyGoogleIdToken.mockResolvedValue({ emailVerificado: true,
       googleId: 'g-999',
       email: 'aluno@example.com',
       nome: 'Aluno Teste',
@@ -275,7 +292,7 @@ describe('POST /api/v1/auth/google', () => {
   });
 
   it('responde 403 quando a conta com esse e-mail não é de aluno', async () => {
-    verifyGoogleIdToken.mockResolvedValue({
+    verifyGoogleIdToken.mockResolvedValue({ emailVerificado: true,
       googleId: 'g-999',
       email: 'universidade@example.com',
       nome: 'Universidade',

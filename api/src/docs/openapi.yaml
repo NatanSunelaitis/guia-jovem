@@ -179,7 +179,12 @@ paths:
     post:
       tags: [Auth]
       summary: Login ou cadastro de aluno via Google
-      description: Universidade não pode ser criada via Google; precisa dos dados institucionais.
+      description: >-
+        RF05 (Quadro 8). `idToken` é o ID token (JWT) devolvido pelo botão do Google Identity
+        Services; a API confere a assinatura, a validade, o `aud` igual a GOOGLE_CLIENT_ID e o
+        e-mail verificado pelo Google (sem isso, 401). Sem conta com o e-mail, cria uma conta de
+        aluno; conta de universidade ou de administrador com o mesmo e-mail responde 403.
+        Universidade não pode ser criada via Google; precisa dos dados institucionais.
       requestBody:
         required: true
         content:

@@ -164,6 +164,12 @@ async function login(prisma, { email, senha }, req) {
 async function loginComGoogle(prisma, { idToken }, req) {
   const perfilGoogle = await verifyGoogleIdToken(idToken);
 
+  // A conta é achada (ou criada) pelo e-mail: só vale o e-mail que o Google
+  // confirmou.
+  if (!perfilGoogle.emailVerificado) {
+    throw AppError.unauthenticated('O e-mail desta conta Google não foi verificado');
+  }
+
   let usuario = await prisma.usuario.findUnique({
     where: { googleId: perfilGoogle.googleId },
     include: INCLUDE_UNIVERSIDADE,

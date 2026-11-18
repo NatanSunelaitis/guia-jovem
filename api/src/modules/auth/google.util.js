@@ -6,8 +6,9 @@ const AppError = require('../../shared/errors/AppError');
 const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
 /**
- * Verifica um ID token do Google e retorna os dados básicos do perfil.
- * Isolado em módulo próprio para poder ser mockado nos testes (RF07).
+ * Verifica um ID token do Google (assinatura, validade e `aud` igual ao
+ * GOOGLE_CLIENT_ID) e retorna os dados básicos do perfil. Isolado em módulo
+ * próprio para poder ser mockado nos testes (RF05).
  */
 async function verifyGoogleIdToken(idToken) {
   try {
@@ -17,6 +18,7 @@ async function verifyGoogleIdToken(idToken) {
     return {
       googleId: payload.sub,
       email: payload.email,
+      emailVerificado: payload.email_verified === true,
       nome: payload.name ?? payload.email,
       fotoUrl: payload.picture ?? null,
     };
