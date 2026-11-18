@@ -7,7 +7,7 @@ function createModel(methods) {
 }
 
 const prisma = {
-  usuario: createModel(['findUnique', 'findMany', 'count', 'create', 'update', 'delete']),
+  usuario: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update', 'delete']),
   refreshToken: createModel(['create', 'findUnique', 'update', 'updateMany']),
   tokenRecuperacao: createModel(['create', 'findUnique', 'update']),
   universidade: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update', 'updateMany']),
@@ -30,6 +30,15 @@ const prisma = {
   }),
 };
 
+/**
+ * O middleware de sessão consulta `usuario.findFirst` para saber se a conta
+ * segue ativa. Por padrão, toda conta do token está ativa; o teste que
+ * quiser uma conta inativa sobrescreve com `mockResolvedValue(null)`.
+ */
+function contaDoTokenAtiva() {
+  prisma.usuario.findFirst.mockImplementation(async ({ where }) => ({ id: where.id }));
+}
+
 function resetMockPrisma() {
   for (const [chave, modelo] of Object.entries(prisma)) {
     if (chave === '$transaction') {
@@ -45,7 +54,10 @@ function resetMockPrisma() {
       metodo.mockResolvedValue(undefined);
     }
   }
+  contaDoTokenAtiva();
 }
+
+contaDoTokenAtiva();
 
 module.exports = prisma;
 module.exports.resetMockPrisma = resetMockPrisma;

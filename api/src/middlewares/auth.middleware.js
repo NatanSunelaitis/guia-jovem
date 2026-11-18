@@ -1,9 +1,15 @@
 const jwt = require('jsonwebtoken');
 
+const prisma = require('../config/database');
 const env = require('../config/env');
 const AppError = require('../shared/errors/AppError');
 
-function auth(req, res, next) {
+/**
+ * Valida o access token e confere no banco que a conta ainda existe e está
+ * ativa: conta inativada ou excluída perde o acesso na hora, sem esperar o
+ * token expirar (até 15 minutos).
+ */
+async function auth(req, res, next) {
   const cabecalho = req.headers.authorization || '';
   const [tipo, token] = cabecalho.split(' ');
 
@@ -11,17 +17,31 @@ function auth(req, res, next) {
     return next(AppError.unauthenticated());
   }
 
+  let payload;
   try {
-    const payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
-    req.user = {
-      id: payload.sub,
-      tipoUsuario: payload.tipoUsuario,
-      universidadeId: payload.universidadeId ?? null,
-    };
-    return next();
+    payload = jwt.verify(token, env.JWT_ACCESS_SECRET);
   } catch (erro) {
     return next(AppError.unauthenticated('Sessão expirada ou inválida'));
   }
+
+  try {
+    const contaAtiva = await prisma.usuario.findFirst({
+      where: { id: payload.sub, ativo: true },
+      select: { id: true },
+    });
+    if (!contaAtiva) {
+      return next(AppError.unauthenticated('Conta inativa ou excluída'));
+    }
+  } catch (erro) {
+    return next(erro);
+  }
+
+  req.user = {
+    id: payload.sub,
+    tipoUsuario: payload.tipoUsuario,
+    universidadeId: payload.universidadeId ?? null,
+  };
+  return next();
 }
 
 /**

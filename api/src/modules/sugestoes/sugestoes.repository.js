@@ -1,5 +1,5 @@
 const INCLUDE_RELACOES = {
-  universidade: { select: { id: true, nomeFantasia: true, usuarioId: true } },
+  universidade: { select: { id: true, nomeFantasia: true, usuarioId: true, status: true } },
   usuario: { select: { id: true, nome: true } },
 };
 

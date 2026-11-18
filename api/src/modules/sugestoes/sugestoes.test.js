@@ -18,7 +18,7 @@ const TOKEN_UNIVERSIDADE = tokenPara({ id: 3, tipoUsuario: 'U', universidadeId: 
 const TOKEN_OUTRA_UNIVERSIDADE = tokenPara({ id: 4, tipoUsuario: 'U', universidadeId: 8 });
 const TOKEN_ADMIN = tokenPara({ id: 99, tipoUsuario: 'D' });
 
-const UNIVERSIDADE = { id: 7, nomeFantasia: 'Fatec Itu', usuarioId: 3 };
+const UNIVERSIDADE = { id: 7, nomeFantasia: 'Fatec Itu', usuarioId: 3, status: 'A' };
 
 function sugestaoFake(sobrescreve = {}) {
   return {
@@ -48,6 +48,8 @@ function notificacoesGravadas() {
 
 beforeEach(() => {
   prisma.resetMockPrisma();
+  // Status atual da universidade da conta U (middleware da Pendência 6).
+  prisma.universidade.findUnique.mockResolvedValue({ status: 'A' });
 });
 
 describe('POST /api/v1/sugestoes', () => {
@@ -409,5 +411,55 @@ describe('PATCH /api/v1/sugestoes/:id/status', () => {
   it('sem login responde 401', async () => {
     const resposta = await request(app).patch('/api/v1/sugestoes/12/status').send({ status: 'APROVADA', resposta: 'Ok' });
     expect(resposta.status).toBe(401);
+  });
+});
+
+describe('Universidade reprovada ou inativa (Pendência 6)', () => {
+  it.each([
+    ['R', 'reprovado'],
+    ['I', 'inativa'],
+  ])('universidade com status %s não avalia sugestão (403)', async (status, trecho) => {
+    prisma.universidade.findUnique.mockResolvedValue({ status });
+    prisma.sugestao.findUnique.mockResolvedValue(paraUniversidade());
+
+    const resposta = await request(app)
+      .patch('/api/v1/sugestoes/12/status')
+      .set('Authorization', `Bearer ${TOKEN_UNIVERSIDADE}`)
+      .send({ status: 'APROVADA', resposta: 'Ok' });
+
+    expect(resposta.status).toBe(403);
+    expect(resposta.body.error.code).toBe('UNIVERSIDADE_NAO_APROVADA');
+    expect(resposta.body.error.message).toContain(trecho);
+    expect(prisma.universidade.findUnique).toHaveBeenCalledWith({ where: { id: 7 }, select: { status: true } });
+    expect(prisma.sugestao.updateMany).not.toHaveBeenCalled();
+    expect(prisma.logAuditoria.create).not.toHaveBeenCalled();
+  });
+
+  it('a universidade inativa ainda lê a sugestão, mas sem poder avaliar', async () => {
+    prisma.sugestao.findUnique.mockResolvedValue(
+      paraUniversidade({ universidade: { ...UNIVERSIDADE, status: 'I' } }),
+    );
+
+    const resposta = await request(app)
+      .get('/api/v1/sugestoes/12')
+      .set('Authorization', `Bearer ${TOKEN_UNIVERSIDADE}`);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data.podeAvaliar).toBe(false);
+  });
+
+  it('o administrador não passa pela checagem de universidade', async () => {
+    prisma.sugestao.findUnique
+      .mockResolvedValueOnce(sugestaoFake())
+      .mockResolvedValueOnce(sugestaoFake({ status: 'REPROVADA', resposta: 'Não', avaliadoPor: 99 }));
+    prisma.sugestao.updateMany.mockResolvedValue({ count: 1 });
+
+    const resposta = await request(app)
+      .patch('/api/v1/sugestoes/12/status')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN}`)
+      .send({ status: 'REPROVADA', resposta: 'Não' });
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.universidade.findUnique).not.toHaveBeenCalled();
   });
 });

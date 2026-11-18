@@ -145,7 +145,11 @@ async function obterDetalhe(prisma, id, usuario) {
   return {
     ...paraDestinatario(sugestao),
     // O app mostra o formulário de avaliação só para o destinatário (RF15).
-    podeAvaliar: destinatario && sugestao.status === 'EM_ANALISE',
+    // Universidade reprovada ou inativa só lê (Pendência 6).
+    podeAvaliar:
+      destinatario &&
+      sugestao.status === 'EM_ANALISE' &&
+      (sugestao.universidade == null || sugestao.universidade.status === 'A'),
   };
 }
 
