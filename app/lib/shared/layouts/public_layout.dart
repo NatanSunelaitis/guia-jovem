@@ -70,7 +70,12 @@ class PublicLayout extends StatelessWidget {
           icon: Symbols.delete,
           destructivo: true,
           dividerAcima: true,
-          onTap: () => mostrarDialogoExcluirConta(context),
+          onTap: () => mostrarDialogoExcluirConta(
+            context,
+            aviso: usuario.tipoUsuario == TipoUsuario.universidade
+                ? 'A universidade fica inativa e deixa de aparecer no site. Os dados da instituição são mantidos, mas esta conta é apagada.'
+                : null,
+          ),
         ),
       ],
     );
