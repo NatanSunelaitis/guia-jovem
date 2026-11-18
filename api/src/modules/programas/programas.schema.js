@@ -105,7 +105,35 @@ const atualizarEventoSchema = {
     .refine((dados) => Object.keys(dados).length > 0, { message: 'Informe ao menos um campo para atualizar' }),
 };
 
+// RF11: bolsa institucional (programa do tipo BOLSA da universidade). O tipo é fixo.
+const camposBolsa = { ...camposPrograma };
+delete camposBolsa.tipo;
+
+const bolsaParamsSchema = z.object({
+  id: z.coerce.number().int().positive('id inválido'),
+  bolsaId: z.coerce.number().int().positive('bolsaId inválido'),
+});
+
+const criarBolsaSchema = {
+  params: idParamSchema.params,
+  body: z.object(camposBolsa).strict('O tipo da bolsa institucional é sempre BOLSA'),
+};
+
+const atualizarBolsaSchema = {
+  params: bolsaParamsSchema,
+  body: z
+    .object(camposBolsa)
+    .partial()
+    .strict('O tipo da bolsa institucional é sempre BOLSA')
+    .refine((dados) => Object.keys(dados).length > 0, { message: 'Informe ao menos um campo para atualizar' }),
+};
+
+const excluirBolsaSchema = { params: bolsaParamsSchema };
+
 module.exports = {
+  criarBolsaSchema,
+  atualizarBolsaSchema,
+  excluirBolsaSchema,
   idParamSchema,
   listQuerySchema,
   destaquesQuerySchema,
