@@ -16,11 +16,17 @@ class PaginaUniversidadesAdmin {
 /// Ações do painel do administrador (T24): aprovação de universidades
 /// (RF23) e gerenciar usuários (RF09, Quadro 14). Todas exigem sessão.
 class AdminRepository {
-  Future<PaginaUniversidadesAdmin> universidades({StatusUniversidade? status, String? busca, int page = 1}) async {
+  Future<PaginaUniversidadesAdmin> universidades({
+    StatusUniversidade? status,
+    String? busca,
+    int page = 1,
+    int? pageSize,
+  }) async {
     final json = await authApiClient.get(
       '/universidades/administracao',
       query: {
         'page': page,
+        if (pageSize != null) 'pageSize': pageSize,
         if (status != null) 'status': codigoStatusUniversidade(status),
         if (busca != null && busca.isNotEmpty) 'busca': busca,
       },
@@ -68,6 +74,38 @@ class AdminRepository {
       },
     );
     return PaginatedResult.fromJson(json, UsuarioAdmin.fromJson);
+  }
+
+  /// Edição dos dados institucionais pelo administrador (RF18). 409
+  /// `CNPJ_EM_USO` quando o CNPJ é de outra universidade.
+  Future<UniversidadeCadastro> atualizarUniversidade(int id, Map<String, dynamic> dados) async {
+    final json = await authApiClient.patch('/universidades/$id', body: dados);
+    return UniversidadeCadastro.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  /// "Novo usuário" (Quadro 14): só Aluno ou Administrador; a conta de
+  /// universidade nasce pelo cadastro da universidade.
+  Future<UsuarioAdmin> criarUsuario({
+    required String nome,
+    required String email,
+    required String senha,
+    required TipoUsuario tipo,
+  }) async {
+    final json = await authApiClient.post(
+      '/usuarios',
+      body: {'nome': nome, 'email': email, 'senha': senha, 'tipoUsuario': codigoTipoUsuario(tipo)},
+    );
+    return UsuarioAdmin.fromJson(json['data'] as Map<String, dynamic>);
+  }
+
+  /// Nome e perfil (A ou D). Tirar o perfil do último administrador ativo
+  /// responde 409 `ULTIMO_ADMINISTRADOR`.
+  Future<UsuarioAdmin> atualizarUsuario(int id, {required String nome, TipoUsuario? tipo}) async {
+    final json = await authApiClient.patch(
+      '/usuarios/$id',
+      body: {'nome': nome, if (tipo != null) 'tipoUsuario': codigoTipoUsuario(tipo)},
+    );
+    return UsuarioAdmin.fromJson(json['data'] as Map<String, dynamic>);
   }
 
   /// Ativar ou inativar (Quadro 14). A API responde 409
