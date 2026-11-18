@@ -130,6 +130,44 @@ flutter build web --dart-define=API_BASE_URL=https://api.exemplo.com.br/api/v1
 
 Como o valor entra na compilação, mudar a API exige rodar ou gerar o build de novo.
 
+### Login com Google (RF05)
+
+O botão "Entrar com Google" usa o Google Identity Services: o Google devolve ao app um ID token (JWT), o app envia esse token a `POST /api/v1/auth/google` e a API confere a assinatura, a validade, o e-mail verificado e se o token foi emitido para o mesmo identificador de cliente (`aud`). Sem conta com aquele e-mail, a API cria uma conta de aluno. Não há client secret: só o identificador do cliente é usado, e ele não é segredo.
+
+Sem a variável `GOOGLE_CLIENT_ID` na compilação do app, o botão não aparece e o login continua só com e-mail e senha.
+
+**1. No Google Cloud Console** ([console.cloud.google.com](https://console.cloud.google.com)):
+
+1. Crie um projeto (ou escolha um existente).
+2. Em **APIs e serviços > Tela de consentimento OAuth** (no console novo, **Google Auth Platform**), configure o app: tipo de usuário **Externo**, nome "Guia Jovem", e-mail de suporte e e-mail de contato. Os escopos básicos (`openid`, `email`, `profile`) bastam e não exigem verificação do Google.
+3. Enquanto o app estiver no status **Em teste**, só as contas listadas em **Usuários de teste** conseguem entrar. Para a apresentação, adicione as contas que serão usadas ou publique o app (**Publicar app**), o que não pede revisão para os escopos básicos.
+4. Em **APIs e serviços > Credenciais > Criar credenciais > ID do cliente OAuth**, escolha o tipo **Aplicativo da Web**.
+5. Em **Origens JavaScript autorizadas**, cadastre o endereço exato de onde o app é aberto (protocolo, domínio e porta, sem barra no fim):
+   - ambiente local: `http://localhost:8080` e `http://localhost` (o Google pede as duas para testes locais);
+   - produção: o endereço do site, por exemplo `https://guiajovem.com.br` e o endereço do Netlify (`https://<seu-site>.netlify.app`), se ele também for usado.
+6. **URIs de redirecionamento autorizados** podem ficar vazios: o botão abre um pop-up e devolve o token direto ao app.
+7. Salve e copie o **ID do cliente** (termina em `.apps.googleusercontent.com`). As origens novas podem levar alguns minutos para valer.
+
+**2. Na API**, em `api/.env` (ou no `environment` do serviço `api` no `docker-compose.yml`):
+
+```
+GOOGLE_CLIENT_ID=1234567890-abc.apps.googleusercontent.com
+```
+
+**3. No app**, o mesmo valor na compilação, junto com o endereço da API. A porta precisa ser uma das origens autorizadas:
+
+```bash
+flutter run -d chrome --web-port 8080 \
+  --dart-define=API_BASE_URL=http://localhost:3000/api/v1 \
+  --dart-define=GOOGLE_CLIENT_ID=1234567890-abc.apps.googleusercontent.com
+
+flutter build web \
+  --dart-define=API_BASE_URL=https://api.guiajovem.com.br/api/v1 \
+  --dart-define=GOOGLE_CLIENT_ID=1234567890-abc.apps.googleusercontent.com
+```
+
+Problemas comuns: "origin_mismatch" ou o botão some depois de carregar indicam que o endereço aberto no navegador não está nas origens autorizadas; 401 "Token do Google inválido ou expirado" indica que o `GOOGLE_CLIENT_ID` da API é diferente do usado no app; contas de universidade e de administrador não entram pelo Google (403) e usam e-mail e senha.
+
 ## Documentação
 
 - [docs/ESPECIFICACAO.md](docs/ESPECIFICACAO.md): especificação técnica completa, fases de desenvolvimento e contrato da API.
