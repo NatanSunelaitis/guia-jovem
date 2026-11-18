@@ -9,7 +9,14 @@ double? _parseDecimal(dynamic valor) {
 }
 
 class ProgramaTag {
-  ProgramaTag({required this.id, required this.nome, this.sigla, required this.tipo, this.observacao});
+  ProgramaTag({
+    required this.id,
+    required this.nome,
+    this.sigla,
+    required this.tipo,
+    this.observacao,
+    this.institucional = false,
+  });
 
   factory ProgramaTag.fromJson(Map<String, dynamic> json) => ProgramaTag(
         id: json['id'] as int,
@@ -17,6 +24,7 @@ class ProgramaTag {
         sigla: json['sigla'] as String?,
         tipo: json['tipo'] as String,
         observacao: json['observacao'] as String?,
+        institucional: json['institucional'] as bool? ?? false,
       );
 
   final int id;
@@ -24,6 +32,10 @@ class ProgramaTag {
   final String? sigla;
   final String tipo;
   final String? observacao;
+
+  /// Bolsa própria da universidade (RF11, relação "Mantém"), que só aparece
+  /// no detalhe dela.
+  final bool institucional;
 }
 
 class EnderecoResumo {

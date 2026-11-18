@@ -89,4 +89,33 @@ void main() {
     expect(find.text('Não foi possível carregar'), findsNothing);
     expect(find.text('Fatec Sorocaba'), findsWidgets);
   });
+
+  testWidgets('marca as bolsas próprias da universidade como "Bolsa institucional"', (tester) async {
+    mockApi({
+      '/universidades/1/avaliacoes': envelope(<dynamic>[], {'page': 1, 'pageSize': 20, 'total': 0, 'totalPages': 1}),
+      '/universidades/1': envelope({
+        'id': 1,
+        'nomeFantasia': 'Fatec Sorocaba',
+        'razaoSocial': 'Faculdade de Tecnologia de Sorocaba',
+        'natureza': 'P',
+        'totalAvaliacoes': 0,
+        'campus': <dynamic>[],
+        'programas': {
+          'ENTRADA': <Map<String, dynamic>>[],
+          'FINANCIAMENTO': <Map<String, dynamic>>[],
+          'BOLSA': [
+            {'id': 2, 'nome': 'Programa Universidade para Todos', 'sigla': 'ProUni', 'institucional': false},
+            {'id': 9, 'nome': 'Bolsa Mérito Fatec', 'sigla': null, 'institucional': true},
+          ],
+        },
+      }),
+    });
+
+    await pump(tester);
+
+    expect(find.text('ProUni'), findsOneWidget);
+    expect(find.text('Bolsa Mérito Fatec'), findsOneWidget);
+    // Só a bolsa própria leva a identificação.
+    expect(find.text('Bolsa institucional'), findsOneWidget);
+  });
 }

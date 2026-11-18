@@ -424,7 +424,17 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                       for (final programa in grupo.value)
                         GestureDetector(
                           onTap: () => context.go('/programas/${programa.id}'),
-                          child: GJTag(label: programa.sigla ?? programa.nome, tone: tonePrograma(grupo.key)),
+                          child: programa.institucional
+                              // RF11: bolsa própria da universidade, identificada como tal.
+                              ? Wrap(
+                                  spacing: GJSpace.s1,
+                                  runSpacing: GJSpace.s1,
+                                  children: [
+                                    GJTag(label: programa.sigla ?? programa.nome, tone: tonePrograma(grupo.key)),
+                                    const GJTag(label: 'Bolsa institucional'),
+                                  ],
+                                )
+                              : GJTag(label: programa.sigla ?? programa.nome, tone: tonePrograma(grupo.key)),
                         ),
                     ],
                   ),
