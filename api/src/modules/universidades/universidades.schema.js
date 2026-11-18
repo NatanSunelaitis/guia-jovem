@@ -62,7 +62,50 @@ const reprovarSchema = {
   }),
 };
 
+const textoOpcional = (max) =>
+  z
+    .string()
+    .trim()
+    .max(max, `Use no máximo ${max} caracteres`)
+    .transform((valor) => (valor === '' ? null : valor))
+    .nullable()
+    .optional();
+
+const urlOpcional = z
+  .string()
+  .trim()
+  .max(255)
+  .transform((valor) => (valor === '' ? null : valor))
+  .refine((valor) => valor === null || /^https?:\/\/\S+$/.test(valor), 'Informe uma URL que comece com http:// ou https://')
+  .nullable()
+  .optional();
+
+// Edição dos dados institucionais pelo administrador (RF18, seção 5.3).
+// Mesmas regras do cadastro (Figura 28); status tem rotas próprias.
+const atualizarUniversidadeSchema = {
+  params: idParamSchema.params,
+  body: z
+    .object({
+      nomeFantasia: z.string().trim().min(1, 'Informe o nome fantasia').max(100),
+      razaoSocial: z.string().trim().min(1, 'Informe a razão social').max(100),
+      cnpj: z
+        .string()
+        .trim()
+        .transform((valor) => valor.replace(/\D/g, ''))
+        .refine((valor) => valor.length === 14, 'CNPJ deve ter 14 dígitos'),
+      natureza: z.enum(['P', 'V'], { errorMap: () => ({ message: 'natureza deve ser P ou V' }) }),
+      descricao: textoOpcional(5000),
+      telefonePrincipal: textoOpcional(15),
+      linkPagina: urlOpcional,
+      linkSimulados: urlOpcional,
+    })
+    .partial()
+    .strict('Status e programas têm rotas próprias')
+    .refine((dados) => Object.keys(dados).length > 0, { message: 'Informe ao menos um campo para atualizar' }),
+};
+
 module.exports = {
+  atualizarUniversidadeSchema,
   adminListQuerySchema,
   reprovarSchema,
   idParamSchema,

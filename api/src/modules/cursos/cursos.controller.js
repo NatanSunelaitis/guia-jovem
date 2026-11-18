@@ -1,4 +1,5 @@
 const prisma = require('../../config/database');
+const adminService = require('./cursos.admin.service');
 const service = require('./cursos.service');
 
 async function listar(req, res, next) {
@@ -37,4 +38,46 @@ async function obterPorNome(req, res, next) {
   }
 }
 
-module.exports = { listar, destaques, obter, obterPorNome };
+async function listarAdmin(req, res, next) {
+  try {
+    res.json(await adminService.listarAdmin(prisma, req.query));
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+async function obterAdmin(req, res, next) {
+  try {
+    res.json({ data: await adminService.obterAdmin(prisma, req.params.id), meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+async function criar(req, res, next) {
+  try {
+    const curso = await adminService.criar(prisma, req.params.id, req.body, req);
+    res.status(201).json({ data: curso, meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+async function atualizar(req, res, next) {
+  try {
+    res.json({ data: await adminService.atualizar(prisma, req.params.id, req.body, req), meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+async function excluir(req, res, next) {
+  try {
+    await adminService.excluir(prisma, req.params.id, req);
+    res.json({ data: { sucesso: true }, meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+module.exports = { listar, destaques, obter, obterPorNome, listarAdmin, obterAdmin, criar, atualizar, excluir };

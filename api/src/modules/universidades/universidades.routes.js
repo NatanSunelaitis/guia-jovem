@@ -6,6 +6,8 @@ const requireRole = require('../../middlewares/role.middleware');
 const validate = require('../../middlewares/validate.middleware');
 const avaliacoesController = require('../avaliacoes/avaliacoes.controller');
 const avaliacoesSchemas = require('../avaliacoes/avaliacoes.schema');
+const cursosController = require('../cursos/cursos.controller');
+const cursosSchemas = require('../cursos/cursos.schema');
 const controller = require('./universidades.controller');
 const schemas = require('./universidades.schema');
 
@@ -47,6 +49,13 @@ router.get(
   ownership((req) => req.params.id),
   controller.obterCadastro,
 );
+
+// RF18: administrador edita os dados institucionais (a própria universidade
+// edita na rodada do painel dela).
+router.patch('/:id', auth, requireRole('D'), validate(schemas.atualizarUniversidadeSchema), controller.atualizar);
+
+// RF19: o administrador cadastra curso numa universidade (seção 5.5).
+router.post('/:id/cursos', auth, requireRole('D'), validate(cursosSchemas.criarCursoSchema), cursosController.criar);
 
 // RF23 e RF18: aprovar, reprovar (com motivo), inativar e reativar. Só administrador.
 const soAdmin = [auth, requireRole('D')];

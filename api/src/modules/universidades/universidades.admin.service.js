@@ -271,7 +271,64 @@ async function alterarStatus(prisma, id, acao, body, req) {
   return obterCadastro(prisma, id);
 }
 
+const CAMPOS_EDITAVEIS = [
+  'nomeFantasia',
+  'razaoSocial',
+  'cnpj',
+  'natureza',
+  'descricao',
+  'telefonePrincipal',
+  'linkPagina',
+  'linkSimulados',
+];
+
+function camposEditaveis(universidade) {
+  const dados = {};
+  for (const campo of CAMPOS_EDITAVEIS) dados[campo] = universidade[campo] ?? null;
+  return dados;
+}
+
+/** Administrador edita os dados institucionais de qualquer universidade (RF18). */
+async function atualizar(prisma, id, dados, req) {
+  const universidade = await repo.findCadastro(prisma, id);
+  if (!universidade) {
+    throw AppError.notFound('Universidade não encontrada');
+  }
+
+  if (dados.cnpj && dados.cnpj !== universidade.cnpj) {
+    const outra = await prisma.universidade.findUnique({ where: { cnpj: dados.cnpj }, select: { id: true } });
+    if (outra && outra.id !== id) {
+      throw AppError.conflict('CNPJ_EM_USO', 'Este CNPJ já está cadastrado em outra universidade');
+    }
+  }
+
+  try {
+    await prisma.$transaction(async (tx) => {
+      const atualizada = await tx.universidade.update({ where: { id }, data: dados });
+      await req.registrarAuditoria(
+        {
+          acao: 'UPDATE',
+          entidade: 'universidade',
+          entidadeId: id,
+          dadosAntes: camposEditaveis(universidade),
+          dadosDepois: camposEditaveis(atualizada),
+        },
+        tx,
+      );
+    });
+  } catch (erro) {
+    // Dois cadastros gravando o mesmo CNPJ ao mesmo tempo: o índice único decide.
+    if (erro.code === 'P2002') {
+      throw AppError.conflict('CNPJ_EM_USO', 'Este CNPJ já está cadastrado em outra universidade');
+    }
+    throw erro;
+  }
+
+  return obterCadastro(prisma, id);
+}
+
 module.exports = {
+  atualizar,
   TRANSICOES,
   listarAdmin,
   obterCadastro,

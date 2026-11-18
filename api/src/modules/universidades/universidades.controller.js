@@ -77,6 +77,15 @@ async function obterCadastro(req, res, next) {
   }
 }
 
+async function atualizar(req, res, next) {
+  try {
+    const universidade = await adminService.atualizar(prisma, req.params.id, req.body, req);
+    res.json({ data: universidade, meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
 function alterarStatus(acao) {
   return async function alterarStatusHandler(req, res, next) {
     try {
@@ -97,6 +106,7 @@ module.exports = {
   avaliacoes,
   listarAdmin,
   obterCadastro,
+  atualizar,
   aprovar: alterarStatus('aprovar'),
   reprovar: alterarStatus('reprovar'),
   inativar: alterarStatus('inativar'),

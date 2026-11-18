@@ -461,3 +461,69 @@ describe('POST /api/v1/universidades/:id/inativar e /reativar', () => {
     expect(dona.status).toBe(403);
   });
 });
+
+describe('PATCH /api/v1/universidades/:id (edição pelo administrador)', () => {
+  const patch = (body, token = TOKEN_ADMIN) =>
+    request(app).patch('/api/v1/universidades/7').set('Authorization', `Bearer ${token}`).send(body);
+
+  it('edita os dados institucionais, normaliza o CNPJ e grava antes e depois (200)', async () => {
+    const estado = bancoComUniversidade(universidadeFake({ status: 'A' }));
+    prisma.universidade.update.mockImplementation(async ({ data }) => {
+      Object.assign(estado, data);
+      return { ...estado };
+    });
+
+    const resposta = await patch({ nomeFantasia: 'Fatec Itu Nova', cnpj: '98.765.432/0001-10', linkSimulados: '' });
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data).toMatchObject({ nomeFantasia: 'Fatec Itu Nova', cnpj: '98765432000110', status: 'A' });
+    expect(prisma.universidade.update).toHaveBeenCalledWith({
+      where: { id: 7 },
+      data: { nomeFantasia: 'Fatec Itu Nova', cnpj: '98765432000110', linkSimulados: null },
+    });
+    expect(prisma.logAuditoria.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        usuarioId: 99,
+        acao: 'UPDATE',
+        entidade: 'universidade',
+        entidadeId: 7,
+        dadosAntes: expect.objectContaining({ nomeFantasia: 'Fatec Itu', cnpj: '12345678000199' }),
+        dadosDepois: expect.objectContaining({ nomeFantasia: 'Fatec Itu Nova', cnpj: '98765432000110' }),
+      }),
+    });
+  });
+
+  it('CNPJ de outra universidade responde 409 CNPJ_EM_USO', async () => {
+    prisma.universidade.findUnique.mockImplementation(async ({ where }) =>
+      where.id === 7 ? universidadeFake() : { id: 8 },
+    );
+
+    const resposta = await patch({ cnpj: '11111111000111' });
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.error.code).toBe('CNPJ_EM_USO');
+    expect(prisma.universidade.update).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['status pela rota de edição', { status: 'A' }],
+    ['CNPJ curto', { cnpj: '123' }],
+    ['link sem http', { linkPagina: 'fatec.br' }],
+    ['corpo vazio', {}],
+  ])('responde 400 com %s', async (_, body) => {
+    const resposta = await patch(body);
+
+    expect(resposta.status).toBe(400);
+  });
+
+  it('responde 404, 401 sem login e 403 para a própria universidade (edita na rodada do painel dela)', async () => {
+    prisma.universidade.findUnique.mockResolvedValue(null);
+    const inexistente = await patch({ nomeFantasia: 'X' });
+    const semLogin = await request(app).patch('/api/v1/universidades/7').send({ nomeFantasia: 'X' });
+    const dona = await patch({ nomeFantasia: 'X' }, TOKEN_DONA);
+
+    expect(inexistente.status).toBe(404);
+    expect(semLogin.status).toBe(401);
+    expect(dona.status).toBe(403);
+  });
+});
