@@ -7,14 +7,16 @@ function createModel(methods) {
 }
 
 const prisma = {
-  usuario: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update', 'delete']),
+  usuario: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update', 'delete', 'groupBy']),
   refreshToken: createModel(['create', 'findUnique', 'update', 'updateMany']),
   tokenRecuperacao: createModel(['create', 'findUnique', 'update']),
-  universidade: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update', 'updateMany']),
+  universidade: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update', 'updateMany', 'groupBy']),
   campus: createModel(['findUnique', 'findFirst', 'findMany', 'create']),
-  curso: createModel(['findUnique', 'findFirst', 'findMany', 'count']),
-  programa: createModel(['findUnique', 'findFirst', 'findMany', 'count']),
-  universidadePrograma: createModel(['createMany']),
+  curso: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update']),
+  campusCurso: createModel(['count']),
+  programaEvento: createModel(['findUnique', 'create', 'update', 'delete']),
+  programa: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'groupBy', 'create', 'update']),
+  universidadePrograma: createModel(['createMany', 'count']),
   endereco: createModel(['create']),
   notificacao: createModel(['create', 'createMany', 'findUnique', 'findMany', 'count', 'update', 'updateMany']),
   sugestao: createModel(['create', 'findUnique', 'findMany', 'count', 'updateMany']),
@@ -22,7 +24,7 @@ const prisma = {
   universidadeSalva: createModel(['findUnique', 'findMany', 'count', 'create', 'deleteMany']),
   pesquisaSalva: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'delete']),
   logAuditoria: createModel(['create']),
-  visitaPagina: createModel(['create']),
+  visitaPagina: createModel(['create', 'groupBy']),
   $queryRaw: jest.fn().mockResolvedValue([]),
   $transaction: jest.fn((operacoes) => {
     if (Array.isArray(operacoes)) return Promise.all(operacoes);

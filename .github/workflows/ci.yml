@@ -37,6 +37,9 @@ jobs:
       ADMIN_NOME: Administrador Guia Jovem
       ADMIN_EMAIL: admin@guiajovem.com.br
       ADMIN_SENHA: senha-de-ci-123456
+      # estatisticas.banco.test.js confere os números do dashboard no MySQL do
+      # job (migrations aplicadas antes dos testes), numa transação desfeita.
+      TESTE_BANCO_REAL: '1'
     steps:
       - uses: actions/checkout@v5
 

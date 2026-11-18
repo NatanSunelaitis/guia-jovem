@@ -20,6 +20,7 @@ const favoritosRoutes = require('./modules/favoritos/favoritos.routes');
 const pesquisasSalvasRoutes = require('./modules/pesquisas-salvas/pesquisas-salvas.routes');
 const sugestoesRoutes = require('./modules/sugestoes/sugestoes.routes');
 const notificacoesRoutes = require('./modules/notificacoes/notificacoes.routes');
+const estatisticasRoutes = require('./modules/estatisticas/estatisticas.routes');
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use('/api/v1/favoritos', favoritosRoutes);
 app.use('/api/v1/pesquisas-salvas', pesquisasSalvasRoutes);
 app.use('/api/v1/sugestoes', sugestoesRoutes);
 app.use('/api/v1/notificacoes', notificacoesRoutes);
+app.use('/api/v1/estatisticas', estatisticasRoutes);
 
 app.use((req, res, next) => {
   next(AppError.notFound('Rota não encontrada'));
