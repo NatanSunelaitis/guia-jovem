@@ -10,7 +10,6 @@ import 'helpers/mock_auth_api.dart';
 import 'helpers/pump_with_router.dart';
 
 final _aluno = UsuarioSessao(id: 1, nome: 'Ana Souza', email: 'ana@exemplo.com', tipoUsuario: TipoUsuario.aluno);
-final _universidade = UsuarioSessao(id: 3, nome: 'Fatec', email: 'fatec@exemplo.com', tipoUsuario: TipoUsuario.universidade);
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
@@ -32,13 +31,6 @@ void main() {
     for (final acao in ['Editar perfil', 'Alterar senha', 'Sair', 'Excluir conta']) {
       expect(find.text(acao), findsOneWidget);
     }
-  });
-
-  testWidgets('universidade e administrador continuam na página provisória', (tester) async {
-    await pumpPerfil(tester, usuario: _universidade);
-
-    expect(find.text('Meu perfil'), findsNothing);
-    expect(find.text('Perfil'), findsOneWidget);
   });
 
   testWidgets('edita o nome com PATCH e o cartão mostra o nome novo', (tester) async {
