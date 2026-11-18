@@ -11,7 +11,6 @@ import '../../features/auth/presentation/cadastro_universidade_passo3_page.dart'
 import '../../features/auth/presentation/cadastro_universidade_sucesso_page.dart';
 import '../../features/auth/presentation/esqueci_senha_page.dart';
 import '../../features/auth/presentation/login_page.dart';
-import '../../features/auth/presentation/painel_placeholder_page.dart';
 import '../../features/auth/presentation/redefinir_senha_page.dart';
 import '../../features/auth/presentation/tipo_cadastro_page.dart';
 import '../../features/campus/presentation/detalhe_campus_page.dart';
@@ -20,6 +19,7 @@ import '../../features/cursos/presentation/lista_cursos_page.dart';
 import '../../features/dev_components/dev_components_page.dart';
 import '../../features/admin/presentation/painel_admin_page.dart';
 import '../../features/home/presentation/home_page.dart';
+import '../../features/painel_universidade/presentation/painel_universidade_page.dart';
 import '../../features/perfil/presentation/perfil_page.dart';
 import '../../features/programas/presentation/detalhe_programa_page.dart';
 import '../../features/programas/presentation/pesquisa_programas_page.dart';
@@ -179,10 +179,8 @@ final appRouter = GoRouter(
     // Perfil: T16 para o aluno; universidade e administrador seguem no
     // placeholder do perfil até a Pendência 3.
     GoRoute(path: '/perfil', builder: (context, state) => const PerfilPage()),
-    GoRoute(
-      path: '/painel-universidade',
-      builder: (context, state) => const PainelPlaceholderPage(titulo: 'Painel de Administração da Universidade'),
-    ),
+    // T23 provisório: situação do cadastro (RF23) e atalho para as sugestões.
+    GoRoute(path: '/painel-universidade', builder: (context, state) => const PainelUniversidadePage()),
 
     // T24 Painel do administrador: uma URL por seção (abas do protótipo).
     GoRoute(path: '/admin', redirect: (context, state) => '/admin/${SecaoAdmin.universidades.caminho}'),

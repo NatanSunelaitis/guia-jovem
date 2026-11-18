@@ -1,6 +1,6 @@
 import 'package:app/features/auth/data/session_controller.dart';
 import 'package:app/features/auth/domain/usuario_sessao.dart';
-import 'package:app/features/auth/presentation/painel_placeholder_page.dart';
+import 'package:app/features/painel_universidade/presentation/painel_universidade_page.dart';
 import 'package:app/features/perfil/presentation/perfil_page.dart';
 import 'package:app/features/sugestoes/presentation/detalhe_sugestao_page.dart';
 import 'package:app/features/sugestoes/presentation/nova_sugestao_dialog.dart';
@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'helpers/auth_test_setup.dart';
+import 'helpers/cadastro_universidade_json.dart';
 import 'helpers/mock_auth_api.dart';
 import 'helpers/pump_with_router.dart';
 
@@ -430,13 +431,16 @@ void main() {
     });
 
     testWidgets('a página provisória do painel tem o link para as recebidas', (tester) async {
-      mockAuthApiRotas({'GET /notificacoes': _semNotificacoes});
+      mockAuthApiRotas({
+        'GET /notificacoes': _semNotificacoes,
+        'GET /universidades/7/cadastro': RespostaFalsa(envelope(cadastroUniversidadeJson(status: 'A'))),
+      });
       sessionController.redefinirParaTestes(usuario: _universidade);
       await pumpComRouter(
         tester,
         initialLocation: '/painel-universidade',
         rotas: {
-          '/painel-universidade': (context) => const PainelPlaceholderPage(titulo: 'Painel da Universidade'),
+          '/painel-universidade': (context) => const PainelUniversidadePage(),
           '/sugestoes-recebidas': (context) => const PaginaMarcadora('Recebidas'),
         },
       );
