@@ -293,3 +293,177 @@ describe('DELETE /api/v1/usuarios/:id', () => {
     expect(resposta.status).toBe(403);
   });
 });
+
+describe('GET /api/v1/usuarios com filtro de situação', () => {
+  it.each([
+    ['true', true],
+    ['false', false],
+  ])('ativo=%s filtra pela situação', async (valor, esperado) => {
+    prisma.usuario.findMany.mockResolvedValue([]);
+    prisma.usuario.count.mockResolvedValue(0);
+
+    const resposta = await request(app)
+      .get(`/api/v1/usuarios?ativo=${valor}&tipoUsuario=D&busca=ana`)
+      .set('Authorization', `Bearer ${TOKEN_ADMIN}`);
+
+    expect(resposta.status).toBe(200);
+    const { where } = prisma.usuario.findMany.mock.calls[0][0];
+    expect(where).toMatchObject({ ativo: esperado, tipoUsuario: 'D' });
+    expect(where.OR).toBeDefined();
+  });
+
+  it('sem o filtro, traz ativos e inativos', async () => {
+    prisma.usuario.findMany.mockResolvedValue([]);
+    prisma.usuario.count.mockResolvedValue(0);
+
+    await request(app).get('/api/v1/usuarios').set('Authorization', `Bearer ${TOKEN_ADMIN}`);
+
+    expect(prisma.usuario.findMany.mock.calls[0][0].where).toEqual({});
+  });
+
+  it('responde 400 para situação inválida', async () => {
+    const resposta = await request(app)
+      .get('/api/v1/usuarios?ativo=talvez')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN}`);
+
+    expect(resposta.status).toBe(400);
+  });
+
+  it('responde 401 sem login', async () => {
+    const resposta = await request(app).get('/api/v1/usuarios?ativo=true');
+
+    expect(resposta.status).toBe(401);
+  });
+});
+
+describe('Regra da única conta de administrador ativa (Quadro 14)', () => {
+  const ADMIN_ALVO = usuarioFake({ id: 50, nome: 'Equipe Guia Jovem', tipoUsuario: 'D' });
+  const TOKEN_ADMIN_ALVO = tokenPara({ id: 50, tipoUsuario: 'D' });
+
+  it.each([
+    ['inativar', { ativo: false }],
+    ['mudar o perfil', { tipoUsuario: 'A' }],
+  ])('não deixa %s o último administrador ativo (409)', async (_, body) => {
+    prisma.usuario.findUnique.mockResolvedValue(ADMIN_ALVO);
+    prisma.usuario.count.mockResolvedValue(0);
+
+    const resposta = await request(app)
+      .patch('/api/v1/usuarios/50')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN}`)
+      .send(body);
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.error.code).toBe('ULTIMO_ADMINISTRADOR');
+    expect(resposta.body.error.message).toContain('única conta de administrador ativa');
+    expect(prisma.$queryRaw).toHaveBeenCalled();
+    expect(prisma.usuario.count).toHaveBeenCalledWith({
+      where: { tipoUsuario: 'D', ativo: true, id: { not: 50 } },
+    });
+    expect(prisma.usuario.update).not.toHaveBeenCalled();
+    expect(prisma.logAuditoria.create).not.toHaveBeenCalled();
+  });
+
+  it('não deixa o último administrador excluir a própria conta (409)', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(ADMIN_ALVO);
+    prisma.usuario.count.mockResolvedValue(0);
+
+    const resposta = await request(app)
+      .delete('/api/v1/usuarios/50')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN_ALVO}`)
+      .send({ confirmacao: 'EXCLUIR' });
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.error.code).toBe('ULTIMO_ADMINISTRADOR');
+    expect(prisma.usuario.delete).not.toHaveBeenCalled();
+  });
+
+  it('não deixa outro administrador excluir o último administrador ativo (409)', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(ADMIN_ALVO);
+    prisma.usuario.count.mockResolvedValue(0);
+
+    const resposta = await request(app)
+      .delete('/api/v1/usuarios/50')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN}`)
+      .send({ confirmacao: 'EXCLUIR' });
+
+    expect(resposta.status).toBe(409);
+  });
+
+  it('com outro administrador ativo, inativa e grava a auditoria com quem, o quê e antes/depois (200)', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(ADMIN_ALVO);
+    prisma.usuario.count.mockResolvedValue(1);
+    prisma.usuario.update.mockResolvedValue({ ...ADMIN_ALVO, ativo: false });
+
+    const resposta = await request(app)
+      .patch('/api/v1/usuarios/50')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN}`)
+      .send({ ativo: false });
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data.ativo).toBe(false);
+    expect(prisma.logAuditoria.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        usuarioId: 99,
+        acao: 'UPDATE',
+        entidade: 'usuario',
+        entidadeId: 50,
+        dadosAntes: expect.objectContaining({ ativo: true, tipoUsuario: 'D' }),
+        dadosDepois: expect.objectContaining({ ativo: false, tipoUsuario: 'D' }),
+      }),
+    });
+  });
+
+  it('com outro administrador ativo, a conta pode excluir a si mesma (200)', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(ADMIN_ALVO);
+    prisma.usuario.count.mockResolvedValue(2);
+
+    const resposta = await request(app)
+      .delete('/api/v1/usuarios/50')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN_ALVO}`)
+      .send({ confirmacao: 'EXCLUIR' });
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.usuario.delete).toHaveBeenCalledWith({ where: { id: 50 } });
+  });
+
+  it('inativar um administrador já inativo ou alterar só o nome não consulta a regra', async () => {
+    prisma.usuario.findUnique.mockResolvedValue({ ...ADMIN_ALVO, ativo: false });
+    prisma.usuario.update.mockResolvedValue({ ...ADMIN_ALVO, ativo: false });
+
+    const inativo = await request(app)
+      .patch('/api/v1/usuarios/50')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN}`)
+      .send({ ativo: false });
+
+    prisma.usuario.findUnique.mockResolvedValue(ADMIN_ALVO);
+    prisma.usuario.update.mockResolvedValue({ ...ADMIN_ALVO, nome: 'Equipe' });
+    const nome = await request(app)
+      .patch('/api/v1/usuarios/50')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN_ALVO}`)
+      .send({ nome: 'Equipe', tipoUsuario: 'D' });
+
+    expect(inativo.status).toBe(200);
+    expect(nome.status).toBe(200);
+    expect(prisma.usuario.count).not.toHaveBeenCalled();
+  });
+
+  it('reativar uma conta não depende da regra e grava a auditoria', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(usuarioFake({ ativo: false }));
+    prisma.usuario.update.mockResolvedValue(usuarioFake({ ativo: true }));
+
+    const reativar = await request(app)
+      .patch('/api/v1/usuarios/1')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN}`)
+      .send({ ativo: true });
+
+    expect(reativar.status).toBe(200);
+    expect(prisma.usuario.count).not.toHaveBeenCalled();
+    expect(prisma.logAuditoria.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        usuarioId: 99,
+        dadosAntes: expect.objectContaining({ ativo: false }),
+        dadosDepois: expect.objectContaining({ ativo: true }),
+      }),
+    });
+  });
+});

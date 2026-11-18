@@ -24,11 +24,33 @@ function garantirDonoOuAdmin(actor, usuarioId) {
   }
 }
 
+/**
+ * Quadro 14: a única conta de administrador ativa não pode ser inativada,
+ * excluída nem perder o perfil de administrador. Chamar dentro da transação
+ * que faz a alteração.
+ */
+async function garantirOutroAdministradorAtivo(tx, usuarioId) {
+  await repo.travarAdministradoresAtivos(tx);
+  const outros = await repo.contarOutrosAdministradoresAtivos(tx, usuarioId);
+  if (outros === 0) {
+    throw AppError.conflict(
+      'ULTIMO_ADMINISTRADOR',
+      'Esta é a única conta de administrador ativa. Ative ou cadastre outro administrador antes de inativar, excluir ou mudar o perfil desta conta.',
+    );
+  }
+}
+
+function deixaDeSerAdministradorAtivo(usuario, dados) {
+  if (usuario.tipoUsuario !== 'D' || !usuario.ativo) return false;
+  return dados.ativo === false || (dados.tipoUsuario !== undefined && dados.tipoUsuario !== 'D');
+}
+
 async function listar(prisma, query) {
   const { page, pageSize, skip, take } = parsePagination(query);
 
   const where = {
     ...(query.tipoUsuario ? { tipoUsuario: query.tipoUsuario } : {}),
+    ...(query.ativo !== undefined ? { ativo: query.ativo } : {}),
     ...(query.busca
       ? {
           OR: [
@@ -110,14 +132,26 @@ async function atualizar(prisma, id, dados, actor, req) {
   }
 
   const dadosAntes = paraPublico(usuarioAtual);
-  const usuario = await repo.update(prisma, id, dados);
 
-  await req.registrarAuditoria({
-    acao: 'UPDATE',
-    entidade: 'usuario',
-    entidadeId: id,
-    dadosAntes,
-    dadosDepois: paraPublico(usuario),
+  const usuario = await prisma.$transaction(async (tx) => {
+    if (deixaDeSerAdministradorAtivo(usuarioAtual, dados)) {
+      await garantirOutroAdministradorAtivo(tx, id);
+    }
+
+    const atualizado = await repo.update(tx, id, dados);
+
+    await req.registrarAuditoria(
+      {
+        acao: 'UPDATE',
+        entidade: 'usuario',
+        entidadeId: id,
+        dadosAntes,
+        dadosDepois: paraPublico(atualizado),
+      },
+      tx,
+    );
+
+    return atualizado;
   });
 
   return paraPublico(usuario);
@@ -187,6 +221,11 @@ async function excluir(prisma, id, body, actor, req) {
   const dadosAntes = { nome: usuario.nome, email: usuario.email, tipoUsuario: usuario.tipoUsuario };
 
   await prisma.$transaction(async (tx) => {
+    // Vale também para o administrador excluindo a própria conta.
+    if (usuario.tipoUsuario === 'D' && usuario.ativo) {
+      await garantirOutroAdministradorAtivo(tx, id);
+    }
+
     if (usuario.tipoUsuario === 'U') {
       await repo.inativarUniversidadeDoDono(tx, id);
     }

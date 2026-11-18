@@ -39,7 +39,22 @@ function inativarUniversidadeDoDono(tx, usuarioId) {
   return tx.universidade.updateMany({ where: { usuarioId }, data: { status: 'I' } });
 }
 
+/**
+ * Trava as linhas dos administradores ativos até o fim da transação: duas
+ * contas de administrador tentando se inativar ao mesmo tempo esperam uma
+ * pela outra, e a segunda já enxerga a primeira como inativa.
+ */
+function travarAdministradoresAtivos(tx) {
+  return tx.$queryRaw`SELECT id_usuario FROM usuario WHERE tipo_usuario = 'D' AND ativo = 1 FOR UPDATE`;
+}
+
+function contarOutrosAdministradoresAtivos(tx, usuarioId) {
+  return tx.usuario.count({ where: { tipoUsuario: 'D', ativo: true, id: { not: usuarioId } } });
+}
+
 module.exports = {
+  travarAdministradoresAtivos,
+  contarOutrosAdministradoresAtivos,
   findById,
   findByEmail,
   list,

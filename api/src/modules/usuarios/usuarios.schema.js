@@ -11,6 +11,11 @@ const idParamSchema = {
 const listQuerySchema = {
   query: z.object({
     tipoUsuario: z.enum(['A', 'U', 'D']).optional(),
+    // Situação (Quadro 14): ativo=true ou ativo=false.
+    ativo: z
+      .enum(['true', 'false'], { errorMap: () => ({ message: 'ativo deve ser true ou false' }) })
+      .transform((valor) => valor === 'true')
+      .optional(),
     busca: z.string().trim().min(1).optional(),
     page: z.string().optional(),
     pageSize: z.string().optional(),
