@@ -12,6 +12,8 @@ servers:
   - url: /api/v1
     description: API base (versão 1)
 tags:
+  - name: Aprovação de universidades
+    description: RF23 e inativação pelo administrador
   - name: Sistema
     description: Endpoints de infraestrutura da API
   - name: Auth
@@ -315,7 +317,12 @@ paths:
           name: tipoUsuario
           schema: { type: string, enum: [A, U, D] }
         - in: query
+          name: ativo
+          description: Situação da conta (Quadro 14)
+          schema: { type: string, enum: ['true', 'false'] }
+        - in: query
           name: busca
+          description: Parte do nome ou do e-mail
           schema: { type: string }
         - in: query
           name: page
@@ -389,6 +396,10 @@ paths:
     patch:
       tags: [Usuários]
       summary: Atualiza nome/foto (o próprio) ou tipoUsuario/ativo (administrador)
+      description: >
+        Quadro 14: não é possível inativar nem tirar o perfil D da única conta
+        de administrador ativa (409 ULTIMO_ADMINISTRADOR). Grava log_auditoria
+        com os dados antes e depois.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/UsuarioId'
@@ -416,12 +427,19 @@ paths:
         '400': { $ref: '#/components/responses/ValidationError' }
         '403': { $ref: '#/components/responses/Proibido' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: ULTIMO_ADMINISTRADOR, é a única conta de administrador ativa
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
     delete:
       tags: [Usuários]
       summary: Exclui permanentemente a conta (o próprio ou administrador)
       description: >
         Anonimiza avaliações e sugestões deixadas (id_usuario vira NULL).
         Se for tipo U, a universidade correspondente vai para status=I.
+        A única conta de administrador ativa não pode ser excluída, nem por
+        ela mesma (409 ULTIMO_ADMINISTRADOR).
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/UsuarioId'
@@ -439,6 +457,11 @@ paths:
         '400': { $ref: '#/components/responses/ValidationError' }
         '403': { $ref: '#/components/responses/Proibido' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: ULTIMO_ADMINISTRADOR, é a única conta de administrador ativa
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
 
   /usuarios/{id}/senha:
     patch:
@@ -515,6 +538,205 @@ paths:
                     type: array
                     items: { $ref: '#/components/schemas/UniversidadeResumo' }
                   meta: { type: object }
+
+  /universidades/administracao:
+    get:
+      tags: [Aprovação de universidades]
+      summary: Lista universidades de qualquer status (administrador, RF23)
+      description: >
+        Mais antigas primeiro. meta.pendentes conta as universidades com
+        status=P, independente dos filtros.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: status
+          description: P pendente, A aprovada, R reprovada, I inativa
+          schema: { type: string, enum: [P, A, R, I] }
+        - in: query
+          name: busca
+          description: Parte do nome fantasia ou da razão social
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, default: 20 }
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/UniversidadeAdmin' }
+                  meta:
+                    allOf:
+                      - $ref: '#/components/schemas/Paginacao'
+                      - type: object
+                        properties:
+                          pendentes: { type: integer }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+
+  /universidades/{id}/cadastro:
+    get:
+      tags: [Aprovação de universidades]
+      summary: Dados do cadastro para a análise (administrador ou a própria universidade)
+      description: >
+        Qualquer status. Traz o motivo da reprovação, o campus principal, os
+        programas aceitos e a conta responsável.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: Cadastro encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/UniversidadeCadastro' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/aprovar:
+    post:
+      tags: [Aprovação de universidades]
+      summary: Aprova a universidade (P ou R para A)
+      description: >
+        Grava aprovado_em e aprovado_por e limpa o motivo da reprovação. A
+        universidade passa a aparecer na pesquisa pública.
+        Grava log_auditoria e a notificação para a conta da universidade na
+        mesma transação e envia e-mail; falha no e-mail não desfaz a operação.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: Status alterado; devolve o cadastro atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/UniversidadeCadastro' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: STATUS_INVALIDO, a universidade não está no status de origem desta ação
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+
+  /universidades/{id}/reprovar:
+    post:
+      tags: [Aprovação de universidades]
+      summary: Reprova a universidade pendente (P para R) com motivo
+      description: >
+        O motivo fica em motivo_reprovacao e vai na notificação e no e-mail.
+        Grava log_auditoria e a notificação para a conta da universidade na
+        mesma transação e envia e-mail; falha no e-mail não desfaz a operação.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [motivo]
+              properties:
+                motivo: { type: string, minLength: 1, maxLength: 500 }
+      responses:
+        '200':
+          description: Status alterado; devolve o cadastro atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/UniversidadeCadastro' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: STATUS_INVALIDO, a universidade não está no status de origem desta ação
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+
+  /universidades/{id}/inativar:
+    post:
+      tags: [Aprovação de universidades]
+      summary: Inativa a universidade aprovada (A para I)
+      description: >
+        Sai da pesquisa pública, das páginas de detalhe e dos destaques.
+        Grava log_auditoria e a notificação para a conta da universidade na
+        mesma transação e envia e-mail; falha no e-mail não desfaz a operação.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: Status alterado; devolve o cadastro atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/UniversidadeCadastro' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: STATUS_INVALIDO, a universidade não está no status de origem desta ação
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+
+  /universidades/{id}/reativar:
+    post:
+      tags: [Aprovação de universidades]
+      summary: Reativa a universidade inativa (I para A)
+      description: >
+        Só para universidade que já foi aprovada antes (aprovado_em preenchido).
+        Grava log_auditoria e a notificação para a conta da universidade na
+        mesma transação e envia e-mail; falha no e-mail não desfaz a operação.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: Status alterado; devolve o cadastro atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/UniversidadeCadastro' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: STATUS_INVALIDO, a universidade não está no status de origem desta ação
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
 
   /universidades/{id}:
     get:
@@ -1484,6 +1706,73 @@ components:
               nome: { type: string }
               sigla: { type: string, nullable: true }
               tipo: { type: string, enum: [ENTRADA, FINANCIAMENTO, BOLSA] }
+    UniversidadeAdmin:
+      type: object
+      properties:
+        id: { type: integer }
+        nomeFantasia: { type: string }
+        razaoSocial: { type: string }
+        cnpj: { type: string }
+        natureza: { type: string, enum: [P, V] }
+        status: { type: string, enum: [P, A, R, I] }
+        cidade: { type: string, nullable: true }
+        estado: { type: string, nullable: true }
+        criadoEm: { type: string, format: date-time }
+        aprovadoEm: { type: string, format: date-time, nullable: true }
+    UniversidadeCadastro:
+      type: object
+      properties:
+        id: { type: integer }
+        nomeFantasia: { type: string }
+        razaoSocial: { type: string }
+        cnpj: { type: string }
+        natureza: { type: string, enum: [P, V] }
+        descricao: { type: string, nullable: true }
+        telefonePrincipal: { type: string, nullable: true }
+        linkPagina: { type: string, nullable: true }
+        linkSimulados: { type: string, nullable: true }
+        logoUrl: { type: string, nullable: true }
+        status: { type: string, enum: [P, A, R, I] }
+        motivoReprovacao: { type: string, nullable: true }
+        aprovadoEm: { type: string, format: date-time, nullable: true }
+        criadoEm: { type: string, format: date-time }
+        totalCampus: { type: integer }
+        campusPrincipal:
+          type: object
+          nullable: true
+          properties:
+            id: { type: integer }
+            nome: { type: string }
+            telefoneCelular: { type: string, nullable: true }
+            telefoneFixo: { type: string, nullable: true }
+            emailCampus: { type: string, nullable: true }
+            endereco:
+              type: object
+              properties:
+                logradouro: { type: string }
+                numero: { type: string }
+                complemento: { type: string, nullable: true }
+                bairro: { type: string }
+                cidade: { type: string }
+                estado: { type: string }
+                cep: { type: string }
+        programas:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer }
+              nome: { type: string }
+              sigla: { type: string, nullable: true }
+              tipo: { type: string, enum: [ENTRADA, FINANCIAMENTO, BOLSA] }
+        responsavel:
+          type: object
+          nullable: true
+          properties:
+            id: { type: integer }
+            nome: { type: string }
+            email: { type: string }
+            ativo: { type: boolean }
     UniversidadeDetalhe:
       type: object
       properties:
