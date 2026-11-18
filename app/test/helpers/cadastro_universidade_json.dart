@@ -1,0 +1,47 @@
+/// Corpo de `GET /universidades/:id/cadastro` (e das ações de aprovação),
+/// como a API devolve.
+Map<String, dynamic> cadastroUniversidadeJson({
+  int id = 7,
+  String nomeFantasia = 'Fatec Itu',
+  String status = 'P',
+  String? motivoReprovacao,
+  String? aprovadoEm,
+}) =>
+    {
+      'id': id,
+      'nomeFantasia': nomeFantasia,
+      'razaoSocial': 'Faculdade de Tecnologia de Itu',
+      'cnpj': '12345678000199',
+      'natureza': 'P',
+      'descricao': null,
+      'telefonePrincipal': '1140000000',
+      'linkPagina': 'https://fatecitu.edu.br',
+      'linkSimulados': null,
+      'logoUrl': null,
+      'status': status,
+      'motivoReprovacao': motivoReprovacao,
+      'aprovadoEm': aprovadoEm,
+      'criadoEm': '2026-11-10T12:00:00.000Z',
+      'totalCampus': 1,
+      'campusPrincipal': {
+        'id': 20,
+        'nome': 'Campus Itu',
+        'telefoneCelular': null,
+        'telefoneFixo': '1140000000',
+        'emailCampus': 'campus@fatecitu.edu.br',
+        'endereco': {
+          'logradouro': 'Av. Tiradentes',
+          'numero': '1211',
+          'complemento': null,
+          'bairro': 'Centro',
+          'cidade': 'Itu',
+          'estado': 'SP',
+          'cep': '13309640',
+        },
+      },
+      'programas': [
+        {'id': 1, 'nome': 'ENEM', 'sigla': 'ENEM', 'tipo': 'ENTRADA'},
+        {'id': 2, 'nome': 'Programa Universidade para Todos', 'sigla': 'ProUni', 'tipo': 'BOLSA'},
+      ],
+      'responsavel': {'id': 5, 'nome': 'Secretaria Fatec Itu', 'email': 'secretaria@fatecitu.edu.br', 'ativo': true},
+    };

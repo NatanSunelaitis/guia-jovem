@@ -4,7 +4,8 @@ import '../../core/theme/gj_colors.dart';
 import '../../core/theme/gj_spacing.dart';
 import '../../core/theme/gj_typography.dart';
 
-enum GJStatusTone { success, warning, error }
+/// [neutral]: estado sem destaque (ex.: universidade inativa).
+enum GJStatusTone { success, warning, error, neutral }
 
 /// Badge de status com ponto colorido (seção 3.19).
 /// Ponto de 8 px à esquerda; pulsante para "Publicado e Ativo".
@@ -19,6 +20,7 @@ class GJStatusBadge extends StatefulWidget {
         GJStatusTone.success => (background: GJColors.successContainer, foreground: GJColors.success),
         GJStatusTone.warning => (background: GJColors.warningContainer, foreground: GJColors.warning),
         GJStatusTone.error => (background: GJColors.errorContainer, foreground: GJColors.errorOnContainer),
+        GJStatusTone.neutral => (background: GJColors.surface, foreground: GJColors.textSecondary),
       };
 
   @override

@@ -18,6 +18,7 @@ import '../../features/campus/presentation/detalhe_campus_page.dart';
 import '../../features/cursos/presentation/detalhe_curso_page.dart';
 import '../../features/cursos/presentation/lista_cursos_page.dart';
 import '../../features/dev_components/dev_components_page.dart';
+import '../../features/admin/presentation/painel_admin_page.dart';
 import '../../features/home/presentation/home_page.dart';
 import '../../features/perfil/presentation/perfil_page.dart';
 import '../../features/programas/presentation/detalhe_programa_page.dart';
@@ -39,8 +40,12 @@ const _rotasSomenteVisitante = {
 
 const _rotasAutenticadas = {'/perfil', '/painel-universidade', '/admin', '/sugestoes-recebidas'};
 
-/// `/sugestoes/:id` (detalhe aberto pela notificação) também exige sessão.
-bool _exigeSessao(String destino) => _rotasAutenticadas.contains(destino) || destino.startsWith('/sugestoes/');
+bool _ehPainelAdmin(String destino) => destino == '/admin' || destino.startsWith('/admin/');
+
+/// `/sugestoes/:id` (detalhe aberto pela notificação) e as seções do painel
+/// do administrador (`/admin/...`) também exigem sessão.
+bool _exigeSessao(String destino) =>
+    _rotasAutenticadas.contains(destino) || destino.startsWith('/sugestoes/') || _ehPainelAdmin(destino);
 
 /// Rotas do app (seção 8 da especificação). Fase 2: catálogo público
 /// (T01-T08). Fase 1: sessão e cadastro (T09-T15, T25, T26).
@@ -69,7 +74,7 @@ final appRouter = GoRouter(
       return '/perfil';
     }
 
-    if (destino == '/admin' && autenticado && sessionController.usuario!.tipoUsuario != TipoUsuario.admin) {
+    if (_ehPainelAdmin(destino) && autenticado && sessionController.usuario!.tipoUsuario != TipoUsuario.admin) {
       return '/perfil';
     }
 
@@ -171,20 +176,34 @@ final appRouter = GoRouter(
       builder: (context, state) => const CadastroUniversidadeSucessoPage(),
     ),
 
-    // Perfil: T16 para o aluno; universidade e administrador seguem nos
-    // placeholders até a Pendência 3 (painéis).
+    // Perfil: T16 para o aluno; universidade e administrador seguem no
+    // placeholder do perfil até a Pendência 3.
     GoRoute(path: '/perfil', builder: (context, state) => const PerfilPage()),
     GoRoute(
       path: '/painel-universidade',
       builder: (context, state) => const PainelPlaceholderPage(titulo: 'Painel de Administração da Universidade'),
     ),
+
+    // T24 Painel do administrador: uma URL por seção (abas do protótipo).
+    GoRoute(path: '/admin', redirect: (context, state) => '/admin/${SecaoAdmin.universidades.caminho}'),
     GoRoute(
-      path: '/admin',
-      builder: (context, state) => const PainelPlaceholderPage(titulo: 'Painel de Administração'),
+      path: '/admin/universidades/:id',
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+        return PainelAdminPage(secao: SecaoAdmin.universidades, universidadeId: id);
+      },
+    ),
+    GoRoute(
+      path: '/admin/:secao',
+      builder: (context, state) => PainelAdminPage(
+        key: ValueKey('admin-${state.pathParameters['secao']}'),
+        secao: SecaoAdmin.doCaminho(state.pathParameters['secao']),
+      ),
     ),
 
-    // Sugestões (RF08, RF14, RF15). A lista de recebidas é rota própria até
-    // ser encaixada nos painéis (Pendência 3).
+    // Sugestões (RF08, RF14, RF15). A lista de recebidas também é a seção
+    // Sugestões do painel do administrador; a rota segue para a universidade
+    // e para links antigos.
     GoRoute(path: '/sugestoes-recebidas', builder: (context, state) => const SugestoesRecebidasPage()),
     GoRoute(
       path: '/sugestoes/:id',

@@ -16,10 +16,14 @@ enum PublicRota { inicio, programas, universidades, outra }
 /// conteúdo + footer. O header reage à sessão (visitante x logado, seção
 /// 8, "Layout público").
 class PublicLayout extends StatelessWidget {
-  const PublicLayout({super.key, required this.child, this.rotaAtiva = PublicRota.outra});
+  const PublicLayout({super.key, required this.child, this.rotaAtiva = PublicRota.outra, this.tituloPainel});
 
   final Widget child;
   final PublicRota rotaAtiva;
+
+  /// Com título, o header logado vira a variante de painel (T23, T24):
+  /// sem a navegação do site, com o nome do painel ao lado do logo.
+  final String? tituloPainel;
 
   List<GJHeaderNavItem> _navItems(BuildContext context) => [
         GJHeaderNavItem(label: 'Início', ativo: rotaAtiva == PublicRota.inicio, onTap: () => context.go('/')),
@@ -45,34 +49,36 @@ class PublicLayout extends StatelessWidget {
       );
     }
 
-    return GJHeader.logado(
-      navItems: _navItems(context),
-      // Key pelo usuário: trocar de conta recarrega as notificações.
-      notificationBell: NotificacoesBell(key: ValueKey('sino-${usuario.id}')),
-      avatarMenu: GJAvatarMenu(
-        iniciais: usuario.primeiroNome.isNotEmpty ? usuario.primeiroNome[0].toUpperCase() : '?',
-        fotoUrl: usuario.fotoUrl,
-        itens: [
-          GJAvatarMenuItem(label: 'Visualizar Perfil', icon: Symbols.person, onTap: () => context.go('/perfil')),
-          if (usuario.tipoUsuario == TipoUsuario.universidade)
-            GJAvatarMenuItem(
-              label: 'Painel Administrativo',
-              icon: Symbols.dashboard,
-              onTap: () => context.go('/painel-universidade'),
-            ),
-          if (usuario.tipoUsuario == TipoUsuario.admin)
-            GJAvatarMenuItem(label: 'Painel Administrativo', icon: Symbols.dashboard, onTap: () => context.go('/admin')),
-          GJAvatarMenuItem(label: 'Desligar', icon: Symbols.logout, onTap: () => mostrarDialogoDesligar(context)),
+    // Key pelo usuário: trocar de conta recarrega as notificações.
+    final sino = NotificacoesBell(key: ValueKey('sino-${usuario.id}'));
+    final avatarMenu = GJAvatarMenu(
+      iniciais: usuario.primeiroNome.isNotEmpty ? usuario.primeiroNome[0].toUpperCase() : '?',
+      fotoUrl: usuario.fotoUrl,
+      itens: [
+        GJAvatarMenuItem(label: 'Visualizar Perfil', icon: Symbols.person, onTap: () => context.go('/perfil')),
+        if (usuario.tipoUsuario == TipoUsuario.universidade)
           GJAvatarMenuItem(
-            label: 'Excluir Conta',
-            icon: Symbols.delete,
-            destructivo: true,
-            dividerAcima: true,
-            onTap: () => mostrarDialogoExcluirConta(context),
+            label: 'Painel Administrativo',
+            icon: Symbols.dashboard,
+            onTap: () => context.go('/painel-universidade'),
           ),
-        ],
-      ),
+        if (usuario.tipoUsuario == TipoUsuario.admin)
+          GJAvatarMenuItem(label: 'Painel Administrativo', icon: Symbols.dashboard, onTap: () => context.go('/admin')),
+        GJAvatarMenuItem(label: 'Desligar', icon: Symbols.logout, onTap: () => mostrarDialogoDesligar(context)),
+        GJAvatarMenuItem(
+          label: 'Excluir Conta',
+          icon: Symbols.delete,
+          destructivo: true,
+          dividerAcima: true,
+          onTap: () => mostrarDialogoExcluirConta(context),
+        ),
+      ],
     );
+
+    if (tituloPainel != null) {
+      return GJHeader.painel(tituloPainel: tituloPainel, notificationBell: sino, avatarMenu: avatarMenu);
+    }
+    return GJHeader.logado(navItems: _navItems(context), notificationBell: sino, avatarMenu: avatarMenu);
   }
 
   @override

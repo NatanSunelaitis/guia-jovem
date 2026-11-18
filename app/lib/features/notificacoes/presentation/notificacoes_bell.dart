@@ -14,8 +14,10 @@ String? destinoDaNotificacao(Notificacao notificacao, TipoUsuario? tipoUsuario) 
   if (id == null) return null;
   return switch (notificacao.referenciaTipo) {
     'sugestao' => '/sugestoes/$id',
-    // Aprovação de universidades (RF23) entra com o painel do administrador.
-    'universidade' when tipoUsuario == TipoUsuario.admin => '/admin',
+    // RF23: o administrador abre o cadastro para a análise; a universidade
+    // vê a situação (aprovada, reprovada com o motivo, inativa) no painel.
+    'universidade' when tipoUsuario == TipoUsuario.admin => '/admin/universidades/$id',
+    'universidade' when tipoUsuario == TipoUsuario.universidade => '/painel-universidade',
     _ => null,
   };
 }
