@@ -1,6 +1,7 @@
 const { Router } = require('express');
 
 const auth = require('../../middlewares/auth.middleware');
+const ownership = require('../../middlewares/ownership.middleware');
 const requireRole = require('../../middlewares/role.middleware');
 const validate = require('../../middlewares/validate.middleware');
 const avaliacoesController = require('../avaliacoes/avaliacoes.controller');
@@ -9,6 +10,15 @@ const controller = require('./universidades.controller');
 const schemas = require('./universidades.schema');
 
 const router = Router();
+
+// RF23: lista do administrador, com qualquer status. Antes de /:id.
+router.get(
+  '/administracao',
+  auth,
+  requireRole('D'),
+  validate(schemas.adminListQuerySchema),
+  controller.listarAdmin,
+);
 
 // RF06: pesquisa dinâmica de universidades (pública, só status=A).
 router.get('/', auth.opcional, validate(schemas.listQuerySchema), controller.listar);
@@ -26,5 +36,23 @@ router.post(
   validate(avaliacoesSchemas.criarAvaliacaoSchema),
   avaliacoesController.criar,
 );
+
+// RF23: dados do cadastro para a análise (administrador) e para a própria
+// universidade acompanhar a situação (pendente, reprovada com o motivo...).
+router.get(
+  '/:id/cadastro',
+  auth,
+  requireRole('D', 'U'),
+  validate(schemas.idParamSchema),
+  ownership((req) => req.params.id),
+  controller.obterCadastro,
+);
+
+// RF23 e RF18: aprovar, reprovar (com motivo), inativar e reativar. Só administrador.
+const soAdmin = [auth, requireRole('D')];
+router.post('/:id/aprovar', ...soAdmin, validate(schemas.idParamSchema), controller.aprovar);
+router.post('/:id/reprovar', ...soAdmin, validate(schemas.reprovarSchema), controller.reprovar);
+router.post('/:id/inativar', ...soAdmin, validate(schemas.idParamSchema), controller.inativar);
+router.post('/:id/reativar', ...soAdmin, validate(schemas.idParamSchema), controller.reativar);
 
 module.exports = router;

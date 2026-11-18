@@ -100,3 +100,47 @@ module.exports = {
   avaliacoes,
   countAvaliacoes,
 };
+
+// Administração (RF23, RF18): sem o filtro de status=A das rotas públicas.
+
+const DADOS_CADASTRO = {
+  usuario: { select: { id: true, nome: true, email: true, ativo: true } },
+  campus: {
+    where: { ativo: true },
+    orderBy: [{ principal: 'desc' }, { criadoEm: 'asc' }],
+    include: { endereco: true },
+  },
+  universidadeProgramas: { include: { programa: { select: { id: true, nome: true, sigla: true, tipo: true } } } },
+};
+
+function listAdmin(prisma, { where, skip, take }) {
+  return prisma.universidade.findMany({
+    where,
+    // Mais antigas primeiro: a fila de análise anda na ordem de chegada.
+    orderBy: [{ criadoEm: 'asc' }, { id: 'asc' }],
+    skip,
+    take,
+    include: { campus: RESUMO_CAMPUS_PRINCIPAL },
+  });
+}
+
+function findCadastro(prisma, id) {
+  return prisma.universidade.findUnique({ where: { id }, include: DADOS_CADASTRO });
+}
+
+function findParaTransicao(prisma, id) {
+  return prisma.universidade.findUnique({
+    where: { id },
+    include: { usuario: { select: { id: true, nome: true, email: true } } },
+  });
+}
+
+/** Muda o status só se ele ainda for um dos `statusPermitidos` (evita duas decisões ao mesmo tempo). */
+function atualizarStatusSe(tx, id, statusPermitidos, data) {
+  return tx.universidade.updateMany({ where: { id, status: { in: statusPermitidos } }, data });
+}
+
+module.exports.listAdmin = listAdmin;
+module.exports.findCadastro = findCadastro;
+module.exports.findParaTransicao = findParaTransicao;
+module.exports.atualizarStatusSe = atualizarStatusSe;

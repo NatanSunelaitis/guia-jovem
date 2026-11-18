@@ -39,7 +39,32 @@ const paginacaoQuerySchema = {
   }),
 };
 
+// Administração (RF23): filtro por status e busca por nome.
+const adminListQuerySchema = {
+  query: z.object({
+    status: z.enum(['P', 'A', 'R', 'I'], {
+      errorMap: () => ({ message: 'status deve ser P, A, R ou I' }),
+    }).optional(),
+    busca: z.string().trim().min(1).optional(),
+    page: z.string().optional(),
+    pageSize: z.string().optional(),
+  }),
+};
+
+const reprovarSchema = {
+  params: idParamSchema.params,
+  body: z.object({
+    motivo: z
+      .string({ required_error: 'Informe o motivo da reprovação' })
+      .trim()
+      .min(1, 'Informe o motivo da reprovação')
+      .max(500, 'O motivo deve ter no máximo 500 caracteres'),
+  }),
+};
+
 module.exports = {
+  adminListQuerySchema,
+  reprovarSchema,
   idParamSchema,
   filtrosPesquisaSchema,
   listQuerySchema,
