@@ -104,7 +104,45 @@ const atualizarUniversidadeSchema = {
     .refine((dados) => Object.keys(dados).length > 0, { message: 'Informe ao menos um campo para atualizar' }),
 };
 
+// PUT /universidades/:id/programas: substitui o conjunto de programas aceitos.
+const definirProgramasSchema = {
+  params: idParamSchema.params,
+  body: z
+    .object({
+      programas: z
+        .array(
+          z
+            .object({
+              programaId: z.number({ required_error: 'Informe o programa' }).int().positive(),
+              observacao: textoOpcional(255),
+            })
+            .strict(),
+          { required_error: 'Informe a lista de programas (pode ser vazia)' },
+        )
+        .max(200),
+    })
+    .strict(),
+};
+
+const dataIso = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use o formato AAAA-MM-DD')
+  .refine((valor) => !Number.isNaN(Date.parse(`${valor}T00:00:00Z`)), 'Data inválida');
+
+// GET /universidades/:id/estatisticas: período em datas de Brasília (padrão: 30 dias).
+const estatisticasQuerySchema = {
+  params: idParamSchema.params,
+  query: z
+    .object({ de: dataIso.optional(), ate: dataIso.optional() })
+    .refine((q) => !q.de || !q.ate || q.de <= q.ate, {
+      message: 'A data inicial deve ser anterior ou igual à final',
+      path: ['de'],
+    }),
+};
+
 module.exports = {
+  definirProgramasSchema,
+  estatisticasQuerySchema,
   atualizarUniversidadeSchema,
   adminListQuerySchema,
   reprovarSchema,

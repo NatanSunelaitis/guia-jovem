@@ -1,5 +1,7 @@
 const prisma = require('../../config/database');
+const bolsas = require('../programas/bolsas.service');
 const adminService = require('./universidades.admin.service');
+const gestao = require('./universidades.gestao.service');
 const service = require('./universidades.service');
 
 async function listar(req, res, next) {
@@ -97,7 +99,37 @@ function alterarStatus(acao) {
   };
 }
 
+function responder(executar, status = 200) {
+  return async function handler(req, res, next) {
+    try {
+      res.status(status).json({ data: await executar(req), meta: {} });
+    } catch (erro) {
+      next(erro);
+    }
+  };
+}
+
+async function avaliacoesRecebidas(req, res, next) {
+  try {
+    res.json(await service.listarAvaliacoes(prisma, req.params.id, req.query, { qualquerStatus: true }));
+  } catch (erro) {
+    next(erro);
+  }
+}
+
 module.exports = {
+  avaliacoesRecebidas,
+  programasGestao: responder((req) => gestao.listarProgramas(prisma, req.params.id)),
+  definirProgramas: responder((req) => gestao.definirProgramas(prisma, req.params.id, req.body, req)),
+  reenviar: responder((req) => gestao.reenviar(prisma, req.params.id, req)),
+  estatisticas: responder((req) => gestao.estatisticas(prisma, req.params.id, req.query)),
+  listarBolsas: responder((req) => bolsas.listar(prisma, req.params.id)),
+  criarBolsa: responder((req) => bolsas.criar(prisma, req.params.id, req.body, req), 201),
+  atualizarBolsa: responder((req) => bolsas.atualizar(prisma, req.params.id, req.params.bolsaId, req.body, req)),
+  excluirBolsa: responder(async (req) => {
+    await bolsas.excluir(prisma, req.params.id, req.params.bolsaId, req);
+    return { sucesso: true };
+  }),
   listar,
   destaques,
   obter,

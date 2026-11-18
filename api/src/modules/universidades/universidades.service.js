@@ -240,8 +240,15 @@ function primeiroNome(nomeCompleto) {
   return nomeCompleto.split(' ')[0];
 }
 
-async function listarAvaliacoes(prisma, universidadeId, query) {
-  const universidadeExiste = await repo.existeAprovada(prisma, universidadeId);
+/**
+ * Avaliações da universidade, mais recentes primeiro. A rota pública só
+ * mostra as de universidade aprovada; o painel da própria universidade
+ * (`qualquerStatus`) lê as dela em qualquer situação do cadastro.
+ */
+async function listarAvaliacoes(prisma, universidadeId, query, { qualquerStatus = false } = {}) {
+  const universidadeExiste = qualquerStatus
+    ? await prisma.universidade.findUnique({ where: { id: universidadeId }, select: { id: true } })
+    : await repo.existeAprovada(prisma, universidadeId);
   if (!universidadeExiste) {
     throw AppError.notFound('Universidade não encontrada');
   }
