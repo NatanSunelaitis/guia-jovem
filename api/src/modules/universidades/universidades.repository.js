@@ -107,7 +107,7 @@ const DADOS_CADASTRO = {
   usuario: { select: { id: true, nome: true, email: true, ativo: true } },
   campus: {
     where: { ativo: true },
-    orderBy: [{ principal: 'desc' }, { criadoEm: 'asc' }],
+    orderBy: [{ principal: 'desc' }, { id: 'asc' }],
     include: { endereco: true },
   },
   universidadeProgramas: { include: { programa: { select: { id: true, nome: true, sigla: true, tipo: true } } } },
