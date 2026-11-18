@@ -126,6 +126,8 @@ describe('POST /api/v1/auth/register/universidade', () => {
     expect(resposta.status).toBe(201);
     expect(resposta.body.data.usuario).toMatchObject({ id: 20, tipoUsuario: 'U', universidade: { id: 5, status: 'P' } });
     expect(resposta.body.data.accessToken).toEqual(expect.any(String));
+    // Sem o universidadeId no token, o painel da própria universidade daria 403.
+    expect(jwt.decode(resposta.body.data.accessToken)).toMatchObject({ sub: 20, tipoUsuario: 'U', universidadeId: 5 });
 
     expect(prisma.universidade.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ cnpj: '11222333000181', status: 'P' }) }),

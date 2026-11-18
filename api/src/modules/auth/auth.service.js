@@ -133,11 +133,11 @@ async function registrarUniversidade(prisma, dados, req) {
 
   await req.registrarAuditoria({ acao: 'LOGIN', entidade: 'usuario', entidadeId: usuario.id });
 
-  const tokens = await issueTokenPair(prisma, usuario);
-  return {
-    ...tokens,
-    usuario: paraResumo({ ...usuario, universidade: { id: universidade.id, status: universidade.status } }),
-  };
+  // O token leva o universidadeId: sem ele, o ownership recusaria o painel
+  // da própria universidade até a sessão ser renovada.
+  const usuarioComUniversidade = { ...usuario, universidade: { id: universidade.id, status: universidade.status } };
+  const tokens = await issueTokenPair(prisma, usuarioComUniversidade);
+  return { ...tokens, usuario: paraResumo(usuarioComUniversidade) };
 }
 
 async function login(prisma, { email, senha }, req) {
