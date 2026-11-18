@@ -5,9 +5,11 @@ const env = require('../config/env');
 const AppError = require('../shared/errors/AppError');
 
 /**
- * Valida o access token e confere no banco que a conta ainda existe e está
- * ativa: conta inativada ou excluída perde o acesso na hora, sem esperar o
- * token expirar (até 15 minutos).
+ * Valida o access token e confere no banco que a conta ainda existe, está
+ * ativa e tem o mesmo perfil do token: conta inativada, excluída ou com o
+ * perfil trocado pelo administrador perde o acesso na hora, sem esperar o
+ * token expirar (até 15 minutos). No 401 o app renova a sessão, e o token
+ * novo já sai com o perfil atual.
  */
 async function auth(req, res, next) {
   const cabecalho = req.headers.authorization || '';
@@ -26,11 +28,11 @@ async function auth(req, res, next) {
 
   try {
     const contaAtiva = await prisma.usuario.findFirst({
-      where: { id: payload.sub, ativo: true },
+      where: { id: payload.sub, ativo: true, tipoUsuario: payload.tipoUsuario },
       select: { id: true },
     });
     if (!contaAtiva) {
-      return next(AppError.unauthenticated('Conta inativa ou excluída'));
+      return next(AppError.unauthenticated('Conta inativa, excluída ou com o perfil alterado. Entre novamente.'));
     }
   } catch (erro) {
     return next(erro);

@@ -24,12 +24,16 @@ describe('Verificação de sessão: conta inativada perde o acesso na hora (Pend
       .set('Authorization', `Bearer ${tokenPara({ id: 1, tipoUsuario: 'A' })}`);
 
     expect(resposta.status).toBe(200);
-    expect(prisma.usuario.findFirst).toHaveBeenCalledWith({ where: { id: 1, ativo: true }, select: { id: true } });
+    expect(prisma.usuario.findFirst).toHaveBeenCalledWith({
+      where: { id: 1, ativo: true, tipoUsuario: 'A' },
+      select: { id: true },
+    });
   });
 
   it.each([
     ['inativada', 'A'],
     ['de administrador inativada', 'D'],
+    ['de administrador rebaixada a aluno (token ainda diz D)', 'D'],
   ])('conta %s com token ainda dentro da validade responde 401', async (_, tipoUsuario) => {
     // findFirst com ativo=true não encontra a conta inativa (ou excluída).
     prisma.usuario.findFirst.mockResolvedValue(null);
@@ -39,7 +43,7 @@ describe('Verificação de sessão: conta inativada perde o acesso na hora (Pend
       .set('Authorization', `Bearer ${tokenPara({ id: 7, tipoUsuario })}`);
 
     expect(resposta.status).toBe(401);
-    expect(resposta.body.error).toMatchObject({ code: 'UNAUTHENTICATED', message: 'Conta inativa ou excluída' });
+    expect(resposta.body.error).toMatchObject({ code: 'UNAUTHENTICATED', message: 'Conta inativa, excluída ou com o perfil alterado. Entre novamente.' });
     expect(prisma.usuario.findMany).not.toHaveBeenCalled();
   });
 
