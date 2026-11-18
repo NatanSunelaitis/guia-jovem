@@ -75,7 +75,41 @@ const atualizarCursoSchema = {
     .refine((dados) => Object.keys(dados).length > 0, { message: 'Informe ao menos um campo para atualizar' }),
 };
 
+// RF20: oferta do curso em campus (turno e vagas).
+const TURNOS = ['Matutino', 'Vespertino', 'Noturno', 'Integral'];
+const turno = z.enum(TURNOS, { errorMap: () => ({ message: 'Turno deve ser Matutino, Vespertino, Noturno ou Integral' }) });
+const vagas = z.number({ invalid_type_error: 'Vagas deve ser um número' }).int('Vagas deve ser um número inteiro').min(0).max(10000).nullable();
+
+const criarOfertaSchema = {
+  params: idParamSchema.params,
+  body: z.object({
+    campusId: z.number({ required_error: 'Escolha o campus' }).int().positive('Escolha o campus'),
+    turno,
+    vagas: vagas.optional(),
+  }),
+};
+
+const ofertaParamsSchema = z.object({
+  id: z.coerce.number().int().positive('id inválido'),
+  campusId: z.coerce.number().int().positive('campusId inválido'),
+});
+
+const atualizarOfertaSchema = {
+  params: ofertaParamsSchema,
+  body: z
+    .object({ turno, vagas })
+    .partial()
+    .strict('Para trocar o campus, remova a oferta e crie outra')
+    .refine((dados) => Object.keys(dados).length > 0, { message: 'Informe ao menos um campo para atualizar' }),
+};
+
+const excluirOfertaSchema = { params: ofertaParamsSchema };
+
 module.exports = {
+  TURNOS,
+  criarOfertaSchema,
+  atualizarOfertaSchema,
+  excluirOfertaSchema,
   idParamSchema,
   nomeParamSchema,
   listQuerySchema,
