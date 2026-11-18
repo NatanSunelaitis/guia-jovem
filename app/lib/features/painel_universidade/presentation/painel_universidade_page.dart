@@ -63,15 +63,16 @@ class _PainelUniversidadePageState extends State<PainelUniversidadePage> {
           cor: GJColors.errorOnContainer,
           fundo: GJColors.errorContainer,
           titulo: 'Cadastro reprovado',
-          texto: 'O cadastro de $nome não foi aprovado e a página não aparece no site.',
+          texto: 'O cadastro de $nome não foi aprovado e a página não aparece no site. O painel fica bloqueado '
+              'até um novo cadastro ser aprovado.',
         ),
       StatusUniversidade.inativa => (
           icone: Symbols.visibility_off,
           cor: GJColors.textSecondary,
           fundo: GJColors.surface,
           titulo: 'Universidade inativa',
-          texto: '$nome foi inativada e não aparece no site. Em caso de dúvida, entre em contato com a equipe '
-              'Guia Jovem.',
+          texto: '$nome está inativa e fora do site. Os dados abaixo ficam disponíveis só para leitura. Em caso '
+              'de dúvida, entre em contato com a equipe Guia Jovem.',
         ),
       StatusUniversidade.aprovada => (
           icone: Symbols.verified,
@@ -161,8 +162,93 @@ class _PainelUniversidadePageState extends State<PainelUniversidadePage> {
             onAcao: _carregar,
           );
         }
-        return _cartaoSituacao(snapshot.data!);
+        return _conteudo(snapshot.data!);
       },
+    );
+  }
+
+  /// Pendência 6: reprovada vê só a situação e o motivo (painel bloqueado);
+  /// inativa vê os próprios dados em modo leitura; pendente e aprovada
+  /// seguem com o atalho para as sugestões.
+  Widget _conteudo(UniversidadeCadastro cadastro) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _cartaoSituacao(cadastro),
+        if (cadastro.status == StatusUniversidade.inativa) ...[
+          const SizedBox(height: GJSpace.s8),
+          _dadosSomenteLeitura(cadastro),
+        ],
+        if (cadastro.status != StatusUniversidade.reprovada) ...[
+          const SizedBox(height: GJSpace.s8),
+          Row(
+            children: [
+              const Icon(Symbols.construction, color: GJColors.textDisabled),
+              const SizedBox(width: GJSpace.s3),
+              Expanded(
+                child: Text(
+                  'As abas do painel (informações, cursos, campus, programas e bolsas) ainda não foram construídas.',
+                  style: GJTypography.body().copyWith(color: GJColors.textSecondary),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: GJSpace.s6),
+          GJButton(
+            label: 'Sugestões recebidas',
+            icon: Symbols.forum,
+            onPressed: () => context.go('/sugestoes-recebidas'),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _dadosSomenteLeitura(UniversidadeCadastro cadastro) {
+    Widget dado(String rotulo, String? valor) => SizedBox(
+          width: 280,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(rotulo, style: GJTypography.caption()),
+              const SizedBox(height: GJSpace.s1),
+              SelectableText(valor == null || valor.isEmpty ? '-' : valor, style: GJTypography.body()),
+            ],
+          ),
+        );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(GJSpace.s6),
+      decoration: BoxDecoration(
+        color: GJColors.surfaceLowest,
+        borderRadius: GJRadius.borderLg,
+        border: Border.all(color: GJColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Dados da universidade', style: GJTypography.h4()),
+          const SizedBox(height: GJSpace.s1),
+          Text('Somente leitura enquanto a universidade estiver inativa.', style: GJTypography.bodySm()),
+          const SizedBox(height: GJSpace.s4),
+          Wrap(
+            spacing: GJSpace.s6,
+            runSpacing: GJSpace.s4,
+            children: [
+              dado('Razão social', cadastro.razaoSocial),
+              dado('CNPJ', formatarCnpj(cadastro.cnpj)),
+              dado('Natureza', rotuloNatureza(cadastro.natureza)),
+              dado('Telefone', cadastro.telefonePrincipal),
+              dado('Página oficial', cadastro.linkPagina),
+              dado('Simulados', cadastro.linkSimulados),
+              dado('Campus principal', cadastro.campusPrincipalNome),
+              dado('Endereço', cadastro.campusPrincipalEndereco?.completo),
+              dado('Programas aceitos', cadastro.programas.isEmpty ? null : cadastro.programas.join(', ')),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -179,25 +265,6 @@ class _PainelUniversidadePageState extends State<PainelUniversidadePage> {
               Text('Painel da Universidade', style: GJTypography.h1()),
               const SizedBox(height: GJSpace.s6),
               _situacaoCarregada(),
-              const SizedBox(height: GJSpace.s8),
-              Row(
-                children: [
-                  const Icon(Symbols.construction, color: GJColors.textDisabled),
-                  const SizedBox(width: GJSpace.s3),
-                  Expanded(
-                    child: Text(
-                      'As abas do painel (informações, cursos, campus, programas e bolsas) ainda não foram construídas.',
-                      style: GJTypography.body().copyWith(color: GJColors.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: GJSpace.s6),
-              GJButton(
-                label: 'Sugestões recebidas',
-                icon: Symbols.forum,
-                onPressed: () => context.go('/sugestoes-recebidas'),
-              ),
             ],
           ),
         ),

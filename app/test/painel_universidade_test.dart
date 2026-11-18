@@ -1,6 +1,7 @@
 import 'package:app/features/auth/data/session_controller.dart';
 import 'package:app/features/auth/domain/usuario_sessao.dart';
 import 'package:app/features/painel_universidade/presentation/painel_universidade_page.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -49,6 +50,7 @@ void main() {
 
       expect(find.text('Cadastro em análise'), findsOneWidget);
       expect(find.textContaining('A análise leva até 15 dias'), findsOneWidget);
+      expect(find.text('Sugestões recebidas'), findsOneWidget);
     });
 
     testWidgets('reprovada: mostra o motivo informado', (tester) async {
@@ -57,13 +59,21 @@ void main() {
       expect(find.text('Cadastro reprovado'), findsOneWidget);
       expect(find.text('Motivo informado pela equipe'), findsOneWidget);
       expect(find.text('CNPJ não confere'), findsOneWidget);
+      // Painel bloqueado: só a situação e o motivo.
+      expect(find.text('Sugestões recebidas'), findsNothing);
+      expect(find.text('Dados da universidade'), findsNothing);
     });
 
     testWidgets('inativa', (tester) async {
       await pumpPainel(tester, cadastroUniversidadeJson(status: 'I', aprovadoEm: '2026-11-11T12:00:00.000Z'));
 
       expect(find.text('Universidade inativa'), findsOneWidget);
-      expect(find.textContaining('não aparece no site'), findsOneWidget);
+      expect(find.textContaining('fora do site'), findsOneWidget);
+      // Os próprios dados, em modo leitura (sem campo de edição).
+      expect(find.text('Dados da universidade'), findsOneWidget);
+      expect(find.text('Faculdade de Tecnologia de Itu'), findsOneWidget);
+      expect(find.text('12.345.678/0001-99'), findsOneWidget);
+      expect(find.byType(TextField), findsNothing);
     });
 
     testWidgets('aprovada: página publicada com o link para a página pública', (tester) async {
