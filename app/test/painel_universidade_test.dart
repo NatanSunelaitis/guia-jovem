@@ -463,6 +463,21 @@ void main() {
     });
   });
 
+  testWidgets('abre o painel de universidade cadastrada sem CEP (opcional no cadastro)', (tester) async {
+    final semCep = cadastroUniversidadeJson(status: 'P');
+    ((semCep['campusPrincipal'] as Map)['endereco'] as Map)['cep'] = null;
+    mockAuthApiRotasDinamicas(_rotas(semCep));
+    sessionController.redefinirParaTestes(usuario: _universidade);
+    await pumpComRouter(
+      tester,
+      initialLocation: '/painel-universidade/dados',
+      rotas: {'/painel-universidade/dados': (context) => const PainelUniversidadePage()},
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Cadastro em análise'), findsOneWidget);
+  });
+
   testWidgets('a troca de aba muda a URL da seção', (tester) async {
     await _pumpPainel(tester);
 

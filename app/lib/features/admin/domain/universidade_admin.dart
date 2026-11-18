@@ -74,7 +74,7 @@ class EnderecoCadastro {
     required this.bairro,
     required this.cidade,
     required this.estado,
-    required this.cep,
+    this.cep,
     this.complemento,
   });
 
@@ -85,7 +85,7 @@ class EnderecoCadastro {
         bairro: json['bairro'] as String,
         cidade: json['cidade'] as String,
         estado: json['estado'] as String,
-        cep: json['cep'] as String,
+        cep: json['cep'] as String?,
       );
 
   final String logradouro;
@@ -94,12 +94,18 @@ class EnderecoCadastro {
   final String bairro;
   final String cidade;
   final String estado;
-  final String cep;
+  /// Opcional no cadastro da universidade (passo 3).
+  final String? cep;
 
   String get completo {
-    final cepFormatado = cep.length == 8 ? '${cep.substring(0, 5)}-${cep.substring(5)}' : cep;
+    final cep = this.cep;
+    final cepFormatado = cep == null || cep.isEmpty
+        ? null
+        : cep.length == 8
+            ? '${cep.substring(0, 5)}-${cep.substring(5)}'
+            : cep;
     final comComplemento = complemento == null || complemento!.isEmpty ? '' : ', $complemento';
-    return '$logradouro, $numero$comComplemento, $bairro, $cidade / $estado, CEP $cepFormatado';
+    return '$logradouro, $numero$comComplemento, $bairro, $cidade / $estado${cepFormatado == null ? '' : ', CEP $cepFormatado'}';
   }
 }
 
