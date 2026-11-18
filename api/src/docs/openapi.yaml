@@ -12,6 +12,10 @@ servers:
   - url: /api/v1
     description: API base (versão 1)
 tags:
+  - name: Dashboard
+    description: RF16, estatísticas do administrador
+  - name: Cadastros do administrador
+    description: Cursos, programas globais, datas importantes e dados das universidades
   - name: Aprovação de universidades
     description: RF23 e inativação pelo administrador
   - name: Sistema
@@ -761,6 +765,37 @@ paths:
                   meta: { type: object }
         '401': { $ref: '#/components/responses/NaoAutenticado' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
+    patch:
+      tags: [Cadastros do administrador]
+      summary: Administrador edita os dados institucionais (RF18)
+      description: Status tem rotas próprias (aprovar, reprovar, inativar, reativar). Grava log_auditoria antes e depois.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UniversidadeEdicao' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/UniversidadeCadastro' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: CNPJ_EM_USO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
 
   /universidades/{id}/campus:
     get:
@@ -800,6 +835,31 @@ paths:
                     type: array
                     items: { $ref: '#/components/schemas/Curso' }
                   meta: { type: object }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    post:
+      tags: [Cadastros do administrador]
+      summary: Administrador cadastra curso na universidade (RF19)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CursoEntrada' }
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/CursoAdmin' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
   /universidades/{id}/avaliacoes:
@@ -1040,6 +1100,62 @@ paths:
                   meta: { type: object }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
+  /cursos/administracao:
+    get:
+      tags: [Cadastros do administrador]
+      summary: Cursos ativos de qualquer universidade (administrador)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: busca
+          schema: { type: string }
+        - in: query
+          name: areaCurso
+          schema: { type: string }
+        - in: query
+          name: universidadeId
+          schema: { type: integer }
+        - in: query
+          name: page
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/CursoAdmin' } }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+
+  /cursos/administracao/{id}:
+    get:
+      tags: [Cadastros do administrador]
+      summary: Curso para edição (administrador)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/CursoAdmin' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
   /cursos/{id}:
     get:
       tags: [Cursos]
@@ -1060,6 +1176,54 @@ paths:
                   data: { $ref: '#/components/schemas/Curso' }
                   meta: { type: object }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
+    patch:
+      tags: [Cadastros do administrador]
+      summary: Edita o curso (a universidade do curso não muda)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CursoEntrada' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/CursoAdmin' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Cadastros do administrador]
+      summary: Exclui o curso (lógica, ativo=false)
+      description: Bloqueada enquanto o curso estiver ofertado em algum campus.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: CURSO_OFERTADO, o curso está ofertado em campus
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
 
   /programas:
     get:
@@ -1088,6 +1252,28 @@ paths:
                     items: { $ref: '#/components/schemas/Programa' }
                   meta: { $ref: '#/components/schemas/Paginacao' }
         '400': { $ref: '#/components/responses/ValidationError' }
+    post:
+      tags: [Cadastros do administrador]
+      summary: Cria programa global (RF10, RF11, RF17)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProgramaEntrada' }
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProgramaAdmin' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
 
   /programas/destaques:
     get:
@@ -1110,6 +1296,104 @@ paths:
                     items: { $ref: '#/components/schemas/Programa' }
                   meta: { type: object }
 
+  /programas/administracao:
+    get:
+      tags: [Cadastros do administrador]
+      summary: Programas globais ativos (entrada, financiamento e bolsa), com as datas importantes
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: tipo
+          schema: { type: string, enum: [ENTRADA, FINANCIAMENTO, BOLSA] }
+        - in: query
+          name: busca
+          description: Parte do nome ou da sigla
+          schema: { type: string }
+        - in: query
+          name: page
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Lista paginada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: '#/components/schemas/ProgramaAdmin' } }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+
+  /programas/administracao/{id}:
+    get:
+      tags: [Cadastros do administrador]
+      summary: Programa global para edição, com as datas importantes
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProgramaAdmin' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /programas/eventos/{id}:
+    patch:
+      tags: [Cadastros do administrador]
+      summary: Edita uma data importante
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EventoEntrada' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/EventoPrograma' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Cadastros do administrador]
+      summary: Exclui uma data importante
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
   /programas/{id}:
     get:
       tags: [Programas]
@@ -1127,6 +1411,84 @@ paths:
                 properties:
                   data: { $ref: '#/components/schemas/ProgramaDetalhe' }
                   meta: { type: object }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    patch:
+      tags: [Cadastros do administrador]
+      summary: Edita o programa global
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProgramaEntrada' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProgramaAdmin' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Cadastros do administrador]
+      summary: Exclui o programa global (lógica, ativo=false)
+      description: Bloqueada enquanto alguma universidade aceitar o programa.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: PROGRAMA_ACEITO, há universidades que aceitam o programa
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+
+  /programas/{id}/eventos:
+    post:
+      tags: [Cadastros do administrador]
+      summary: Acrescenta uma data importante ao programa global
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EventoEntrada' }
+      responses:
+        '201':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/EventoPrograma' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
   /programas/{id}/universidades:
@@ -1449,6 +1811,92 @@ paths:
         '403': { $ref: '#/components/responses/Proibido' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
         '409': { $ref: '#/components/responses/Conflito' }
+      x-universidade-nao-aprovada: >
+        Conta de universidade reprovada ou inativa recebe 403
+        UNIVERSIDADE_NAO_APROVADA (Pendência 6).
+
+  /estatisticas/resumo:
+    get:
+      tags: [Dashboard]
+      summary: Totais do momento (usuários por perfil, universidades por status, cursos e programas)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/EstatisticasResumo' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+
+  /estatisticas/visitas:
+    get:
+      tags: [Dashboard]
+      summary: Visitas e logins únicos por dia ou mês no período
+      description: >
+        Dias (ou meses) sem dados vêm com zero. loginsUnicos é o total de contas
+        distintas com LOGIN na auditoria no período inteiro, não a soma da série.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: de
+          description: Data inicial (AAAA-MM-DD, Brasília). Padrão, 29 dias antes de ate
+          schema: { type: string, format: date }
+        - in: query
+          name: ate
+          description: Data final inclusiva (AAAA-MM-DD, Brasília). Padrão, hoje
+          schema: { type: string, format: date }
+        - in: query
+          name: agrupar
+          schema: { type: string, enum: [dia, mes], default: dia }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/EstatisticasVisitas' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+
+  /estatisticas/ranking:
+    get:
+      tags: [Dashboard]
+      summary: Universidades, programas e cursos mais acessados no período
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: query
+          name: de
+          description: Data inicial (AAAA-MM-DD, Brasília). Padrão, 29 dias antes de ate
+          schema: { type: string, format: date }
+        - in: query
+          name: ate
+          description: Data final inclusiva (AAAA-MM-DD, Brasília). Padrão, hoje
+          schema: { type: string, format: date }
+        - in: query
+          name: limite
+          schema: { type: integer, default: 5, maximum: 20 }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/EstatisticasRanking' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
 
   /notificacoes:
     get:
@@ -1888,6 +2336,131 @@ components:
         descricao: { type: string }
         imagemUrl: { type: string, nullable: true }
         universidadeId: { type: integer, nullable: true }
+    EstatisticasResumo:
+      type: object
+      properties:
+        usuariosPorPerfil:
+          type: object
+          properties: { A: { type: integer }, U: { type: integer }, D: { type: integer }, total: { type: integer } }
+        universidadesPorStatus:
+          type: object
+          properties:
+            P: { type: integer }
+            A: { type: integer }
+            R: { type: integer }
+            I: { type: integer }
+            total: { type: integer }
+        cursos: { type: integer }
+        programasPorTipo:
+          type: object
+          properties:
+            ENTRADA: { type: integer }
+            FINANCIAMENTO: { type: integer }
+            BOLSA: { type: integer }
+            total: { type: integer }
+    EstatisticasVisitas:
+      type: object
+      properties:
+        de: { type: string, format: date }
+        ate: { type: string, format: date }
+        agrupar: { type: string, enum: [dia, mes] }
+        totalVisitas: { type: integer }
+        loginsUnicos: { type: integer }
+        visitasPorPerfil:
+          type: object
+          properties:
+            visitante: { type: integer }
+            A: { type: integer }
+            U: { type: integer }
+            D: { type: integer }
+        serie:
+          type: array
+          items:
+            type: object
+            properties:
+              periodo: { type: string, example: '2026-11-17' }
+              visitas: { type: integer }
+              loginsUnicos: { type: integer }
+    EstatisticasRanking:
+      type: object
+      properties:
+        de: { type: string, format: date }
+        ate: { type: string, format: date }
+        universidades: { type: array, items: { $ref: '#/components/schemas/ItemRanking' } }
+        programas: { type: array, items: { $ref: '#/components/schemas/ItemRanking' } }
+        cursos: { type: array, items: { $ref: '#/components/schemas/ItemRanking' } }
+    ItemRanking:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        visitas: { type: integer }
+    UniversidadeEdicao:
+      type: object
+      description: Todos opcionais; texto vazio limpa o campo.
+      properties:
+        nomeFantasia: { type: string, maxLength: 100 }
+        razaoSocial: { type: string, maxLength: 100 }
+        cnpj: { type: string, description: 14 dígitos; pontuação é removida }
+        natureza: { type: string, enum: [P, V] }
+        descricao: { type: string, nullable: true }
+        telefonePrincipal: { type: string, nullable: true }
+        linkPagina: { type: string, nullable: true }
+        linkSimulados: { type: string, nullable: true }
+    CursoEntrada:
+      type: object
+      required: [nome]
+      properties:
+        nome: { type: string, maxLength: 100 }
+        areaCurso: { type: string, nullable: true }
+        notaMec: { type: string, nullable: true }
+        modalidade: { type: string, nullable: true }
+        grau: { type: string, nullable: true }
+        duracaoSemestres: { type: integer, minimum: 1, maximum: 20, nullable: true }
+        descricao: { type: string, nullable: true }
+    CursoAdmin:
+      allOf:
+        - $ref: '#/components/schemas/CursoEntrada'
+        - type: object
+          properties:
+            id: { type: integer }
+            universidade: { type: object, properties: { id: { type: integer }, nomeFantasia: { type: string } } }
+            totalCampus: { type: integer, description: Campus onde o curso é ofertado }
+    ProgramaEntrada:
+      type: object
+      required: [nome, tipo, descricao]
+      properties:
+        nome: { type: string, maxLength: 100 }
+        sigla: { type: string, nullable: true }
+        tipo: { type: string, enum: [ENTRADA, FINANCIAMENTO, BOLSA] }
+        descricao: { type: string }
+        requisitos: { type: string, nullable: true }
+        comoFunciona: { type: string, nullable: true }
+        linkOficial: { type: string, nullable: true, description: URL com http:// ou https:// }
+        imagemUrl: { type: string, nullable: true, description: URL com http:// ou https:// }
+    ProgramaAdmin:
+      allOf:
+        - $ref: '#/components/schemas/ProgramaEntrada'
+        - type: object
+          properties:
+            id: { type: integer }
+            criadoEm: { type: string, format: date-time }
+            totalUniversidades: { type: integer, description: Universidades que aceitam o programa }
+            eventos: { type: array, items: { $ref: '#/components/schemas/EventoPrograma' } }
+    EventoEntrada:
+      type: object
+      required: [titulo, dataInicio]
+      properties:
+        titulo: { type: string, maxLength: 100 }
+        descricao: { type: string, maxLength: 255, nullable: true }
+        dataInicio: { type: string, format: date }
+        dataFim: { type: string, format: date, nullable: true, description: Igual ou depois de dataInicio }
+    EventoPrograma:
+      allOf:
+        - $ref: '#/components/schemas/EventoEntrada'
+        - type: object
+          properties:
+            id: { type: integer }
     ProgramaDetalhe:
       allOf:
         - $ref: '#/components/schemas/Programa'
@@ -1931,6 +2504,7 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Erro' }
     NaoAutenticado:
+      # Também quando a conta do token foi inativada ou excluída (message "Conta inativa ou excluída").
       description: Sem token ou token inválido/expirado
       content:
         application/json:
