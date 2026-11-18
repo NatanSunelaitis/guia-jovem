@@ -117,6 +117,7 @@ class UniversidadeCadastro {
     required this.totalCampus,
     required this.programas,
     this.telefonePrincipal,
+    this.descricao,
     this.linkPagina,
     this.linkSimulados,
     this.motivoReprovacao,
@@ -139,6 +140,7 @@ class UniversidadeCadastro {
       natureza: json['natureza'] as String,
       status: statusUniversidadeDe(json['status'] as String),
       telefonePrincipal: json['telefonePrincipal'] as String?,
+      descricao: json['descricao'] as String?,
       linkPagina: json['linkPagina'] as String?,
       linkSimulados: json['linkSimulados'] as String?,
       motivoReprovacao: json['motivoReprovacao'] as String?,
@@ -166,6 +168,7 @@ class UniversidadeCadastro {
   final String natureza;
   final StatusUniversidade status;
   final String? telefonePrincipal;
+  final String? descricao;
   final String? linkPagina;
   final String? linkSimulados;
   final String? motivoReprovacao;

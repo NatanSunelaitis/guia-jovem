@@ -18,6 +18,8 @@ import '../../../shared/widgets/gj_tabs.dart';
 import '../data/admin_repository.dart';
 import '../domain/universidade_admin.dart';
 import 'widgets/confirmacao_dialogs.dart';
+import 'widgets/formulario.dart';
+import 'widgets/formulario_universidade.dart';
 
 /// T24.3 Universidades (RF23): abas por status (pendentes primeiro, com o
 /// contador), busca por nome e acesso ao cadastro de cada uma.
@@ -298,11 +300,30 @@ class _CadastroUniversidadeAdminState extends State<CadastroUniversidadeAdmin> {
     );
   }
 
+  Future<void> _editar(UniversidadeCadastro cadastro) async {
+    final salvo = await abrirFormulario<UniversidadeCadastro>(
+      context,
+      titulo: 'Editar dados da universidade',
+      formulario: FormularioUniversidade(cadastro: cadastro),
+    );
+    if (salvo == null) return;
+    if (!mounted) return;
+    setState(() => _cadastro = salvo);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dados da universidade atualizados.')));
+  }
+
   List<Widget> _acoes(UniversidadeCadastro cadastro) {
     GJButton botao(String rotulo, VoidCallback acao, {GJButtonVariant variante = GJButtonVariant.primary}) =>
         GJButton(label: rotulo, variant: variante, onPressed: _executando ? null : acao);
 
-    return switch (cadastro.status) {
+    final editar = GJButton(
+      label: 'Editar dados',
+      icon: Symbols.edit,
+      variant: GJButtonVariant.secondary,
+      onPressed: _executando ? null : () => _editar(cadastro),
+    );
+
+    return [editar, ...switch (cadastro.status) {
       StatusUniversidade.pendente => [
           botao('Reprovar', () => _reprovar(cadastro), variante: GJButtonVariant.danger),
           botao('Aprovar', () => _aprovar(cadastro)),
@@ -315,7 +336,7 @@ class _CadastroUniversidadeAdminState extends State<CadastroUniversidadeAdmin> {
           // Só volta para o site quem já foi aprovada um dia (a API recusa o resto).
           if (cadastro.aprovadoEm != null) botao('Reativar', () => _reativar(cadastro)),
         ],
-    };
+    }];
   }
 
   Widget _dado(String rotulo, String? valor) {

@@ -18,6 +18,8 @@ import '../../auth/domain/usuario_sessao.dart';
 import '../data/admin_repository.dart';
 import '../domain/usuario_admin.dart';
 import 'widgets/confirmacao_dialogs.dart';
+import 'widgets/formulario.dart';
+import 'widgets/formulario_usuario.dart';
 
 /// T24.2 Usuários (RF09, Quadro 14): busca, filtros por perfil e situação,
 /// e ativar ou inativar contas. A única conta de administrador ativa não
@@ -127,18 +129,49 @@ class _SecaoUsuariosState extends State<SecaoUsuarios> {
     }
   }
 
+  Future<void> _abrirFormulario([UsuarioAdmin? usuario]) async {
+    final salvo = await abrirFormulario<UsuarioAdmin>(
+      context,
+      titulo: usuario == null ? 'Novo usuário' : 'Editar usuário',
+      formulario: FormularioUsuario(
+        usuario: usuario,
+        ehPropriaConta: usuario != null && usuario.id == sessionController.usuario?.id,
+      ),
+    );
+    if (salvo == null) return;
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(usuario == null ? 'Usuário criado.' : 'Usuário atualizado.')),
+    );
+    if (usuario == null) {
+      await _carregar();
+    } else {
+      setState(() => _itens = [for (final item in _itens) item.id == salvo.id ? salvo : item]);
+    }
+  }
+
   Widget _acao(UsuarioAdmin usuario) {
+    final editar = IconButton(
+      tooltip: 'Editar ${usuario.nome}',
+      icon: const Icon(Symbols.edit),
+      onPressed: () => _abrirFormulario(usuario),
+    );
     // A própria conta sai pelo menu do avatar (Excluir Conta), não por aqui:
     // inativar a si mesmo derrubaria a sessão no meio do uso.
     if (usuario.id == sessionController.usuario?.id) {
-      return Text('Sua conta', style: GJTypography.bodySm());
+      return Row(children: [editar, Text('Sua conta', style: GJTypography.bodySm())]);
     }
-    return GJButton(
-      label: usuario.ativo ? 'Inativar' : 'Ativar',
-      size: GJButtonSize.sm,
-      variant: usuario.ativo ? GJButtonVariant.secondary : GJButtonVariant.primary,
-      loading: _alterando.contains(usuario.id),
-      onPressed: _alterando.contains(usuario.id) ? null : () => _alterarSituacao(usuario),
+    return Row(
+      children: [
+        editar,
+        GJButton(
+          label: usuario.ativo ? 'Inativar' : 'Ativar',
+          size: GJButtonSize.sm,
+          variant: usuario.ativo ? GJButtonVariant.secondary : GJButtonVariant.primary,
+          loading: _alterando.contains(usuario.id),
+          onPressed: _alterando.contains(usuario.id) ? null : () => _alterarSituacao(usuario),
+        ),
+      ],
     );
   }
 
@@ -204,6 +237,8 @@ class _SecaoUsuariosState extends State<SecaoUsuarios> {
           GJDataTable(
             buscaHint: 'Buscar por nome ou e-mail',
             onBuscaChanged: _buscar,
+            acaoPrimariaLabel: 'Novo usuário',
+            onAcaoPrimaria: () => _abrirFormulario(),
             colunas: const [
               GJDataColumn('Nome', flex: 3),
               GJDataColumn('E-mail', flex: 4),
