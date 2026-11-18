@@ -18,16 +18,50 @@ import '../domain/sugestao.dart';
 import 'widgets/sugestao_card.dart';
 
 /// `/sugestoes-recebidas` (T23.6 e T24.8, RF15): sugestões destinadas à
-/// equipe (administrador) ou à universidade da conta logada, com filtro por
-/// status. Rota própria até os painéis existirem (Pendência 3).
-class SugestoesRecebidasPage extends StatefulWidget {
+/// equipe (administrador) ou à universidade da conta logada. A mesma lista
+/// é a seção Sugestões do painel do administrador; a rota própria continua
+/// para a universidade, enquanto o painel dela não existe.
+class SugestoesRecebidasPage extends StatelessWidget {
   const SugestoesRecebidasPage({super.key});
 
   @override
-  State<SugestoesRecebidasPage> createState() => _SugestoesRecebidasPageState();
+  Widget build(BuildContext context) {
+    final ehUniversidade = sessionController.usuario?.tipoUsuario == TipoUsuario.universidade;
+
+    return PublicLayout(
+      child: GJPageContainer(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: GJSpace.s8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('Sugestões recebidas', style: GJTypography.h1()),
+              const SizedBox(height: GJSpace.s2),
+              Text(
+                ehUniversidade
+                    ? 'Sugestões que estudantes enviaram para a sua universidade.'
+                    : 'Sugestões que estudantes enviaram para a equipe Guia Jovem.',
+                style: GJTypography.body(),
+              ),
+              const SizedBox(height: GJSpace.s6),
+              const SugestoesRecebidasLista(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _SugestoesRecebidasPageState extends State<SugestoesRecebidasPage> {
+/// Abas por status e a lista paginada das sugestões recebidas.
+class SugestoesRecebidasLista extends StatefulWidget {
+  const SugestoesRecebidasLista({super.key});
+
+  @override
+  State<SugestoesRecebidasLista> createState() => _SugestoesRecebidasListaState();
+}
+
+class _SugestoesRecebidasListaState extends State<SugestoesRecebidasLista> {
   static const _filtros = <StatusSugestao?>[
     StatusSugestao.emAnalise,
     null,
@@ -159,31 +193,13 @@ class _SugestoesRecebidasPageState extends State<SugestoesRecebidasPage> {
 
   @override
   Widget build(BuildContext context) {
-    final ehUniversidade = sessionController.usuario?.tipoUsuario == TipoUsuario.universidade;
-
-    return PublicLayout(
-      child: GJPageContainer(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: GJSpace.s8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Sugestões recebidas', style: GJTypography.h1()),
-              const SizedBox(height: GJSpace.s2),
-              Text(
-                ehUniversidade
-                    ? 'Sugestões que estudantes enviaram para a sua universidade.'
-                    : 'Sugestões que estudantes enviaram para a equipe Guia Jovem.',
-                style: GJTypography.body(),
-              ),
-              const SizedBox(height: GJSpace.s6),
-              GJTabs(tabs: _abas, selectedIndex: _aba, onChanged: _trocarAba),
-              const SizedBox(height: GJSpace.s6),
-              _lista(),
-            ],
-          ),
-        ),
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GJTabs(tabs: _abas, selectedIndex: _aba, onChanged: _trocarAba),
+        const SizedBox(height: GJSpace.s6),
+        _lista(),
+      ],
     );
   }
 }
