@@ -1,3 +1,5 @@
+import 'package:app/features/auth/data/google_login.dart';
+import 'package:app/features/auth/data/session_controller.dart';
 import 'package:app/features/auth/presentation/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -88,4 +90,101 @@ void main() {
 
     expect(find.text('Recuperar'), findsOneWidget);
   });
+
+  group('Entrar com Google (RF05)', () {
+    late GoogleLogin original;
+    setUp(() => original = googleLogin);
+    tearDown(() => googleLogin = original);
+
+    testWidgets('sem GOOGLE_CLIENT_ID o botão não aparece', (tester) async {
+      await pumpLogin(tester);
+
+      expect(googleLogin.disponivel, isFalse);
+      expect(find.text('Entrar com Google'), findsNothing);
+      expect(find.text('OU'), findsNothing);
+    });
+
+    testWidgets('com o client ID o botão aparece', (tester) async {
+      googleLogin = _GoogleLoginFalso();
+      await pumpLogin(tester);
+
+      expect(find.text('Entrar com Google'), findsOneWidget);
+      expect(find.text('OU'), findsOneWidget);
+    });
+
+    testWidgets('envia o ID token para a API, entra e vai para a home', (tester) async {
+      googleLogin = _GoogleLoginFalso();
+      mockAuthApiRotas({
+        'POST /auth/google': RespostaFalsa(envelope({
+          'accessToken': 'access-g',
+          'refreshToken': 'refresh-g',
+          'usuario': _usuarioAluno,
+        })),
+      });
+      await pumpLogin(tester);
+
+      await tester.tap(find.text('Entrar com Google'));
+      await tester.pumpAndSettle();
+
+      final enviadas = requisicoesAuthApi.where((r) => r.method == 'POST' && r.uri.path.endsWith('/auth/google'));
+      expect(enviadas.single.data, {'idToken': 'id-token-do-google'});
+      expect(sessionController.usuario!.email, 'ana@exemplo.com');
+      expect(find.text('Home'), findsOneWidget);
+    });
+
+    testWidgets('mostra a mensagem da API quando o token é recusado', (tester) async {
+      googleLogin = _GoogleLoginFalso();
+      mockAuthApiRotas({
+        'POST /auth/google': const RespostaFalsa(
+          {
+            'error': {'code': 'FORBIDDEN', 'message': 'Esta conta não pode ser acessada com o Google', 'details': <dynamic>[]},
+          },
+          status: 403,
+        ),
+      });
+      await pumpLogin(tester);
+
+      await tester.tap(find.text('Entrar com Google'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Esta conta não pode ser acessada com o Google'), findsOneWidget);
+      expect(sessionController.autenticado, isFalse);
+      expect(find.text('Home'), findsNothing);
+    });
+
+    testWidgets('mostra o aviso quando o Google não carrega', (tester) async {
+      googleLogin = _GoogleLoginFalso(falhar: true);
+      mockAuthApiRotas({});
+      await pumpLogin(tester);
+
+      await tester.tap(find.text('Entrar com Google'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Não foi possível carregar o login com Google.'), findsOneWidget);
+      expect(requisicoesAuthApi, isEmpty);
+    });
+  });
+}
+
+/// Substitui o botão do Google Identity Services, que só existe no navegador:
+/// o toque entrega um ID token fixo (ou a falha de carregamento).
+class _GoogleLoginFalso implements GoogleLogin {
+  _GoogleLoginFalso({this.falhar = false});
+
+  final bool falhar;
+
+  @override
+  bool get disponivel => true;
+
+  @override
+  Widget botao({
+    required void Function(String idToken) aoReceberToken,
+    required void Function(String mensagem) aoFalhar,
+  }) =>
+      TextButton(
+        onPressed: () => falhar
+            ? aoFalhar('Não foi possível carregar o login com Google.')
+            : aoReceberToken('id-token-do-google'),
+        child: const Text('Entrar com Google'),
+      );
 }

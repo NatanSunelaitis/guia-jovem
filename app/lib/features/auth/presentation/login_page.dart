@@ -13,6 +13,7 @@ import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/public_layout.dart';
 import '../../../shared/widgets/gj_button.dart';
 import '../../../shared/widgets/gj_input.dart';
+import '../data/google_login.dart';
 import '../data/session_controller.dart';
 import 'widgets/gj_auth_background.dart';
 
@@ -55,10 +56,24 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _entrarComGoogle() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Entrar com Google ainda não está disponível.')),
-    );
+  Future<void> _entrarComGoogle(String idToken) async {
+    setState(() {
+      _enviando = true;
+      _erro = null;
+    });
+    try {
+      await sessionController.loginComGoogle(idToken);
+      if (!mounted) return;
+      context.go(widget.redirecionarPara ?? '/');
+    } on ApiException catch (erro) {
+      if (mounted) setState(() => _erro = erro.message);
+    } finally {
+      if (mounted) setState(() => _enviando = false);
+    }
+  }
+
+  void _falhaDoGoogle(String mensagem) {
+    if (mounted) setState(() => _erro = mensagem);
   }
 
   @override
@@ -123,19 +138,23 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: GJSpace.s2),
               GJButton(label: 'Acessar minha conta', expand: true, loading: _enviando, onPressed: _enviando ? null : _entrar),
-              const SizedBox(height: GJSpace.s4),
-              Row(
-                children: [
-                  const Expanded(child: Divider()),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: GJSpace.s3),
-                    child: Text('OU', style: GJTypography.caption().copyWith(fontWeight: FontWeight.w600)),
-                  ),
-                  const Expanded(child: Divider()),
-                ],
-              ),
-              const SizedBox(height: GJSpace.s4),
-              GJButton(label: 'Entrar com Google', variant: GJButtonVariant.google, expand: true, onPressed: _entrarComGoogle),
+              // RF05: o botão do Google só existe quando o app foi compilado
+              // com GOOGLE_CLIENT_ID (README, "Login com Google").
+              if (googleLogin.disponivel) ...[
+                const SizedBox(height: GJSpace.s4),
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: GJSpace.s3),
+                      child: Text('OU', style: GJTypography.caption().copyWith(fontWeight: FontWeight.w600)),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: GJSpace.s4),
+                googleLogin.botao(aoReceberToken: _entrarComGoogle, aoFalhar: _falhaDoGoogle),
+              ],
               const SizedBox(height: GJSpace.s4),
               Wrap(
                 alignment: WrapAlignment.center,

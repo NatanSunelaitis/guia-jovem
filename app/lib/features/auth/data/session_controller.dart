@@ -35,6 +35,12 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> loginComGoogle(String idToken) async {
+    final resultado = await _repository.loginComGoogle(idToken);
+    _usuario = resultado.usuario;
+    notifyListeners();
+  }
+
   Future<void> registrarAluno({required String nome, required String email, required String senha}) async {
     final resultado = await _repository.registrarAluno(nome: nome, email: email, senha: senha);
     _usuario = resultado.usuario;

@@ -35,6 +35,13 @@ class AuthRepository {
     return _autenticarE(json);
   }
 
+  /// RF05 (Quadro 8): o ID token do Google; sem conta com o e-mail, a API
+  /// cria uma conta de aluno.
+  Future<SessaoResultado> loginComGoogle(String idToken) async {
+    final json = await _client.post('/auth/google', body: {'idToken': idToken});
+    return _autenticarE(json);
+  }
+
   Future<void> logout() async {
     final refreshToken = await tokenStorage.lerRefreshToken();
     if (refreshToken != null) {
