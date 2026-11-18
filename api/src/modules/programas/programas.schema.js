@@ -28,4 +28,90 @@ const destaquesQuerySchema = {
   }),
 };
 
-module.exports = { idParamSchema, listQuerySchema, destaquesQuerySchema };
+const tipo = z.enum(['ENTRADA', 'FINANCIAMENTO', 'BOLSA'], {
+  errorMap: () => ({ message: 'tipo deve ser ENTRADA, FINANCIAMENTO ou BOLSA' }),
+});
+
+// Texto opcional: vazio vira null, para o formulário poder limpar o campo.
+const textoOpcional = (max) =>
+  z
+    .string()
+    .trim()
+    .max(max, `Use no máximo ${max} caracteres`)
+    .transform((valor) => (valor === '' ? null : valor))
+    .nullable()
+    .optional();
+
+const urlOpcional = z
+  .string()
+  .trim()
+  .max(255)
+  .transform((valor) => (valor === '' ? null : valor))
+  .refine((valor) => valor === null || /^https?:\/\/\S+$/.test(valor), 'Informe uma URL que comece com http:// ou https://')
+  .nullable()
+  .optional();
+
+// Campos que a página do programa (T08, RF25) exibe.
+const camposPrograma = {
+  nome: z.string({ required_error: 'Informe o nome do programa' }).trim().min(1, 'Informe o nome do programa').max(100),
+  sigla: textoOpcional(20),
+  tipo,
+  descricao: z.string({ required_error: 'Informe a descrição' }).trim().min(1, 'Informe a descrição').max(5000),
+  requisitos: textoOpcional(5000),
+  comoFunciona: textoOpcional(5000),
+  linkOficial: urlOpcional,
+  imagemUrl: urlOpcional,
+};
+
+const adminListQuerySchema = {
+  query: z.object({
+    tipo: tipo.optional(),
+    busca: z.string().trim().min(1).optional(),
+    page: z.string().optional(),
+    pageSize: z.string().optional(),
+  }),
+};
+
+const criarProgramaSchema = { body: z.object(camposPrograma) };
+
+const atualizarProgramaSchema = {
+  params: idParamSchema.params,
+  body: z
+    .object(camposPrograma)
+    .partial()
+    .refine((dados) => Object.keys(dados).length > 0, { message: 'Informe ao menos um campo para atualizar' }),
+};
+
+const data = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use o formato AAAA-MM-DD')
+  .refine((valor) => !Number.isNaN(Date.parse(`${valor}T00:00:00Z`)), 'Data inválida');
+
+// Datas importantes (programa_evento): título, descrição, início e fim.
+const camposEvento = {
+  titulo: z.string({ required_error: 'Informe o título' }).trim().min(1, 'Informe o título').max(100),
+  descricao: textoOpcional(255),
+  dataInicio: data,
+  dataFim: data.nullable().optional(),
+};
+
+const criarEventoSchema = { params: idParamSchema.params, body: z.object(camposEvento) };
+
+const atualizarEventoSchema = {
+  params: idParamSchema.params,
+  body: z
+    .object(camposEvento)
+    .partial()
+    .refine((dados) => Object.keys(dados).length > 0, { message: 'Informe ao menos um campo para atualizar' }),
+};
+
+module.exports = {
+  idParamSchema,
+  listQuerySchema,
+  destaquesQuerySchema,
+  adminListQuerySchema,
+  criarProgramaSchema,
+  atualizarProgramaSchema,
+  criarEventoSchema,
+  atualizarEventoSchema,
+};

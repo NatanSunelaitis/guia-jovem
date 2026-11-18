@@ -1,4 +1,5 @@
 const prisma = require('../../config/database');
+const adminService = require('./programas.admin.service');
 const service = require('./programas.service');
 
 async function listar(req, res, next) {
@@ -37,4 +38,36 @@ async function universidades(req, res, next) {
   }
 }
 
-module.exports = { listar, destaques, obter, universidades };
+function responder(funcao, status = 200) {
+  return async function handler(req, res, next) {
+    try {
+      const data = await funcao(req);
+      res.status(status).json({ data: data ?? { sucesso: true }, meta: {} });
+    } catch (erro) {
+      next(erro);
+    }
+  };
+}
+
+async function listarAdmin(req, res, next) {
+  try {
+    res.json(await adminService.listarAdmin(prisma, req.query));
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+module.exports = {
+  listar,
+  destaques,
+  obter,
+  universidades,
+  listarAdmin,
+  obterAdmin: responder((req) => adminService.obterAdmin(prisma, req.params.id)),
+  criar: responder((req) => adminService.criar(prisma, req.body, req), 201),
+  atualizar: responder((req) => adminService.atualizar(prisma, req.params.id, req.body, req)),
+  excluir: responder((req) => adminService.excluir(prisma, req.params.id, req)),
+  criarEvento: responder((req) => adminService.criarEvento(prisma, req.params.id, req.body, req), 201),
+  atualizarEvento: responder((req) => adminService.atualizarEvento(prisma, req.params.id, req.body, req)),
+  excluirEvento: responder((req) => adminService.excluirEvento(prisma, req.params.id, req)),
+};
