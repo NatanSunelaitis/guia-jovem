@@ -16,6 +16,8 @@ tags:
     description: RF16, estatísticas do administrador
   - name: Cadastros do administrador
     description: Cursos, programas globais, datas importantes e dados das universidades
+  - name: Painel da universidade
+    description: Gestão pela própria universidade (ou pelo administrador) dos dados, campi, cursos e ofertas, programas aceitos, bolsas institucionais e reenvio do cadastro
   - name: Aprovação de universidades
     description: RF23 e inativação pelo administrador
   - name: Sistema
@@ -766,9 +768,13 @@ paths:
         '401': { $ref: '#/components/responses/NaoAutenticado' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
     patch:
-      tags: [Cadastros do administrador]
-      summary: Administrador edita os dados institucionais (RF18)
-      description: Status tem rotas próprias (aprovar, reprovar, inativar, reativar). Grava log_auditoria antes e depois.
+      tags: [Painel da universidade]
+      summary: Edita os dados institucionais, incluindo os links da página oficial e de simulados (RF18)
+      description: >
+        Administrador ou a universidade dona (pendente, aprovada ou reprovada
+        corrigindo o cadastro; a inativa recebe 403 UNIVERSIDADE_NAO_APROVADA).
+        Na aprovada, a alteração vale na hora, sem nova aprovação. Status tem
+        rotas próprias. Grava log_auditoria antes e depois.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/UniversidadeId'
@@ -816,6 +822,35 @@ paths:
                     items: { $ref: '#/components/schemas/Campus' }
                   meta: { type: object }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
+    post:
+      tags: [Painel da universidade]
+      summary: Cria campus (RF21, RF22)
+      description: >
+        Universidade dona (pendente, aprovada ou reprovada) ou administrador.
+        Com principal=true, o principal anterior é desmarcado; o primeiro
+        campus é sempre o principal.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CampusEntrada' }
+      responses:
+        '201':
+          description: Criado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/CampusGestao' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/UniversidadeNaoAprovada' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
 
   /universidades/{id}/cursos:
     get:
@@ -837,8 +872,9 @@ paths:
                   meta: { type: object }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
     post:
-      tags: [Cadastros do administrador]
-      summary: Administrador cadastra curso na universidade (RF19)
+      tags: [Painel da universidade]
+      summary: Cadastra curso na universidade (RF19)
+      description: Administrador ou a universidade dona, pendente ou aprovada.
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/UniversidadeId'
@@ -861,6 +897,265 @@ paths:
         '401': { $ref: '#/components/responses/NaoAutenticado' }
         '403': { $ref: '#/components/responses/Proibido' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/gestao/campus:
+    get:
+      tags: [Painel da universidade]
+      summary: Campi ativos da universidade, em qualquer situação do cadastro
+      description: Universidade dona ou administrador. Inclui o endereço e o total de ofertas de cada campus.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/CampusGestao' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/gestao/cursos:
+    get:
+      tags: [Painel da universidade]
+      summary: Cursos ativos da universidade com as ofertas por campus, turno e vagas
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/CursoGestao' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/gestao/programas:
+    get:
+      tags: [Painel da universidade]
+      summary: Programas globais ativos, cada um com `aceito` e a observação da universidade
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ProgramaAceito' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/gestao/bolsas:
+    get:
+      tags: [Painel da universidade]
+      summary: Bolsas institucionais ativas da universidade (RF11)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/BolsaInstitucional' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/gestao/avaliacoes:
+    get:
+      tags: [Painel da universidade]
+      summary: Avaliações recebidas (somente leitura), em qualquer situação do cadastro
+      description: Mesmo formato de `GET /universidades/{id}/avaliacoes`, que só atende universidade aprovada.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+        - { in: query, name: page, schema: { type: integer } }
+        - { in: query, name: pageSize, schema: { type: integer } }
+      responses:
+        '200': { description: Lista paginada de avaliações }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/estatisticas:
+    get:
+      tags: [Painel da universidade]
+      summary: Visitas da página da universidade no período e média das avaliações
+      description: >
+        Datas de Brasília, `de` e `ate` inclusivos; sem filtro, os últimos 30
+        dias. Conta as visitas à página da universidade (visita_pagina com
+        entidade universidade).
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+        - { in: query, name: de, schema: { type: string, format: date } }
+        - { in: query, name: ate, schema: { type: string, format: date } }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/EstatisticaUniversidade' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/programas:
+    put:
+      tags: [Painel da universidade]
+      summary: Substitui os programas globais aceitos (RF12, RF13, RF17)
+      description: Universidade pendente ou aprovada, ou administrador. Só programas globais ativos.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProgramasAceitosEntrada' }
+      responses:
+        '200':
+          description: Lista atualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/ProgramaAceito' }
+                  meta: { type: object }
+        '400':
+          description: VALIDATION_ERROR ou PROGRAMA_INVALIDO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/UniversidadeNaoAprovada' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/bolsas:
+    post:
+      tags: [Painel da universidade]
+      summary: Cria bolsa institucional (programa do tipo BOLSA da universidade)
+      description: Visível só na página da universidade. Universidade pendente ou aprovada, ou administrador.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BolsaEntrada' }
+      responses:
+        '201':
+          description: Criada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/BolsaInstitucional' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/UniversidadeNaoAprovada' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/bolsas/{bolsaId}:
+    parameters:
+      - $ref: '#/components/parameters/UniversidadeId'
+      - { in: path, name: bolsaId, required: true, schema: { type: integer } }
+    patch:
+      tags: [Painel da universidade]
+      summary: Edita bolsa institucional (o tipo é sempre BOLSA)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BolsaEntrada' }
+      responses:
+        '200': { description: OK }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/UniversidadeNaoAprovada' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Painel da universidade]
+      summary: Exclui bolsa institucional (lógica, ativo=false)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/UniversidadeNaoAprovada' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
+  /universidades/{id}/reenviar:
+    post:
+      tags: [Painel da universidade]
+      summary: Universidade reprovada reenvia o cadastro para análise
+      description: >
+        Só a conta da própria universidade. O status volta de R para P, o
+        motivo da reprovação sai da universidade e fica guardado no
+        log_auditoria (dados antes), e os administradores ativos recebem a
+        notificação UNIVERSIDADE_PENDENTE.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/UniversidadeId'
+      responses:
+        '200':
+          description: Cadastro reenviado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/UniversidadeCadastro' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/Proibido' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: STATUS_INVALIDO, o cadastro não está reprovado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
 
   /universidades/{id}/avaliacoes:
     get:
@@ -1022,6 +1317,61 @@ paths:
                   meta: { type: object }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
+    patch:
+      tags: [Painel da universidade]
+      summary: Edita o campus e o endereço (RF21)
+      description: >
+        Universidade dona (pendente, aprovada ou reprovada) ou administrador.
+        principal=true desmarca o anterior; desmarcar o principal sem marcar
+        outro responde 409 CAMPUS_PRINCIPAL_OBRIGATORIO.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CampusEntrada' }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/CampusGestao' }
+                  meta: { type: object }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/UniversidadeNaoAprovada' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: CAMPUS_PRINCIPAL_OBRIGATORIO
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+    delete:
+      tags: [Painel da universidade]
+      summary: Exclui o campus (lógica, ativo=false)
+      description: >
+        409 UNICO_CAMPUS para o único campus, CAMPUS_PRINCIPAL para o campus
+        principal (marque outro antes) e CAMPUS_COM_OFERTAS enquanto houver
+        curso ofertado nele (remova as ofertas antes).
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/UniversidadeNaoAprovada' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: UNICO_CAMPUS, CAMPUS_PRINCIPAL ou CAMPUS_COM_OFERTAS
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+
   /cursos:
     get:
       tags: [Cursos]
@@ -1177,8 +1527,9 @@ paths:
                   meta: { type: object }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
     patch:
-      tags: [Cadastros do administrador]
+      tags: [Painel da universidade]
       summary: Edita o curso (a universidade do curso não muda)
+      description: Administrador ou a universidade dona, pendente ou aprovada.
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -1205,9 +1556,9 @@ paths:
         '403': { $ref: '#/components/responses/Proibido' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
     delete:
-      tags: [Cadastros do administrador]
+      tags: [Painel da universidade]
       summary: Exclui o curso (lógica, ativo=false)
-      description: Bloqueada enquanto o curso estiver ofertado em algum campus.
+      description: Administrador ou a universidade dona, pendente ou aprovada. Bloqueada enquanto o curso estiver ofertado em algum campus.
       security: [{ bearerAuth: [] }]
       parameters:
         - in: path
@@ -1224,6 +1575,76 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/Erro' }
+
+  /cursos/{id}/ofertas:
+    post:
+      tags: [Painel da universidade]
+      summary: Oferta o curso num campus da mesma universidade, com turno e vagas (RF20)
+      description: Universidade dona do curso (pendente ou aprovada) ou administrador. Um curso tem no máximo uma oferta por campus.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OfertaEntrada' }
+      responses:
+        '201':
+          description: Criada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Oferta' }
+                  meta: { type: object }
+        '400':
+          description: VALIDATION_ERROR ou CAMPUS_INVALIDO (campus de outra universidade)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/UniversidadeNaoAprovada' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+        '409':
+          description: OFERTA_DUPLICADA
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Erro' }
+
+  /cursos/{id}/ofertas/{campusId}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: integer } }
+      - { in: path, name: campusId, required: true, schema: { type: integer } }
+    patch:
+      tags: [Painel da universidade]
+      summary: Edita turno e vagas da oferta
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                turno: { type: string, enum: [Matutino, Vespertino, Noturno, Integral] }
+                vagas: { type: integer, nullable: true }
+      responses:
+        '200': { description: OK }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/UniversidadeNaoAprovada' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+    delete:
+      tags: [Painel da universidade]
+      summary: Remove a oferta do curso no campus
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { $ref: '#/components/responses/Sucesso' }
+        '401': { $ref: '#/components/responses/NaoAutenticado' }
+        '403': { $ref: '#/components/responses/UniversidadeNaoAprovada' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
 
   /programas:
     get:
@@ -1813,7 +2234,7 @@ paths:
         '409': { $ref: '#/components/responses/Conflito' }
       x-universidade-nao-aprovada: >
         Conta de universidade reprovada ou inativa recebe 403
-        UNIVERSIDADE_NAO_APROVADA (Pendência 6).
+        UNIVERSIDADE_NAO_APROVADA.
 
   /estatisticas/resumo:
     get:
@@ -2036,6 +2457,120 @@ components:
       required: true
       schema: { type: integer }
   schemas:
+    EnderecoCampus:
+      type: object
+      properties:
+        logradouro: { type: string }
+        numero: { type: string }
+        complemento: { type: string, nullable: true }
+        bairro: { type: string }
+        cidade: { type: string }
+        estado: { type: string, example: SP }
+        cep: { type: string, example: '13309640' }
+    CampusEntrada:
+      type: object
+      required: [nome, endereco]
+      properties:
+        nome: { type: string, maxLength: 100 }
+        cnpj: { type: string, nullable: true, description: 'Opcional; 14 caracteres (aceita o CNPJ alfanumérico), pontuação removida' }
+        telefoneCelular: { type: string, nullable: true }
+        telefoneFixo: { type: string, nullable: true }
+        emailCampus: { type: string, format: email, nullable: true }
+        principal: { type: boolean, description: 'true desmarca o principal anterior; o primeiro campus é sempre o principal' }
+        endereco:
+          allOf:
+            - $ref: '#/components/schemas/EnderecoCampus'
+          description: CEP obrigatório (8 dígitos) no cadastro; na edição, os campos são parciais
+    CampusGestao:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        cnpj: { type: string, nullable: true }
+        telefoneCelular: { type: string, nullable: true }
+        telefoneFixo: { type: string, nullable: true }
+        emailCampus: { type: string, nullable: true }
+        principal: { type: boolean }
+        endereco: { $ref: '#/components/schemas/EnderecoCampus' }
+        totalOfertas: { type: integer }
+    OfertaEntrada:
+      type: object
+      required: [campusId, turno]
+      properties:
+        campusId: { type: integer }
+        turno: { type: string, enum: [Matutino, Vespertino, Noturno, Integral] }
+        vagas: { type: integer, nullable: true, minimum: 0 }
+    Oferta:
+      type: object
+      properties:
+        cursoId: { type: integer }
+        campusId: { type: integer }
+        campusNome: { type: string }
+        turno: { type: string }
+        vagas: { type: integer, nullable: true }
+    CursoGestao:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        areaCurso: { type: string, nullable: true }
+        notaMec: { type: string, nullable: true }
+        modalidade: { type: string, nullable: true }
+        grau: { type: string, nullable: true }
+        duracaoSemestres: { type: integer, nullable: true }
+        descricao: { type: string, nullable: true }
+        ofertas:
+          type: array
+          items: { $ref: '#/components/schemas/Oferta' }
+    ProgramaAceito:
+      type: object
+      properties:
+        id: { type: integer }
+        nome: { type: string }
+        sigla: { type: string, nullable: true }
+        tipo: { type: string, enum: [ENTRADA, FINANCIAMENTO, BOLSA] }
+        aceito: { type: boolean }
+        observacao: { type: string, nullable: true }
+    ProgramasAceitosEntrada:
+      type: object
+      required: [programas]
+      properties:
+        programas:
+          type: array
+          description: Conjunto completo; programas fora da lista deixam de ser aceitos
+          items:
+            type: object
+            required: [programaId]
+            properties:
+              programaId: { type: integer }
+              observacao: { type: string, nullable: true, maxLength: 255 }
+    BolsaEntrada:
+      type: object
+      required: [nome, descricao]
+      properties:
+        nome: { type: string, maxLength: 100 }
+        sigla: { type: string, nullable: true }
+        descricao: { type: string }
+        requisitos: { type: string, nullable: true }
+        comoFunciona: { type: string, nullable: true }
+        linkOficial: { type: string, nullable: true }
+        imagemUrl: { type: string, nullable: true }
+    BolsaInstitucional:
+      allOf:
+        - $ref: '#/components/schemas/BolsaEntrada'
+        - type: object
+          properties:
+            id: { type: integer }
+            tipo: { type: string, enum: [BOLSA] }
+            criadoEm: { type: string, format: date-time }
+    EstatisticaUniversidade:
+      type: object
+      properties:
+        de: { type: string, format: date }
+        ate: { type: string, format: date }
+        visitas: { type: integer }
+        mediaAvaliacao: { type: number, nullable: true }
+        totalAvaliacoes: { type: integer }
     Erro:
       type: object
       properties:
@@ -2506,6 +3041,14 @@ components:
     NaoAutenticado:
       # Também quando a conta do token foi inativada ou excluída (message "Conta inativa ou excluída").
       description: Sem token ou token inválido/expirado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+    UniversidadeNaoAprovada:
+      description: >
+        FORBIDDEN (outra universidade ou perfil errado) ou
+        UNIVERSIDADE_NAO_APROVADA: a reprovada só corrige a instituição e os
+        campi, e a inativa só lê
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Erro' }
