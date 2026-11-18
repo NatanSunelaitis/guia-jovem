@@ -1,4 +1,5 @@
 const prisma = require('../../config/database');
+const gestao = require('./campus.gestao.service');
 const service = require('./campus.service');
 
 async function obter(req, res, next) {
@@ -10,4 +11,37 @@ async function obter(req, res, next) {
   }
 }
 
-module.exports = { obter };
+async function listarGestao(req, res, next) {
+  try {
+    res.json({ data: await gestao.listar(prisma, req.params.id), meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+async function criar(req, res, next) {
+  try {
+    res.status(201).json({ data: await gestao.criar(prisma, req.params.id, req.body, req), meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+async function atualizar(req, res, next) {
+  try {
+    res.json({ data: await gestao.atualizar(prisma, req.params.id, req.body, req), meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+async function excluir(req, res, next) {
+  try {
+    await gestao.excluir(prisma, req.params.id, req);
+    res.json({ data: { sucesso: true }, meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+module.exports = { obter, listarGestao, criar, atualizar, excluir };
