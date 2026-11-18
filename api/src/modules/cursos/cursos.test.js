@@ -74,6 +74,9 @@ describe('GET /api/v1/cursos/:id', () => {
 
     expect(resposta.status).toBe(200);
     expect(resposta.body.data.campus[0]).toMatchObject({ id: 10, cidade: 'Sorocaba', turno: 'Integral' });
+    expect(prisma.visitaPagina.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ entidade: 'curso', entidadeId: 5 }),
+    });
   });
 
   it('responde 404 quando o curso não existe', async () => {
@@ -93,6 +96,17 @@ describe('GET /api/v1/cursos/nome/:nome', () => {
 
     expect(resposta.status).toBe(200);
     expect(resposta.body.data.universidades[0].universidade.nomeFantasia).toBe('Fatec Sorocaba');
+    expect(prisma.visitaPagina.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ entidade: 'curso', entidadeId: null, rota: '/api/v1/cursos/nome/:nome' }),
+    });
+  });
+
+  it('curso inexistente não conta visita', async () => {
+    prisma.curso.findFirst.mockResolvedValue(null);
+
+    await request(app).get('/api/v1/cursos/999');
+
+    expect(prisma.visitaPagina.create).not.toHaveBeenCalled();
   });
 
   it('responde 404 quando nenhum curso tem esse nome', async () => {

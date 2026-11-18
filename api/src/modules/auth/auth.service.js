@@ -49,6 +49,9 @@ async function registrarAluno(prisma, { nome, email, senha }, req) {
     dadosDepois: { nome: usuario.nome, email: usuario.email, tipoUsuario: usuario.tipoUsuario },
   });
 
+  // O cadastro já entra logado: conta como login (logins únicos, RF16).
+  await req.registrarAuditoria({ acao: 'LOGIN', entidade: 'usuario', entidadeId: usuario.id });
+
   const tokens = await issueTokenPair(prisma, usuario);
   return { ...tokens, usuario: paraResumo(usuario) };
 }
@@ -128,6 +131,8 @@ async function registrarUniversidade(prisma, dados, req) {
     referenciaId: universidade.id,
   });
 
+  await req.registrarAuditoria({ acao: 'LOGIN', entidade: 'usuario', entidadeId: usuario.id });
+
   const tokens = await issueTokenPair(prisma, usuario);
   return {
     ...tokens,
@@ -200,13 +205,14 @@ async function loginComGoogle(prisma, { idToken }, req) {
         dadosDepois: { nome: usuario.nome, email: usuario.email, tipoUsuario: usuario.tipoUsuario },
       });
     }
-  } else {
-    await req.registrarAuditoria({ acao: 'LOGIN', entidade: 'usuario', entidadeId: usuario.id });
   }
 
   if (!usuario.ativo) {
     throw new AppError('CREDENCIAIS_INVALIDAS', 'Conta desativada', 401);
   }
+
+  // Só depois de conferir que a conta está ativa: tentativa recusada não é login.
+  await req.registrarAuditoria({ acao: 'LOGIN', entidade: 'usuario', entidadeId: usuario.id });
 
   const tokens = await issueTokenPair(prisma, usuario);
   return { ...tokens, usuario: paraResumo(usuario) };

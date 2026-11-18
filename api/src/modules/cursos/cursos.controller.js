@@ -21,7 +21,7 @@ async function destaques(req, res, next) {
 
 async function obter(req, res, next) {
   try {
-    const curso = await service.obterDetalhe(prisma, req.params.id);
+    const curso = await service.obterDetalhe(prisma, req.params.id, req);
     res.json({ data: curso, meta: {} });
   } catch (erro) {
     next(erro);
@@ -30,7 +30,7 @@ async function obter(req, res, next) {
 
 async function obterPorNome(req, res, next) {
   try {
-    const resultado = await service.obterPorNome(prisma, req.params.nome);
+    const resultado = await service.obterPorNome(prisma, req.params.nome, req);
     res.json({ data: resultado, meta: {} });
   } catch (erro) {
     next(erro);

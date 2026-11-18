@@ -91,20 +91,25 @@ function paraDetalhe(curso) {
   };
 }
 
-async function obterDetalhe(prisma, id) {
+async function obterDetalhe(prisma, id, req) {
   const curso = await repo.findDetalhePublicado(prisma, id);
   if (!curso) {
     throw AppError.notFound('Curso não encontrado');
   }
 
+  req.registrarVisita({ entidade: 'curso', entidadeId: id });
+
   return paraDetalhe(curso);
 }
 
-async function obterPorNome(prisma, nome) {
+async function obterPorNome(prisma, nome, req) {
   const cursos = await repo.findPorNome(prisma, nome);
   if (cursos.length === 0) {
     throw AppError.notFound('Nenhum curso encontrado com esse nome');
   }
+
+  // Página do curso por nome (T06): várias universidades, sem um id só.
+  req.registrarVisita({ entidade: 'curso' });
 
   return {
     nome,

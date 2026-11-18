@@ -1,11 +1,13 @@
 const AppError = require('../../shared/errors/AppError');
 const repo = require('./campus.repository');
 
-async function obterDetalhe(prisma, id) {
+async function obterDetalhe(prisma, id, req) {
   const campus = await repo.findDetalhePublicado(prisma, id);
   if (!campus) {
     throw AppError.notFound('Campus não encontrado');
   }
+
+  req.registrarVisita({ entidade: 'campus', entidadeId: id });
 
   return {
     id: campus.id,

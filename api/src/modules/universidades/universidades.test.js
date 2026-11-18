@@ -209,3 +209,16 @@ describe('GET /api/v1/universidades/:id/avaliacoes', () => {
     expect(resposta.status).toBe(404);
   });
 });
+
+describe('GET /api/v1/universidades/destaques (visita à home)', () => {
+  it('cada carregamento da home grava uma visita com rota "/"', async () => {
+    prisma.universidade.findMany.mockResolvedValue([]);
+
+    const resposta = await request(app).get('/api/v1/universidades/destaques');
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.visitaPagina.create).toHaveBeenCalledWith({
+      data: { rota: '/', entidade: 'home', entidadeId: null, tipoUsuario: null },
+    });
+  });
+});

@@ -7,11 +7,13 @@ const prisma = require('../config/database');
  * A gravação é assíncrona e nunca bloqueia ou derruba a resposta.
  */
 function metrics(req, res, next) {
-  req.registrarVisita = ({ entidade = null, entidadeId = null } = {}) => {
+  // `rota` substitui a rota da API quando a visita é de uma página do app
+  // servida por outra chamada (ex.: a home, pelos destaques de universidades).
+  req.registrarVisita = ({ entidade = null, entidadeId = null, rota = null } = {}) => {
     prisma.visitaPagina
       .create({
         data: {
-          rota: req.baseUrl + (req.route?.path ?? req.path),
+          rota: rota ?? req.baseUrl + (req.route?.path ?? req.path),
           entidade,
           entidadeId,
           tipoUsuario: req.user?.tipoUsuario ?? null,

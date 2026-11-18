@@ -42,6 +42,10 @@ describe('GET /api/v1/campus/:id', () => {
     expect(resposta.status).toBe(200);
     expect(resposta.body.data.nome).toBe('Fatec Sorocaba');
     expect(resposta.body.data.cursos[0]).toMatchObject({ id: 5, nome: 'Administração', turno: 'Integral' });
+    // RF16: o detalhe do campus conta como visita.
+    expect(prisma.visitaPagina.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ entidade: 'campus', entidadeId: 10, rota: '/api/v1/campus/:id' }),
+    });
   });
 
   it('responde 404 quando o campus não existe, está inativo ou a universidade não está aprovada', async () => {

@@ -14,6 +14,9 @@ async function listar(req, res, next) {
 async function destaques(req, res, next) {
   try {
     const universidades = await service.listarDestaques(prisma, req.query.limite);
+    // RF16: os destaques de universidades só são pedidos pela home (T01),
+    // então cada chamada conta como uma visita à home.
+    req.registrarVisita({ entidade: 'home', rota: '/' });
     res.json({ data: universidades, meta: {} });
   } catch (erro) {
     next(erro);

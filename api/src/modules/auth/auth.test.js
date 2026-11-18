@@ -56,6 +56,10 @@ describe('POST /api/v1/auth/register/aluno', () => {
     expect(resposta.body.data.accessToken).toEqual(expect.any(String));
     expect(resposta.body.data.refreshToken).toEqual(expect.any(String));
     expect(prisma.logAuditoria.create).toHaveBeenCalled();
+    // O cadastro já entra logado: conta nos logins únicos (RF16).
+    expect(prisma.logAuditoria.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ acao: 'LOGIN', entidade: 'usuario', entidadeId: 10 }),
+    });
   });
 
   it('responde 409 EMAIL_EM_USO quando o e-mail já existe', async () => {
@@ -233,6 +237,21 @@ describe('POST /api/v1/auth/google', () => {
 
     expect(resposta.status).toBe(200);
     expect(resposta.body.data.usuario.email).toBe('novo@example.com');
+    expect(prisma.logAuditoria.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({ acao: 'LOGIN', entidade: 'usuario', entidadeId: 20 }),
+    });
+  });
+
+  it('conta Google desativada não entra e não grava LOGIN (401)', async () => {
+    verifyGoogleIdToken.mockResolvedValue({ googleId: 'g-1', email: 'aluno@example.com', nome: 'Aluno', fotoUrl: null });
+    prisma.usuario.findUnique.mockResolvedValue(usuarioFake({ googleId: 'g-1', ativo: false }));
+
+    const resposta = await request(app).post('/api/v1/auth/google').send({ idToken: 'token-valido' });
+
+    expect(resposta.status).toBe(401);
+    expect(prisma.logAuditoria.create).not.toHaveBeenCalledWith({
+      data: expect.objectContaining({ acao: 'LOGIN' }),
+    });
   });
 
   it('vincula a conta existente por e-mail quando o tipo é aluno (200)', async () => {
