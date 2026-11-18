@@ -430,25 +430,25 @@ void main() {
       expect(find.text('Nenhuma sugestão aguardando avaliação'), findsOneWidget);
     });
 
-    testWidgets('a página provisória do painel tem o link para as recebidas', (tester) async {
+    testWidgets('o painel da universidade tem a seção de sugestões recebidas', (tester) async {
       mockAuthApiRotas({
         'GET /notificacoes': _semNotificacoes,
         'GET /universidades/7/cadastro': RespostaFalsa(envelope(cadastroUniversidadeJson(status: 'A'))),
+        'GET /sugestoes': RespostaFalsa(_pagina([])),
       });
       sessionController.redefinirParaTestes(usuario: _universidade);
       await pumpComRouter(
         tester,
-        initialLocation: '/painel-universidade',
+        initialLocation: '/painel-universidade/sugestoes',
         rotas: {
-          '/painel-universidade': (context) => const PainelUniversidadePage(),
-          '/sugestoes-recebidas': (context) => const PaginaMarcadora('Recebidas'),
+          '/painel-universidade/sugestoes': (context) =>
+              const PainelUniversidadePage(secao: SecaoUniversidade.sugestoes),
         },
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Sugestões recebidas'));
-      await tester.pumpAndSettle();
-      expect(find.text('Recebidas'), findsOneWidget);
+      expect(find.byType(SugestoesRecebidasLista), findsOneWidget);
+      expect(find.text('Nenhuma sugestão aguardando avaliação'), findsOneWidget);
     });
   });
 }
