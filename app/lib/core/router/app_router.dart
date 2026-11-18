@@ -53,52 +53,61 @@ bool _exigeSessao(String destino) =>
     _ehPainelAdmin(destino) ||
     _ehPainelUniversidade(destino);
 
+/// Guardas de rota pela sessão e pelo perfil; separado do [appRouter] para
+/// ser testado sem montar o app.
+String? redirecionarPelaSessao(String destino) {
+  // Enquanto o bootstrap (restaurar sessão do storage) não terminou, não
+  // redireciona: a sessão ainda pode virar "autenticada" a qualquer momento.
+  if (sessionController.carregando) return null;
+
+  final autenticado = sessionController.autenticado;
+
+  if (!autenticado && _exigeSessao(destino)) {
+    return '/login';
+  }
+
+  if (autenticado && _rotasSomenteVisitante.contains(destino)) {
+    return '/';
+  }
+
+  // T17: o perfil da universidade (alterar senha, sair, excluir conta)
+  // fica na seção Conta do painel dela.
+  if (destino == '/perfil' && autenticado && sessionController.usuario!.tipoUsuario == TipoUsuario.universidade) {
+    return '/painel-universidade/conta';
+  }
+
+  // O perfil do administrador (editar nome, alterar senha, sair) é a seção
+  // Conta do painel dele.
+  if (destino == '/perfil' && autenticado && sessionController.usuario!.tipoUsuario == TipoUsuario.admin) {
+    return '/admin/${SecaoAdmin.conta.caminho}';
+  }
+
+  if (_ehPainelUniversidade(destino) &&
+      autenticado &&
+      sessionController.usuario!.tipoUsuario != TipoUsuario.universidade) {
+    return '/perfil';
+  }
+
+  if (_ehPainelAdmin(destino) && autenticado && sessionController.usuario!.tipoUsuario != TipoUsuario.admin) {
+    return '/perfil';
+  }
+
+  // Sugestões recebidas: só administrador e universidade (RF15).
+  if (destino == '/sugestoes-recebidas' &&
+      autenticado &&
+      sessionController.usuario!.tipoUsuario == TipoUsuario.aluno) {
+    return '/perfil';
+  }
+
+  return null;
+}
+
 /// Rotas do app (seção 8 da especificação). Fase 2: catálogo público
 /// (T01-T08). Fase 1: sessão e cadastro (T09-T15, T25, T26).
 final appRouter = GoRouter(
   initialLocation: '/',
   refreshListenable: sessionController,
-  redirect: (context, state) {
-    // Enquanto o bootstrap (restaurar sessão do storage) não terminou, não
-    // redireciona: a sessão ainda pode virar "autenticada" a qualquer momento.
-    if (sessionController.carregando) return null;
-
-    final autenticado = sessionController.autenticado;
-    final destino = state.uri.path;
-
-    if (!autenticado && _exigeSessao(destino)) {
-      return '/login';
-    }
-
-    if (autenticado && _rotasSomenteVisitante.contains(destino)) {
-      return '/';
-    }
-
-    // T17: o perfil da universidade (alterar senha, sair, excluir conta)
-    // fica na seção Conta do painel dela.
-    if (destino == '/perfil' && autenticado && sessionController.usuario!.tipoUsuario == TipoUsuario.universidade) {
-      return '/painel-universidade/conta';
-    }
-
-    if (_ehPainelUniversidade(destino) &&
-        autenticado &&
-        sessionController.usuario!.tipoUsuario != TipoUsuario.universidade) {
-      return '/perfil';
-    }
-
-    if (_ehPainelAdmin(destino) && autenticado && sessionController.usuario!.tipoUsuario != TipoUsuario.admin) {
-      return '/perfil';
-    }
-
-    // Sugestões recebidas: só administrador e universidade (RF15).
-    if (destino == '/sugestoes-recebidas' &&
-        autenticado &&
-        sessionController.usuario!.tipoUsuario == TipoUsuario.aluno) {
-      return '/perfil';
-    }
-
-    return null;
-  },
+  redirect: (context, state) => redirecionarPelaSessao(state.uri.path),
   routes: [
     GoRoute(path: '/', builder: (context, state) => const HomePage()),
     GoRoute(
@@ -188,8 +197,8 @@ final appRouter = GoRouter(
       builder: (context, state) => const CadastroUniversidadeSucessoPage(),
     ),
 
-    // Perfil: T16 para o aluno; universidade e administrador seguem no
-    // placeholder do perfil até a Pendência 3.
+    // Perfil: T16 para o aluno. A universidade e o administrador são levados
+    // pelo redirect à seção Conta do painel de cada um.
     GoRoute(path: '/perfil', builder: (context, state) => const PerfilPage()),
     // T23 Painel da universidade: uma URL por seção, como o do administrador.
     GoRoute(

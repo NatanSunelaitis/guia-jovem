@@ -9,6 +9,7 @@ import '../../../shared/layouts/public_layout.dart';
 import '../../../shared/widgets/gj_tabs.dart';
 import '../../sugestoes/presentation/sugestoes_recebidas_page.dart';
 import '../domain/cadastros.dart';
+import 'secao_conta_admin.dart';
 import 'secao_cursos.dart';
 import 'secao_dashboard.dart';
 import 'secao_programas.dart';
@@ -16,7 +17,7 @@ import 'secao_universidades.dart';
 import 'secao_usuarios.dart';
 
 /// Seções do painel do administrador, na ordem das abas do protótipo
-/// (T24.1 a T24.8).
+/// (T24.1 a T24.8), mais a Conta do administrador, que o `/perfil` abre.
 enum SecaoAdmin {
   dashboard('dashboard', 'Dashboard', Symbols.dashboard),
   usuarios('usuarios', 'Usuários', Symbols.group),
@@ -25,7 +26,8 @@ enum SecaoAdmin {
   financiamento('financiamento', 'Financiamento', Symbols.account_balance_wallet),
   bolsas('bolsas', 'Bolsas de Estudo', Symbols.workspace_premium),
   programasEntrada('programas-entrada', 'Programas de Entrada', Symbols.school),
-  sugestoes('sugestoes', 'Sugestões', Symbols.forum);
+  sugestoes('sugestoes', 'Sugestões', Symbols.forum),
+  conta('conta', 'Conta', Symbols.manage_accounts);
 
   const SecaoAdmin(this.caminho, this.rotulo, this.icone);
 
@@ -74,6 +76,7 @@ class PainelAdminPage extends StatelessWidget {
         CadastroUniversidadeAdmin(key: ValueKey('cadastro-$universidadeId'), id: universidadeId!),
       SecaoAdmin.universidades => const SecaoUniversidades(),
       SecaoAdmin.usuarios => const SecaoUsuarios(),
+      SecaoAdmin.conta => const SecaoContaAdmin(),
       SecaoAdmin.sugestoes => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
