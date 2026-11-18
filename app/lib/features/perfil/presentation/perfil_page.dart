@@ -6,8 +6,8 @@ import '../../auth/domain/usuario_sessao.dart';
 import '../../auth/presentation/perfil_placeholder_page.dart';
 import 'perfil_aluno_page.dart';
 
-/// `/perfil`: o aluno vê T16; Universidade (T17) e Administrador seguem na
-/// página provisória até os painéis existirem (Pendência 3, docs/DECISOES.md).
+/// `/perfil`: o aluno vê T16. A universidade (T17) é levada pelo router à
+/// seção Conta do painel dela; o administrador segue na página provisória.
 class PerfilPage extends StatelessWidget {
   const PerfilPage({super.key});
 

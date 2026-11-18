@@ -3,252 +3,166 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/network/api_exception.dart';
-import '../../../core/theme/gj_colors.dart';
-import '../../../core/theme/gj_radius.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
-import '../../../shared/utils/formatar_data.dart';
-import '../../../shared/widgets/gj_button.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
+import '../../../shared/widgets/gj_tabs.dart';
 import '../../admin/data/admin_repository.dart';
 import '../../admin/domain/universidade_admin.dart';
-import '../../admin/presentation/widgets/confirmacao_dialogs.dart';
+import '../../admin/presentation/widgets/formulario.dart';
 import '../../auth/data/session_controller.dart';
+import '../../sugestoes/presentation/sugestoes_recebidas_page.dart';
+import '../data/painel_universidade_repository.dart';
+import '../domain/painel_universidade.dart';
+import 'secao_avaliacoes_conta.dart';
+import 'secao_bolsas_institucionais.dart';
+import 'secao_campi.dart';
+import 'secao_cursos_universidade.dart';
+import 'secao_dados_instituicao.dart';
+import 'secao_programas_aceitos.dart';
+import 'widgets/faixa_situacao.dart';
 
-/// T23 provisório (Pendência 3): mostra a situação do cadastro da
-/// universidade (RF23), lida da API a cada abertura (a sessão guarda o
-/// status do momento do login), e o atalho para as sugestões recebidas.
-/// As abas do painel (informações, cursos, campus, programas, bolsas) ficam
-/// para outra rodada.
+/// Seções do painel da universidade (T23), uma URL por seção
+/// (`/painel-universidade/<caminho>`), como no painel do administrador.
+enum SecaoUniversidade {
+  dados('dados', 'Dados da instituição', Symbols.domain),
+  campus('campus', 'Campi', Symbols.location_city),
+  cursos('cursos', 'Cursos', Symbols.menu_book),
+  programas('programas', 'Programas aceitos', Symbols.school),
+  bolsas('bolsas', 'Bolsas institucionais', Symbols.workspace_premium),
+  sugestoes('sugestoes', 'Sugestões recebidas', Symbols.forum),
+  avaliacoes('avaliacoes', 'Avaliações recebidas', Symbols.star),
+  conta('conta', 'Conta', Symbols.manage_accounts);
+
+  const SecaoUniversidade(this.caminho, this.rotulo, this.icone);
+
+  final String caminho;
+  final String rotulo;
+  final IconData icone;
+
+  /// Seção do segmento da URL; a inicial é Dados da instituição.
+  static SecaoUniversidade doCaminho(String? caminho) =>
+      values.firstWhere((secao) => secao.caminho == caminho, orElse: () => SecaoUniversidade.dados);
+}
+
+/// T23 Painel de Administração da Universidade (Figura 33): faixa de
+/// situação do cadastro no topo, abas e o conteúdo da seção. A situação é
+/// lida da API a cada abertura (a sessão guarda a do momento do login) e
+/// decide o que fica editável: pendente e aprovada alteram tudo; reprovada
+/// só os dados da instituição e os campi (e reenvia o cadastro); inativa só
+/// lê. A API aplica as mesmas regras.
 class PainelUniversidadePage extends StatefulWidget {
-  const PainelUniversidadePage({super.key});
+  const PainelUniversidadePage({super.key, this.secao = SecaoUniversidade.dados});
+
+  final SecaoUniversidade secao;
 
   @override
   State<PainelUniversidadePage> createState() => _PainelUniversidadePageState();
 }
 
 class _PainelUniversidadePageState extends State<PainelUniversidadePage> {
-  Future<UniversidadeCadastro>? _future;
+  final int? _universidadeId = sessionController.usuario?.universidade?.id;
+  UniversidadeCadastro? _cadastro;
+  ApiException? _erro;
+  bool _reenviando = false;
 
   @override
   void initState() {
     super.initState();
-    _future = _buscar();
+    _carregar();
   }
 
-  Future<UniversidadeCadastro>? _buscar() {
-    final universidadeId = sessionController.usuario?.universidade?.id;
-    return universidadeId == null ? null : adminRepository.cadastro(universidadeId);
+  Future<void> _carregar() async {
+    final id = _universidadeId;
+    if (id == null) return;
+    setState(() => _erro = null);
+    try {
+      final cadastro = await adminRepository.cadastro(id);
+      if (mounted) setState(() => _cadastro = cadastro);
+    } on ApiException catch (erro) {
+      if (mounted) setState(() => _erro = erro);
+    }
   }
 
-  void _carregar() => setState(() => _future = _buscar());
+  Future<void> _reenviar() async {
+    setState(() => _reenviando = true);
+    final mensageiro = ScaffoldMessenger.of(context);
+    try {
+      final cadastro = await painelUniversidadeRepository.reenviar(_cadastro!.id);
+      if (!mounted) return;
+      setState(() => _cadastro = cadastro);
+      mensageiro.showSnackBar(const SnackBar(content: Text('Cadastro reenviado para análise.')));
+    } on ApiException catch (erro) {
+      if (mounted) mensageiro.showSnackBar(SnackBar(content: Text(mensagemDaApi(erro))));
+    } finally {
+      if (mounted) setState(() => _reenviando = false);
+    }
+  }
 
-  ({IconData icone, Color cor, Color fundo, String titulo, String texto}) _situacao(UniversidadeCadastro cadastro) {
-    final nome = cadastro.nomeFantasia;
-    return switch (cadastro.status) {
-      StatusUniversidade.pendente => (
-          icone: Symbols.hourglass_top,
-          cor: GJColors.warning,
-          fundo: GJColors.warningContainer,
-          titulo: 'Cadastro em análise',
-          texto: 'A equipe Guia Jovem está analisando o cadastro de $nome, enviado em '
-              '${formatarData(cadastro.criadoEm)}. A análise leva até 15 dias. Enquanto isso, a página da '
-              'universidade não aparece no site. Você recebe uma notificação e um e-mail com o resultado.',
+  Widget _conteudoDaSecao(UniversidadeCadastro cadastro) {
+    final acesso = AcessoPainel(cadastro.status);
+    final id = cadastro.id;
+    return switch (widget.secao) {
+      SecaoUniversidade.dados => SecaoDadosInstituicao(
+          key: ValueKey('dados-${cadastro.status}'),
+          cadastro: cadastro,
+          acesso: acesso,
+          onAlterado: (salvo) => setState(() => _cadastro = salvo),
         ),
-      StatusUniversidade.reprovada => (
-          icone: Symbols.cancel,
-          cor: GJColors.errorOnContainer,
-          fundo: GJColors.errorContainer,
-          titulo: 'Cadastro reprovado',
-          texto: 'O cadastro de $nome não foi aprovado e a página não aparece no site. O painel fica bloqueado '
-              'até um novo cadastro ser aprovado.',
+      SecaoUniversidade.campus => SecaoCampi(universidadeId: id, acesso: acesso, onAlterado: _carregar),
+      SecaoUniversidade.cursos => SecaoCursosUniversidade(universidadeId: id, acesso: acesso),
+      SecaoUniversidade.programas => SecaoProgramasAceitos(universidadeId: id, acesso: acesso),
+      SecaoUniversidade.bolsas => SecaoBolsasInstitucionais(universidadeId: id, acesso: acesso),
+      SecaoUniversidade.sugestoes => const Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CabecalhoSecao(titulo: 'Sugestões recebidas', subtitulo: 'Sugestões que estudantes enviaram para a universidade.'),
+            SugestoesRecebidasLista(),
+          ],
         ),
-      StatusUniversidade.inativa => (
-          icone: Symbols.visibility_off,
-          cor: GJColors.textSecondary,
-          fundo: GJColors.surface,
-          titulo: 'Universidade inativa',
-          texto: '$nome está inativa e fora do site. Os dados abaixo ficam disponíveis só para leitura. Em caso '
-              'de dúvida, entre em contato com a equipe Guia Jovem.',
-        ),
-      StatusUniversidade.aprovada => (
-          icone: Symbols.verified,
-          cor: GJColors.success,
-          fundo: GJColors.successContainer,
-          titulo: 'Página publicada',
-          texto: '$nome está aprovada e aparece na pesquisa do Guia Jovem'
-              '${cadastro.aprovadoEm == null ? '' : ' desde ${formatarData(cadastro.aprovadoEm!)}'}.',
-        ),
+      SecaoUniversidade.avaliacoes => SecaoAvaliacoesRecebidas(universidadeId: id),
+      SecaoUniversidade.conta => const SecaoConta(),
     };
   }
 
-  Widget _cartaoSituacao(UniversidadeCadastro cadastro) {
-    final situacao = _situacao(cadastro);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(GJSpace.s6),
-      decoration: BoxDecoration(color: situacao.fundo, borderRadius: GJRadius.borderLg),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(situacao.icone, color: situacao.cor, size: 28),
-          const SizedBox(width: GJSpace.s4),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: GJSpace.s3,
-                  runSpacing: GJSpace.s2,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(situacao.titulo, style: GJTypography.h4()),
-                    badgeStatusUniversidade(cadastro.status),
-                  ],
-                ),
-                const SizedBox(height: GJSpace.s2),
-                Text(situacao.texto, style: GJTypography.body()),
-                if (cadastro.status == StatusUniversidade.reprovada) ...[
-                  const SizedBox(height: GJSpace.s3),
-                  Text('Motivo informado pela equipe', style: GJTypography.label()),
-                  const SizedBox(height: GJSpace.s1),
-                  SelectableText(
-                    cadastro.motivoReprovacao ?? 'Motivo não informado.',
-                    style: GJTypography.body().copyWith(color: GJColors.errorOnContainer),
-                  ),
-                ],
-                if (cadastro.status == StatusUniversidade.aprovada) ...[
-                  const SizedBox(height: GJSpace.s4),
-                  GJButton(
-                    label: 'Ver página pública',
-                    icon: Symbols.open_in_new,
-                    variant: GJButtonVariant.secondary,
-                    size: GJButtonSize.sm,
-                    onPressed: () => context.go('/universidades/${cadastro.id}'),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _situacaoCarregada() {
-    if (_future == null) {
+  Widget _corpo() {
+    if (_universidadeId == null) {
       return const GJEmptyState(
         titulo: 'Universidade não encontrada',
         texto: 'Esta conta não está vinculada a uma universidade.',
         icone: Symbols.account_balance,
       );
     }
-    return FutureBuilder<UniversidadeCadastro>(
-      future: _future,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const GJSkeleton(height: 140);
-        }
-        if (snapshot.hasError) {
-          final erro = snapshot.error;
-          return GJEmptyState(
-            titulo: 'Não foi possível carregar a situação do cadastro',
-            texto: erro is ApiException ? erro.message : null,
-            icone: Symbols.wifi_off,
-            acaoLabel: 'Tentar novamente',
-            onAcao: _carregar,
-          );
-        }
-        return _conteudo(snapshot.data!);
-      },
-    );
-  }
-
-  /// Pendência 6: reprovada vê só a situação e o motivo (painel bloqueado);
-  /// inativa vê os próprios dados em modo leitura; pendente e aprovada
-  /// seguem com o atalho para as sugestões.
-  Widget _conteudo(UniversidadeCadastro cadastro) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _cartaoSituacao(cadastro),
-        if (cadastro.status == StatusUniversidade.inativa) ...[
-          const SizedBox(height: GJSpace.s8),
-          _dadosSomenteLeitura(cadastro),
-        ],
-        if (cadastro.status != StatusUniversidade.reprovada) ...[
-          const SizedBox(height: GJSpace.s8),
-          Row(
-            children: [
-              const Icon(Symbols.construction, color: GJColors.textDisabled),
-              const SizedBox(width: GJSpace.s3),
-              Expanded(
-                child: Text(
-                  'As abas do painel (informações, cursos, campus, programas e bolsas) ainda não foram construídas.',
-                  style: GJTypography.body().copyWith(color: GJColors.textSecondary),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: GJSpace.s6),
-          GJButton(
-            label: 'Sugestões recebidas',
-            icon: Symbols.forum,
-            onPressed: () => context.go('/sugestoes-recebidas'),
-          ),
-        ],
-      ],
-    );
-  }
-
-  Widget _dadosSomenteLeitura(UniversidadeCadastro cadastro) {
-    Widget dado(String rotulo, String? valor) => SizedBox(
-          width: 280,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(rotulo, style: GJTypography.caption()),
-              const SizedBox(height: GJSpace.s1),
-              SelectableText(valor == null || valor.isEmpty ? '-' : valor, style: GJTypography.body()),
-            ],
-          ),
+    final cadastro = _cadastro;
+    if (cadastro == null) {
+      if (_erro != null) {
+        return GJEmptyState(
+          titulo: 'Não foi possível carregar a situação do cadastro',
+          texto: _erro!.message,
+          icone: Symbols.wifi_off,
+          acaoLabel: 'Tentar novamente',
+          onAcao: _carregar,
         );
+      }
+      return const GJSkeleton(height: GJSpace.s24);
+    }
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(GJSpace.s6),
-      decoration: BoxDecoration(
-        color: GJColors.surfaceLowest,
-        borderRadius: GJRadius.borderLg,
-        border: Border.all(color: GJColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Dados da universidade', style: GJTypography.h4()),
-          const SizedBox(height: GJSpace.s1),
-          Text('Somente leitura enquanto a universidade estiver inativa.', style: GJTypography.bodySm()),
-          const SizedBox(height: GJSpace.s4),
-          Wrap(
-            spacing: GJSpace.s6,
-            runSpacing: GJSpace.s4,
-            children: [
-              dado('Razão social', cadastro.razaoSocial),
-              dado('CNPJ', formatarCnpj(cadastro.cnpj)),
-              dado('Natureza', rotuloNatureza(cadastro.natureza)),
-              dado('Telefone', cadastro.telefonePrincipal),
-              dado('Página oficial', cadastro.linkPagina),
-              dado('Simulados', cadastro.linkSimulados),
-              dado('Campus principal', cadastro.campusPrincipalNome),
-              dado('Endereço', cadastro.campusPrincipalEndereco?.completo),
-              dado('Programas aceitos', cadastro.programas.isEmpty ? null : cadastro.programas.join(', ')),
-            ],
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        FaixaSituacao(cadastro: cadastro, onReenviar: _reenviar, reenviando: _reenviando),
+        const SizedBox(height: GJSpace.s8),
+        GJTabs(
+          tabs: [for (final item in SecaoUniversidade.values) GJTabItem(label: item.rotulo, icon: item.icone)],
+          selectedIndex: widget.secao.index,
+          onChanged: (indice) => context.go('/painel-universidade/${SecaoUniversidade.values[indice].caminho}'),
+        ),
+        const SizedBox(height: GJSpace.s8),
+        _conteudoDaSecao(cadastro),
+      ],
     );
   }
 
@@ -258,13 +172,13 @@ class _PainelUniversidadePageState extends State<PainelUniversidadePage> {
       tituloPainel: 'Painel de Administração da Universidade',
       child: GJPageContainer(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: GJSpace.s12),
+          padding: const EdgeInsets.symmetric(vertical: GJSpace.s8),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Painel da Universidade', style: GJTypography.h1()),
+              Text(_cadastro?.nomeFantasia ?? 'Painel da Universidade', style: GJTypography.h1()),
               const SizedBox(height: GJSpace.s6),
-              _situacaoCarregada(),
+              _corpo(),
             ],
           ),
         ),

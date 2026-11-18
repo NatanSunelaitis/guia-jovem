@@ -42,10 +42,16 @@ const _rotasAutenticadas = {'/perfil', '/painel-universidade', '/admin', '/suges
 
 bool _ehPainelAdmin(String destino) => destino == '/admin' || destino.startsWith('/admin/');
 
-/// `/sugestoes/:id` (detalhe aberto pela notificação) e as seções do painel
-/// do administrador (`/admin/...`) também exigem sessão.
+bool _ehPainelUniversidade(String destino) =>
+    destino == '/painel-universidade' || destino.startsWith('/painel-universidade/');
+
+/// `/sugestoes/:id` (detalhe aberto pela notificação) e as seções dos painéis
+/// (`/admin/...` e `/painel-universidade/...`) também exigem sessão.
 bool _exigeSessao(String destino) =>
-    _rotasAutenticadas.contains(destino) || destino.startsWith('/sugestoes/') || _ehPainelAdmin(destino);
+    _rotasAutenticadas.contains(destino) ||
+    destino.startsWith('/sugestoes/') ||
+    _ehPainelAdmin(destino) ||
+    _ehPainelUniversidade(destino);
 
 /// Rotas do app (seção 8 da especificação). Fase 2: catálogo público
 /// (T01-T08). Fase 1: sessão e cadastro (T09-T15, T25, T26).
@@ -68,7 +74,13 @@ final appRouter = GoRouter(
       return '/';
     }
 
-    if (destino == '/painel-universidade' &&
+    // T17: o perfil da universidade (alterar senha, sair, excluir conta)
+    // fica na seção Conta do painel dela.
+    if (destino == '/perfil' && autenticado && sessionController.usuario!.tipoUsuario == TipoUsuario.universidade) {
+      return '/painel-universidade/conta';
+    }
+
+    if (_ehPainelUniversidade(destino) &&
         autenticado &&
         sessionController.usuario!.tipoUsuario != TipoUsuario.universidade) {
       return '/perfil';
@@ -179,8 +191,18 @@ final appRouter = GoRouter(
     // Perfil: T16 para o aluno; universidade e administrador seguem no
     // placeholder do perfil até a Pendência 3.
     GoRoute(path: '/perfil', builder: (context, state) => const PerfilPage()),
-    // T23 provisório: situação do cadastro (RF23) e atalho para as sugestões.
-    GoRoute(path: '/painel-universidade', builder: (context, state) => const PainelUniversidadePage()),
+    // T23 Painel da universidade: uma URL por seção, como o do administrador.
+    GoRoute(
+      path: '/painel-universidade',
+      redirect: (context, state) => '/painel-universidade/${SecaoUniversidade.dados.caminho}',
+    ),
+    GoRoute(
+      path: '/painel-universidade/:secao',
+      builder: (context, state) => PainelUniversidadePage(
+        key: ValueKey('painel-universidade-${state.pathParameters['secao']}'),
+        secao: SecaoUniversidade.doCaminho(state.pathParameters['secao']),
+      ),
+    ),
 
     // T24 Painel do administrador: uma URL por seção (abas do protótipo).
     GoRoute(path: '/admin', redirect: (context, state) => '/admin/${SecaoAdmin.dashboard.caminho}'),
