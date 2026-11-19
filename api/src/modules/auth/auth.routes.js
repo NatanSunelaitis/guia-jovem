@@ -1,15 +1,17 @@
 const { Router } = require('express');
 const rateLimit = require('express-rate-limit');
 
+const env = require('../../config/env');
 const auth = require('../../middlewares/auth.middleware');
 const validate = require('../../middlewares/validate.middleware');
 const controller = require('./auth.controller');
 const schemas = require('./auth.schema');
 
-// 5.11: login e forgot-password limitados a 10 requisições / 15 min por IP.
+// 5.11: login e forgot-password limitados a 10 requisições / 15 min por IP
+// (LIMITE_TENTATIVAS_LOGIN; a conferência de ponta a ponta usa um valor maior).
 const limitadorSensivel = rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 10,
+  limit: env.LIMITE_TENTATIVAS_LOGIN,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {

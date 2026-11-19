@@ -16,6 +16,8 @@ const schema = z.object({
   SMTP_USER: z.string().optional().default(''),
   SMTP_PASSWORD: z.string().optional().default(''),
   SMTP_FROM: z.string().optional().default('Guia Jovem <nao-responda@guiajovem.com.br>'),
+  // 5.11: tentativas de login e de recuperação de senha por IP a cada 15 minutos.
+  LIMITE_TENTATIVAS_LOGIN: z.coerce.number().int().positive().default(10),
   APP_URL: z.string().optional().default('http://localhost:8080'),
   ADMIN_NOME: z.string().optional().default('Administrador Guia Jovem'),
   ADMIN_EMAIL: z.string().optional().default('admin@guiajovem.com.br'),
