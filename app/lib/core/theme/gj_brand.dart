@@ -10,8 +10,4 @@ abstract final class GJBrand {
 
   /// Logo horizontal do header.
   static const String logoHorizontal = 'assets/brand/guia-jovem-logo-horizontal.svg';
-
-  /// Logo empilhado com a animação de entrada (CSS); reservado para telas de
-  /// destaque, não usado no app por enquanto.
-  static const String logoAnimado = 'assets/brand/guia-jovem-logo-animado.svg';
 }
