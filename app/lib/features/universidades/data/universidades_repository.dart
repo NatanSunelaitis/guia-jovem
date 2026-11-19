@@ -120,7 +120,7 @@ class UniversidadesRepository {
     return PaginatedResult.fromJson(json, Avaliacao.fromJson);
   }
 
-  /// RF02: uma avaliação por aluno por universidade (a API responde 409 se já existe).
+  /// RF01: uma avaliação por aluno por universidade (a API responde 409 se já existe).
   Future<AvaliacaoGravada> avaliar(int universidadeId, {required int nota, String? comentario}) async {
     final json = await authApiClient.post(
       '/universidades/$universidadeId/avaliacoes',

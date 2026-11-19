@@ -14,11 +14,11 @@ class Avaliacao {
   final String? comentario;
   final DateTime criadoEm;
 
-  /// Só o primeiro nome; null se a conta do autor foi excluída (RNF17/RNF24).
+  /// Só o primeiro nome; null se a conta do autor foi excluída (RNF07).
   final String? autor;
 }
 
-/// A avaliação do próprio aluno logado (RF02), para abrir o modal preenchido.
+/// A avaliação do próprio aluno logado (RF01), para abrir o modal preenchido.
 class MinhaAvaliacao {
   MinhaAvaliacao({required this.id, required this.nota, this.comentario});
 

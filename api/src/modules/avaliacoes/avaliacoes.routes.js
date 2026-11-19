@@ -11,7 +11,7 @@ const router = Router();
 
 router.use(auth);
 
-// RF02. O POST fica em /universidades/:id/avaliacoes (universidades.routes.js).
+// RF01. O POST fica em /universidades/:id/avaliacoes (universidades.routes.js).
 router.get('/minhas', requireRole('A'), validate(schemas.minhasQuerySchema), controller.minhas);
 router.put(
   '/:id',

@@ -65,7 +65,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensagem)));
   }
 
-  /// RF02: visitante vai ao login e volta para cá; aluno que já avaliou
+  /// RF01: visitante vai ao login e volta para cá; aluno que já avaliou
   /// abre o modal preenchido para editar.
   Future<void> _avaliar(UniversidadeDetalhe universidade) async {
     if (!exigirAluno(context, voltarPara: _rotaAtual)) return;

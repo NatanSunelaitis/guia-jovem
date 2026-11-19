@@ -104,7 +104,7 @@ class _ExcluirContaDialogState extends State<_ExcluirContaDialog> {
   }
 }
 
-/// RF08: confirmação antes de encerrar a sessão.
+/// RF06: confirmação antes de encerrar a sessão.
 Future<void> mostrarDialogoDesligar(BuildContext context) async {
   final confirmou = await showDialog<bool>(
     context: context,

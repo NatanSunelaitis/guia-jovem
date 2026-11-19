@@ -27,7 +27,7 @@ function erroDuplicada() {
   );
 }
 
-/** RF02: recalcula media_avaliacao e total_avaliacoes dentro da transação. */
+/** RF01: recalcula media_avaliacao e total_avaliacoes dentro da transação. */
 async function recalcularMedia(tx, universidadeId) {
   const agregado = await repo.agregarNotas(tx, universidadeId);
   const totalAvaliacoes = agregado._count._all;

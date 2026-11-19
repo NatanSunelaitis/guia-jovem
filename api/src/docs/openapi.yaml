@@ -23,19 +23,19 @@ tags:
   - name: Sistema
     description: Endpoints de infraestrutura da API
   - name: Auth
-    description: Login, cadastro de aluno, Google, tokens e recuperação de senha (RF07, RF08, RF09)
+    description: Login, cadastro de aluno, Google, tokens e recuperação de senha (RF05, RF06, RF07, RF09)
   - name: Usuários
-    description: Gestão de usuários, alteração de senha e exclusão de conta (RF11)
+    description: Gestão de usuários, alteração de senha e exclusão de conta (RF09)
   - name: Universidades
-    description: Catálogo público de universidades, campus e avaliações (RF01, RF02, RF04, RF05, RF06)
+    description: Catálogo público de universidades, campus e avaliações (RF01, RF03, RF04)
   - name: Cursos
-    description: Catálogo público de cursos (RF21, RF22)
+    description: Catálogo público de cursos (RF19, RF20)
   - name: Programas
-    description: Catálogo público de programas de entrada, financiamento e bolsas (RF12, RF13, RF19)
+    description: Catálogo público de programas de entrada, financiamento e bolsas (RF10, RF11, RF17, RF25)
   - name: Relatorios
-    description: Relatório de pesquisa exportável em CSV/PDF (RF03)
+    description: Relatório de pesquisa exportável em CSV/PDF (RF02)
   - name: Avaliações
-    description: Avaliação de universidade pelo aluno, uma por aluno por universidade (RF02)
+    description: Avaliação de universidade pelo aluno, uma por aluno por universidade (RF01)
   - name: Favoritos
     description: Faculdades salvas do aluno (Figura 25)
   - name: Pesquisas salvas
@@ -93,7 +93,7 @@ paths:
   /auth/register/universidade:
     post:
       tags: [Auth]
-      summary: Cadastra uma universidade em análise (RF20, RF25, fluxo 7.3)
+      summary: Cadastra uma universidade em análise (RF09, RF18, RF23, fluxo 7.3)
       description: Cria usuário tipo U, universidade com status=P, relaciona os programas informados, cria o primeiro campus (principal) e notifica os administradores (UNIVERSIDADE_PENDENTE).
       requestBody:
         required: true
@@ -500,7 +500,7 @@ paths:
   /universidades:
     get:
       tags: [Universidades]
-      summary: Pesquisa dinâmica de universidades (RF06)
+      summary: Pesquisa dinâmica de universidades (RF04)
       description: >
         Só retorna universidades com status=A. Pública; o token é opcional. Com
         token de aluno, cada item traz `salva`. Token inválido ou expirado responde 401.
@@ -513,7 +513,7 @@ paths:
         - { in: query, name: programaId, schema: { type: integer } }
         - { in: query, name: cursoId, schema: { type: integer } }
         - { in: query, name: areaCurso, schema: { type: string } }
-        - { in: query, name: notaMinima, schema: { type: number, minimum: 0, maximum: 5 }, description: 'Extensão do RF06 além do contrato original (ver docs/DECISOES.md): filtra por media_avaliacao >= notaMinima.' }
+        - { in: query, name: notaMinima, schema: { type: number, minimum: 0, maximum: 5 }, description: 'Extensão do RF04 além do contrato original (ver docs/DECISOES.md): filtra por media_avaliacao >= notaMinima.' }
         - { in: query, name: sort, schema: { type: string, enum: [nome, media, avaliacoes] } }
         - { in: query, name: page, schema: { type: integer, default: 1 } }
         - { in: query, name: pageSize, schema: { type: integer, default: 20 } }
@@ -534,7 +534,7 @@ paths:
   /universidades/destaques:
     get:
       tags: [Universidades]
-      summary: Carrossel de destaques da home (RF06)
+      summary: Carrossel de destaques da home (RF04)
       parameters:
         - { in: query, name: limite, schema: { type: integer, default: 8 } }
       responses:
@@ -752,7 +752,7 @@ paths:
   /universidades/{id}:
     get:
       tags: [Universidades]
-      summary: Detalhe da universidade (RF04, RF05)
+      summary: Detalhe da universidade (RF03)
       description: >
         Registra visita_pagina. Só retorna universidades com status=A. Pública;
         o token é opcional. Com token de aluno, `minhaAvaliacao` traz a
@@ -1165,8 +1165,8 @@ paths:
   /universidades/{id}/avaliacoes:
     get:
       tags: [Universidades]
-      summary: Lista paginada de avaliações da universidade (RF02)
-      description: Mostra só o primeiro nome do autor (RNF17/RNF24), da mais recente para a mais antiga.
+      summary: Lista paginada de avaliações da universidade (RF01)
+      description: Mostra só o primeiro nome do autor (RNF07), da mais recente para a mais antiga.
       parameters:
         - $ref: '#/components/parameters/UniversidadeId'
         - { in: query, name: page, schema: { type: integer, default: 1 } }
@@ -1186,7 +1186,7 @@ paths:
         '404': { $ref: '#/components/responses/NaoEncontrado' }
     post:
       tags: [Avaliações]
-      summary: Aluno avalia a universidade (RF02)
+      summary: Aluno avalia a universidade (RF01)
       description: >
         Só perfil aluno e só universidade com status=A. Uma avaliação por aluno
         por universidade: se já existe, responde 409 AVALIACAO_DUPLICADA (editar
@@ -1252,7 +1252,7 @@ paths:
   /avaliacoes/{id}:
     put:
       tags: [Avaliações]
-      summary: Aluno edita a própria avaliação (RF02)
+      summary: Aluno edita a própria avaliação (RF01)
       description: Só o autor. Recalcula a média na mesma transação.
       security: [{ bearerAuth: [] }]
       parameters:
@@ -1304,7 +1304,7 @@ paths:
   /campus/{id}:
     get:
       tags: [Universidades]
-      summary: Detalhe do campus, com endereço e cursos ofertados (RF23, RF24)
+      summary: Detalhe do campus, com endereço e cursos ofertados (RF21, RF22)
       parameters:
         - in: path
           name: id
@@ -1380,7 +1380,7 @@ paths:
   /cursos:
     get:
       tags: [Cursos]
-      summary: Pesquisa de cursos (RF21)
+      summary: Pesquisa de cursos (RF19)
       parameters:
         - { in: query, name: q, schema: { type: string } }
         - { in: query, name: areaCurso, schema: { type: string } }
@@ -1407,7 +1407,7 @@ paths:
   /cursos/destaques:
     get:
       tags: [Cursos]
-      summary: Cursos mais ofertados, agrupados por nome (RF21)
+      summary: Cursos mais ofertados, agrupados por nome (RF19)
       parameters:
         - { in: query, name: limite, schema: { type: integer, default: 8, maximum: 200 } }
         - { in: query, name: q, schema: { type: string }, description: 'Usado por T07 (lista de cursos) para buscar por nome' }
@@ -1514,7 +1514,7 @@ paths:
   /cursos/{id}:
     get:
       tags: [Cursos]
-      summary: Detalhe do curso, com os campus onde é ofertado (RF22)
+      summary: Detalhe do curso, com os campus onde é ofertado (RF20)
       parameters:
         - in: path
           name: id
@@ -1654,7 +1654,7 @@ paths:
   /programas:
     get:
       tags: [Programas]
-      summary: Pesquisa de programas de entrada, financiamento e bolsas (RF12, RF13, RF19)
+      summary: Pesquisa de programas de entrada, financiamento e bolsas (RF10, RF11, RF17)
       description: |
         Sem `universidadeId`, traz só os programas globais. As bolsas institucionais (programas de uma universidade)
         aparecem apenas filtrando por aquela universidade, que precisa estar aprovada (RF11). Também ficam fora dos destaques.
@@ -2418,7 +2418,7 @@ paths:
   /relatorios/pesquisa:
     get:
       tags: [Relatorios]
-      summary: Relatório de pesquisa exportável (RF03)
+      summary: Relatório de pesquisa exportável (RF02)
       description: Mesmos filtros de GET /universidades. Gera um arquivo com universidades, campus, cursos e programas do resultado (um registro por universidade, com campus/cursos/programas listados nesse registro).
       parameters:
         - { in: query, name: q, schema: { type: string } }

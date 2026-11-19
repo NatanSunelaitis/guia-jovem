@@ -63,7 +63,7 @@ describe('GET /api/v1/universidades', () => {
     expect(chamada.orderBy).toEqual([{ mediaAvaliacao: 'desc' }, { totalAvaliacoes: 'desc' }]);
   });
 
-  it('aplica o filtro de nota mínima (RF06)', async () => {
+  it('aplica o filtro de nota mínima (RF04)', async () => {
     prisma.universidade.findMany.mockResolvedValue([]);
     prisma.universidade.count.mockResolvedValue(0);
 

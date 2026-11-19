@@ -10,7 +10,7 @@ const registerAlunoSchema = {
   }),
 };
 
-// RF20/RF25, seção 5.1 e fluxo 7.3 (Figuras 27 a 30).
+// RF09, RF18 e RF23, seção 5.1 e fluxo 7.3 (Figuras 27 a 30).
 const registerUniversidadeSchema = {
   body: z.object({
     aceitouTermos: z.literal(true, {

@@ -74,7 +74,7 @@ const PROGRAMAS_GLOBAIS = [
   },
 ];
 
-// RF06/T08: cronograma 2026 exibido na linha do tempo do detalhe do programa.
+// RF25/T08: cronograma 2026 exibido na linha do tempo do detalhe do programa.
 const EVENTOS_POR_SIGLA = {
   ENEM: [
     { titulo: 'Início das inscrições', descricao: 'Página do Participante', dataInicio: '2026-05-12' },

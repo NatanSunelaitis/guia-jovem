@@ -6,7 +6,7 @@ import 'auth_repository.dart';
 
 /// Estado de sessão do app inteiro: usuário logado (ou não), com bootstrap
 /// a partir do token_storage no início e reação a refresh token
-/// expirado/revogado (RF07/RF08). Usado como `refreshListenable` do
+/// expirado/revogado (RF05, RF06). Usado como `refreshListenable` do
 /// go_router para os guards de rota reagirem a login/logout.
 class SessionController extends ChangeNotifier {
   SessionController({AuthRepository? repository}) : _repository = repository ?? authRepository {

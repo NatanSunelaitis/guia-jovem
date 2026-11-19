@@ -36,7 +36,7 @@ model Usuario {
   email        String   @unique @db.VarChar(100)
   senhaHash    String?  @map("senha_hash") @db.VarChar(255)
   tipoUsuario  String   @map("tipo_usuario") @db.Char(1) // A aluno | U universidade | D administrador
-  cpf          String?  @db.Char(11) // apenas perfil D, opcional (RNF24)
+  cpf          String?  @db.Char(11) // apenas perfil D, opcional
   googleId     String?  @unique @map("google_id") @db.VarChar(64)
   fotoUrl      String?  @map("foto_url") @db.VarChar(255)
   ativo        Boolean  @default(true)
@@ -67,12 +67,12 @@ model Universidade {
   cnpj              String    @unique @db.Char(14)
   descricao         String?   @db.Text
   telefonePrincipal String?   @map("telefone_principal") @db.VarChar(15)
-  linkPagina        String?   @map("link_pagina") @db.VarChar(255) // RF05
-  linkSimulados     String?   @map("link_simulados") @db.VarChar(255) // RF01
+  linkPagina        String?   @map("link_pagina") @db.VarChar(255) // RF03: site oficial
+  linkSimulados     String?   @map("link_simulados") @db.VarChar(255) // RF03: simulados anteriores
   logoUrl           String?   @map("logo_url") @db.VarChar(255)
   natureza          String    @default("V") @db.Char(1) // P pública | V privada
   status            String    @default("P") @db.Char(1) // P pendente | A aprovada | R reprovada | I inativa
-  motivoReprovacao  String?   @map("motivo_reprovacao") @db.Text // RF25: preenchido ao reprovar
+  motivoReprovacao  String?   @map("motivo_reprovacao") @db.Text // RF23: preenchido ao reprovar
   aprovadoEm        DateTime? @map("aprovado_em") @db.DateTime(3)
   aprovadoPor       Int?      @map("aprovado_por")
   mediaAvaliacao    Decimal?  @map("media_avaliacao") @db.Decimal(3, 2)

@@ -266,7 +266,7 @@ async function listarAvaliacoes(prisma, universidadeId, query, { qualquerStatus 
       nota: avaliacao.nota,
       comentario: avaliacao.comentario,
       criadoEm: avaliacao.criadoEm,
-      // RNF17/RNF24: e-mail nunca aparece; só o primeiro nome, e some no anônimo.
+      // RNF07: e-mail nunca aparece; só o primeiro nome, e some no anônimo.
       autor: avaliacao.usuario ? primeiroNome(avaliacao.usuario.nome) : null,
     })),
     meta: buildMeta({ page, pageSize, total }),
@@ -281,7 +281,7 @@ module.exports = {
   listarCampus,
   listarCursos,
   listarAvaliacoes,
-  // Reaproveitados por relatorios.service.js (RF03): "mesmos filtros de /universidades".
+  // Reaproveitados por relatorios.service.js (RF02): "mesmos filtros de /universidades".
   buildWhere,
   buildOrderBy,
 };

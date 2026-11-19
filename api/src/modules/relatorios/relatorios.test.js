@@ -34,7 +34,7 @@ describe('GET /api/v1/relatorios/pesquisa', () => {
     expect(resposta.body.error.code).toBe('VALIDATION_ERROR');
   });
 
-  it('gera CSV com universidades, campus, cursos e programas do resultado (RF03)', async () => {
+  it('gera CSV com universidades, campus, cursos e programas do resultado (RF02)', async () => {
     prisma.universidade.findMany.mockResolvedValue([universidadeFake()]);
 
     const resposta = await request(app).get('/api/v1/relatorios/pesquisa?formato=csv&cidade=Sorocaba');

@@ -27,7 +27,7 @@ const createUsuarioSchema = {
     nome: z.string().trim().min(1, 'Informe o nome').max(100),
     email: z.string().trim().email('Informe um e-mail válido').max(100),
     senha,
-    // Criação de usuário tipo U exige uma universidade vinculada (RF20/RF25) e
+    // Criação de usuário tipo U exige uma universidade vinculada (RF18, RF23) e
     // só é possível pelo fluxo de /auth/register/universidade (Fase 3).
     tipoUsuario: z.enum(['A', 'D'], {
       errorMap: () => ({ message: "tipoUsuario deve ser 'A' ou 'D' neste endpoint" }),

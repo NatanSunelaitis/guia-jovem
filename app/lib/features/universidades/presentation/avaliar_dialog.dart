@@ -10,7 +10,7 @@ import '../../../shared/widgets/gj_button.dart';
 import '../data/universidades_repository.dart';
 import '../domain/avaliacao.dart';
 
-/// T03a: modal de avaliação (RF02). Sem [avaliacaoAtual], cria a avaliação
+/// T03a: modal de avaliação (RF01). Sem [avaliacaoAtual], cria a avaliação
 /// do aluno; com ela, abre preenchido e edita. Retorna a avaliação gravada
 /// (com a média recalculada) ou null se o aluno fechou sem enviar.
 Future<AvaliacaoGravada?> mostrarModalAvaliar(

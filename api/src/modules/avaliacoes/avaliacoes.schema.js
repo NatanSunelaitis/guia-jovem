@@ -4,7 +4,7 @@ const idParamSchema = {
   params: z.object({ id: z.coerce.number().int().positive('id inválido') }),
 };
 
-// RF02: nota inteira de 1 a 5 estrelas (CHECK avaliacao_nota_check no banco).
+// RF01: nota inteira de 1 a 5 estrelas (CHECK avaliacao_nota_check no banco).
 const corpoAvaliacao = z.object({
   nota: z
     .number({ invalid_type_error: 'Informe a nota', required_error: 'Informe a nota' })

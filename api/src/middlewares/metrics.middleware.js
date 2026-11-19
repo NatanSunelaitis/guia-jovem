@@ -1,8 +1,8 @@
 const prisma = require('../config/database');
 
 /**
- * RF18: registra visita_pagina para estatísticas do site.
- * RNF24: sem dados pessoais, sem IP. Anexa `req.registrarVisita` para as
+ * RF16: registra visita_pagina para estatísticas do site.
+ * RNF07: sem dados pessoais, sem IP. Anexa `req.registrarVisita` para as
  * rotas públicas de catálogo chamarem ao servir uma página/detalhe.
  * A gravação é assíncrona e nunca bloqueia ou derruba a resposta.
  */

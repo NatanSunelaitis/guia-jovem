@@ -1,6 +1,6 @@
 const { z } = require('zod');
 
-// RF03/seção 5.10: "Mesmos filtros de /universidades" + formato.
+// RF02, seção 5.10: "Mesmos filtros de /universidades" + formato.
 const relatorioQuerySchema = {
   query: z.object({
     q: z.string().trim().min(1).optional(),

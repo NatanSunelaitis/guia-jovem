@@ -122,7 +122,7 @@ async function registrarUniversidade(prisma, dados, req) {
     return { usuario: usuarioCriado, universidade: universidadeCriada };
   });
 
-  // RF25: avisa os administradores para a análise do cadastro (seção 5.1).
+  // RF23: avisa os administradores para a análise do cadastro (seção 5.1).
   await notificacoesService.notificar(prisma, await notificacoesService.idsAdministradoresAtivos(prisma), {
     tipo: 'UNIVERSIDADE_PENDENTE',
     titulo: 'Nova universidade aguardando aprovação',

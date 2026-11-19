@@ -18,7 +18,7 @@ function paraLista(programa) {
 
 function buildWhere(query) {
   // Programas globais (id_universidade nulo) sempre aparecem; bolsas/programas
-  // institucionais só quando a universidade dona está aprovada (RF25).
+  // institucionais só quando a universidade dona está aprovada (RF23).
   const visibilidadePublica = { OR: [{ universidadeId: null }, { universidade: { status: 'A' } }] };
   const where = { ativo: true, AND: [visibilidadePublica] };
 
