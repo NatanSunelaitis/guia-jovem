@@ -9,13 +9,14 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
     "test": "jest --runInBand",
-    "lint": "eslint src tests scripts prisma/seed.js",
+    "lint": "eslint src tests scripts prisma/seed.js prisma/demo",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:seed": "node prisma/seed.js",
     "db:local": "node scripts/create-database.js && prisma migrate deploy && node prisma/seed.js",
-    "conferencia": "node scripts/conferencia/conferencia.js"
+    "conferencia": "node scripts/conferencia/conferencia.js",
+    "db:demo": "node prisma/demo/demo.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
