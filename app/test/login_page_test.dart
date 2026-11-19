@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'helpers/auth_test_setup.dart';
+import 'helpers/google_login_falso.dart';
 import 'helpers/mock_auth_api.dart';
 import 'helpers/pump_with_router.dart';
 
@@ -105,7 +106,7 @@ void main() {
     });
 
     testWidgets('com o client ID o botão aparece', (tester) async {
-      googleLogin = _GoogleLoginFalso();
+      googleLogin = GoogleLoginFalso();
       await pumpLogin(tester);
 
       expect(find.text('Entrar com Google'), findsOneWidget);
@@ -113,7 +114,7 @@ void main() {
     });
 
     testWidgets('envia o ID token para a API, entra e vai para a home', (tester) async {
-      googleLogin = _GoogleLoginFalso();
+      googleLogin = GoogleLoginFalso();
       mockAuthApiRotas({
         'POST /auth/google': RespostaFalsa(envelope({
           'accessToken': 'access-g',
@@ -133,7 +134,7 @@ void main() {
     });
 
     testWidgets('mostra a mensagem da API quando o token é recusado', (tester) async {
-      googleLogin = _GoogleLoginFalso();
+      googleLogin = GoogleLoginFalso();
       mockAuthApiRotas({
         'POST /auth/google': const RespostaFalsa(
           {
@@ -153,7 +154,7 @@ void main() {
     });
 
     testWidgets('mostra o aviso quando o Google não carrega', (tester) async {
-      googleLogin = _GoogleLoginFalso(falhar: true);
+      googleLogin = GoogleLoginFalso(falhar: true);
       mockAuthApiRotas({});
       await pumpLogin(tester);
 
@@ -164,27 +165,4 @@ void main() {
       expect(requisicoesAuthApi, isEmpty);
     });
   });
-}
-
-/// Substitui o botão do Google Identity Services, que só existe no navegador:
-/// o toque entrega um ID token fixo (ou a falha de carregamento).
-class _GoogleLoginFalso implements GoogleLogin {
-  _GoogleLoginFalso({this.falhar = false});
-
-  final bool falhar;
-
-  @override
-  bool get disponivel => true;
-
-  @override
-  Widget botao({
-    required void Function(String idToken) aoReceberToken,
-    required void Function(String mensagem) aoFalhar,
-  }) =>
-      TextButton(
-        onPressed: () => falhar
-            ? aoFalhar('Não foi possível carregar o login com Google.')
-            : aoReceberToken('id-token-do-google'),
-        child: const Text('Entrar com Google'),
-      );
 }

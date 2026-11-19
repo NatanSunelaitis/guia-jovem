@@ -1,9 +1,12 @@
+import 'package:app/features/auth/data/google_login.dart';
+import 'package:app/features/auth/data/session_controller.dart';
 import 'package:app/features/auth/presentation/cadastro_aluno_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'helpers/auth_test_setup.dart';
+import 'helpers/google_login_falso.dart';
 import 'helpers/mock_auth_api.dart';
 import 'helpers/pump_with_router.dart';
 
@@ -92,5 +95,50 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Login'), findsOneWidget);
+  });
+
+  group('Cadastro com Google (RF05, RF09)', () {
+    late GoogleLogin original;
+    setUp(() => original = googleLogin);
+    tearDown(() => googleLogin = original);
+
+    testWidgets('sem GOOGLE_CLIENT_ID o botão não aparece', (tester) async {
+      await pumpCadastro(tester);
+
+      expect(find.text('Entrar com Google'), findsNothing);
+      expect(find.text('OU'), findsNothing);
+    });
+
+    testWidgets('com o client ID, entra pelo Google e vai para a home', (tester) async {
+      googleLogin = GoogleLoginFalso();
+      mockAuthApiRotas({
+        'POST /auth/google': RespostaFalsa(envelope({
+          'accessToken': 'access-g',
+          'refreshToken': 'refresh-g',
+          'usuario': _usuarioAluno,
+        })),
+      });
+      await pumpCadastro(tester);
+
+      await tester.ensureVisible(find.text('Entrar com Google'));
+      await tester.tap(find.text('Entrar com Google'));
+      await tester.pumpAndSettle();
+
+      expect(sessionController.usuario!.email, 'bia@exemplo.com');
+      expect(find.text('Home'), findsOneWidget);
+    });
+
+    testWidgets('mostra a mensagem da API quando o Google é recusado', (tester) async {
+      googleLogin = GoogleLoginFalso();
+      mockAuthApiError('/auth/google', code: 'NAO_AUTENTICADO', message: 'Token do Google inválido ou expirado', status: 401);
+      await pumpCadastro(tester);
+
+      await tester.ensureVisible(find.text('Entrar com Google'));
+      await tester.tap(find.text('Entrar com Google'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Token do Google inválido ou expirado'), findsOneWidget);
+      expect(find.text('Home'), findsNothing);
+    });
   });
 }
