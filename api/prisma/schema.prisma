@@ -175,12 +175,12 @@ model Programa {
   comoFunciona   String?      @map("como_funciona") @db.Text
   linkOficial    String?      @map("link_oficial") @db.VarChar(255)
   imagemUrl      String?      @map("imagem_url") @db.VarChar(255)
-  usuarioId      Int          @map("id_usuario")
+  usuarioId      Int?         @map("id_usuario") // quem cadastrou; fica nulo quando a conta é excluída
   universidadeId Int?         @map("id_universidade")
   ativo          Boolean      @default(true)
   criadoEm       DateTime     @default(now()) @map("criado_em") @db.DateTime(3)
 
-  usuario      Usuario       @relation("ProgramaCriador", fields: [usuarioId], references: [id])
+  usuario      Usuario?      @relation("ProgramaCriador", fields: [usuarioId], references: [id], onDelete: SetNull)
   universidade Universidade? @relation(fields: [universidadeId], references: [id], onDelete: Cascade)
 
   eventos       ProgramaEvento[]
