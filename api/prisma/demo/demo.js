@@ -280,6 +280,7 @@ async function popular(cliente, senha) {
 }
 
 async function main() {
+  require('dotenv').config({ path: path.join(RAIZ_API, '.env') });
   const alvo = lerAlvo();
   const senha = process.env.DEMO_SENHA || SENHA_PADRAO;
   if (senha.length < 7) {

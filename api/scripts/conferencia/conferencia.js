@@ -120,6 +120,7 @@ function criarCliente() {
 }
 
 async function main() {
+  require('dotenv').config({ path: path.join(RAIZ_API, '.env') });
   const banco = lerBanco();
   prepararBanco(banco);
 
