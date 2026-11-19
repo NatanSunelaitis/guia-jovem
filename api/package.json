@@ -16,7 +16,8 @@
     "prisma:seed": "node prisma/seed.js",
     "db:local": "node scripts/create-database.js && prisma migrate deploy && node prisma/seed.js",
     "conferencia": "node scripts/conferencia/conferencia.js",
-    "db:demo": "node prisma/demo/demo.js"
+    "db:demo": "node prisma/demo/demo.js",
+    "backup": "node scripts/backup/backup.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
