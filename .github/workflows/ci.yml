@@ -96,3 +96,8 @@ jobs:
 
       - name: Testes
         run: flutter test
+
+      # Mesmo comando do build de produção; a API e o client do Google entram
+      # por --dart-define na publicação.
+      - name: Build web
+        run: flutter build web --release
