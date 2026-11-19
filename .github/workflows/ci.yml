@@ -67,6 +67,13 @@ jobs:
       - name: Rodar seed
         run: node prisma/seed.js
 
+      # Sobe a API contra um banco próprio no mesmo MySQL (recriado a cada
+      # execução) e percorre os fluxos dos três perfis pela HTTP.
+      - name: Conferência de ponta a ponta
+        run: npm run conferencia
+        env:
+          CONFERENCIA_DATABASE_URL: mysql://root:guiajovem@127.0.0.1:3306/guiajovem_e2e
+
   app:
     name: App (Flutter)
     runs-on: ubuntu-latest
