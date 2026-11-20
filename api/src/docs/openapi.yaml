@@ -12,38 +12,38 @@ servers:
   - url: /api/v1
     description: API base (versão 1)
 tags:
-  - name: Dashboard
-    description: RF16, estatísticas do administrador
-  - name: Cadastros do administrador
-    description: Cursos, programas globais, datas importantes e dados das universidades
-  - name: Painel da universidade
-    description: Gestão pela própria universidade (ou pelo administrador) dos dados, campi, cursos e ofertas, programas aceitos, bolsas institucionais e reenvio do cadastro
-  - name: Aprovação de universidades
-    description: RF23 e inativação pelo administrador
-  - name: Sistema
-    description: Endpoints de infraestrutura da API
   - name: Auth
     description: Login, cadastro de aluno, Google, tokens e recuperação de senha (RF05, RF06, RF07, RF09)
   - name: Usuários
     description: Gestão de usuários, alteração de senha e exclusão de conta (RF09)
   - name: Universidades
     description: Catálogo público de universidades, campus e avaliações (RF01, RF03, RF04)
+  - name: Avaliações
+    description: Avaliação de universidade pelo aluno, uma por aluno por universidade (RF01)
   - name: Cursos
     description: Catálogo público de cursos (RF19, RF20)
   - name: Programas
     description: Catálogo público de programas de entrada, financiamento e bolsas (RF10, RF11, RF17, RF25)
-  - name: Relatorios
-    description: Relatório de pesquisa exportável em CSV/PDF (RF02)
-  - name: Avaliações
-    description: Avaliação de universidade pelo aluno, uma por aluno por universidade (RF01)
+  - name: Relatórios
+    description: Relatório de pesquisa exportável em CSV ou PDF (RF02)
   - name: Favoritos
-    description: Faculdades salvas do aluno (Figura 25)
+    description: Faculdades salvas do aluno (RF24)
   - name: Pesquisas salvas
-    description: Pesquisas de universidades salvas pelo aluno para reexecução (classe pesquisaSalva)
+    description: Pesquisas de universidades salvas pelo aluno para executar de novo (RF04)
   - name: Sugestões
     description: Sugestões enviadas pelo aluno à administração ou a uma universidade (RF08, RF15)
   - name: Notificações
     description: Sino do cabeçalho do usuário logado (RF14)
+  - name: Painel da universidade
+    description: Gestão pela própria universidade (ou pelo administrador) dos dados, campi, cursos e ofertas, programas aceitos, bolsas institucionais e reenvio do cadastro
+  - name: Aprovação de universidades
+    description: Aprovação, reprovação e inativação pelo administrador (RF23)
+  - name: Cadastros do administrador
+    description: Cursos, programas globais, datas importantes e dados das universidades
+  - name: Dashboard
+    description: Estatísticas do administrador (RF16)
+  - name: Sistema
+    description: Verificação de que a API está no ar
 paths:
   /health:
     get:
@@ -2417,7 +2417,7 @@ paths:
 
   /relatorios/pesquisa:
     get:
-      tags: [Relatorios]
+      tags: [Relatórios]
       summary: Relatório de pesquisa exportável (RF02)
       description: Mesmos filtros de GET /universidades. Gera um arquivo com universidades, campus, cursos e programas do resultado (um registro por universidade, com campus/cursos/programas listados nesse registro).
       parameters:
