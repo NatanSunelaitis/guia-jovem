@@ -39,6 +39,7 @@ class DetalheUniversidadePage extends StatefulWidget {
 class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
   late Future<UniversidadeDetalhe> _future;
   Future<List<Avaliacao>>? _futureAvaliacoes;
+  late final Future<List<UniversidadeCampusItem>> _futureCampus = universidadesRepository.campus(widget.id);
   final _campusQueryController = TextEditingController();
 
   // Vêm do detalhe e mudam sem recarregar a página: salvar/remover e avaliar.
@@ -159,6 +160,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                           _blocoSobre(universidade),
                           const SizedBox(height: GJSpace.s8),
                           _blocoCampus(universidade),
+                          _blocoCursos(),
                           const SizedBox(height: GJSpace.s8),
                           _blocoComoEntrar(universidade),
                           const SizedBox(height: GJSpace.s8),
@@ -176,6 +178,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                                 _blocoSobre(universidade),
                                 const SizedBox(height: GJSpace.s8),
                                 _blocoCampus(universidade),
+                                _blocoCursos(),
                                 const SizedBox(height: GJSpace.s8),
                                 _blocoComoEntrar(universidade),
                               ],
@@ -392,11 +395,79 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
     );
   }
 
+  /// Resumo "Cursos oferecidos": cada curso com o campus onde é ofertado
+  /// (e o turno), levando ao detalhe do campus. Sem cursos, não aparece.
+  Widget _blocoCursos() {
+    return FutureBuilder<List<UniversidadeCampusItem>>(
+      future: _futureCampus,
+      builder: (context, snapshot) {
+        final campi = snapshot.data ?? const <UniversidadeCampusItem>[];
+        final ofertas = [
+          for (final campus in campi)
+            for (final curso in campus.cursos) (curso: curso, campus: campus),
+        ]..sort((a, b) => a.curso.nome.compareTo(b.curso.nome));
+        if (ofertas.isEmpty) return const SizedBox.shrink();
+
+        return Padding(
+          padding: const EdgeInsets.only(top: GJSpace.s8),
+          child: _cartao(
+            titulo: 'Cursos oferecidos',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (final (indice, oferta) in ofertas.indexed)
+                  InkWell(
+                    onTap: () => context.go('/campus/${oferta.campus.id}'),
+                    borderRadius: GJRadius.borderMd,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: GJSpace.s3, horizontal: GJSpace.s2),
+                      decoration: BoxDecoration(
+                        border: indice == 0 ? null : Border(top: BorderSide(color: GJColors.border.withOpacity(0.4))),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(oferta.curso.nome, style: GJTypography.label().copyWith(color: GJColors.textPrimary)),
+                                Text(
+                                  [oferta.campus.nome, if (oferta.curso.turno != null) oferta.curso.turno!].join(' · '),
+                                  style: GJTypography.bodySm(),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Symbols.chevron_right, color: GJColors.textSecondary),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _blocoComoEntrar(UniversidadeDetalhe universidade) {
-    final grupos = universidade.programasPorTipo.entries.where((entrada) => entrada.value.isNotEmpty);
+    // RF11: as bolsas da própria universidade formam um grupo à parte, com o
+    // nome completo, separadas das bolsas nacionais aceitas.
+    final grupos = <MapEntry<String, List<ProgramaTag>>>[
+      for (final entrada in universidade.programasPorTipo.entries) ...[
+        MapEntry(entrada.key, [for (final p in entrada.value) if (!p.institucional) p]),
+        if (entrada.key == 'BOLSA') MapEntry('INSTITUCIONAL', [for (final p in entrada.value) if (p.institucional) p]),
+      ],
+    ].where((entrada) => entrada.value.isNotEmpty);
     if (grupos.isEmpty) return const SizedBox.shrink();
 
-    const titulos = {'ENTRADA': 'Programas de Entrada', 'FINANCIAMENTO': 'Financiamento', 'BOLSA': 'Bolsas'};
+    const titulos = {
+      'ENTRADA': 'Programas de Entrada',
+      'FINANCIAMENTO': 'Financiamento',
+      'BOLSA': 'Bolsas',
+      'INSTITUCIONAL': 'Bolsas da própria instituição',
+    };
 
     return _cartao(
       titulo: 'Como entrar nesta universidade',
@@ -422,15 +493,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                         GestureDetector(
                           onTap: () => context.go('/programas/${programa.id}'),
                           child: programa.institucional
-                              // RF11: bolsa própria da universidade, identificada como tal.
-                              ? Wrap(
-                                  spacing: GJSpace.s1,
-                                  runSpacing: GJSpace.s1,
-                                  children: [
-                                    GJTag(label: programa.sigla ?? programa.nome, tone: tonePrograma(grupo.key)),
-                                    const GJTag(label: 'Bolsa institucional'),
-                                  ],
-                                )
+                              ? GJTag(label: programa.nome, tone: tonePrograma('BOLSA'))
                               : GJTag(label: programa.sigla ?? programa.nome, tone: tonePrograma(grupo.key)),
                         ),
                     ],

@@ -90,7 +90,7 @@ void main() {
     expect(find.text('Fatec Sorocaba'), findsWidgets);
   });
 
-  testWidgets('marca as bolsas próprias da universidade como "Bolsa institucional"', (tester) async {
+  testWidgets('separa as bolsas da própria instituição das bolsas nacionais', (tester) async {
     mockApi({
       '/universidades/1/avaliacoes': envelope(<dynamic>[], {'page': 1, 'pageSize': 20, 'total': 0, 'totalPages': 1}),
       '/universidades/1': envelope({
@@ -115,7 +115,39 @@ void main() {
 
     expect(find.text('ProUni'), findsOneWidget);
     expect(find.text('Bolsa Mérito Fatec'), findsOneWidget);
-    // Só a bolsa própria leva a identificação.
-    expect(find.text('Bolsa institucional'), findsOneWidget);
+    // A bolsa própria fica num grupo à parte, sem a etiqueta colada.
+    expect(find.text('BOLSAS DA PRÓPRIA INSTITUIÇÃO'), findsOneWidget);
+    expect(find.text('Bolsa institucional'), findsNothing);
+  });
+  testWidgets('resume os cursos oferecidos com o campus de cada um', (tester) async {
+    mockApi({
+      '/universidades/1/avaliacoes': envelope(<dynamic>[], {'page': 1, 'pageSize': 20, 'total': 0, 'totalPages': 1}),
+      '/universidades/1/campus': envelope([
+        {
+          'id': 4,
+          'nome': 'Campus Centro',
+          'principal': true,
+          'endereco': {'logradouro': 'Rua A', 'numero': '1', 'bairro': 'Centro', 'cidade': 'Sorocaba', 'estado': 'SP'},
+          'cursos': [
+            {'id': 30, 'nome': 'Enfermagem', 'turno': 'Integral', 'vagas': 60},
+          ],
+        },
+      ]),
+      '/universidades/1': envelope({
+        'id': 1,
+        'nomeFantasia': 'Fatec Sorocaba',
+        'razaoSocial': 'Faculdade de Tecnologia de Sorocaba',
+        'natureza': 'P',
+        'totalAvaliacoes': 0,
+        'campus': <dynamic>[],
+        'programas': <String, dynamic>{},
+      }),
+    });
+
+    await pump(tester);
+
+    expect(find.text('Cursos oferecidos'), findsOneWidget);
+    expect(find.text('Enfermagem'), findsOneWidget);
+    expect(find.text('Campus Centro · Integral'), findsOneWidget);
   });
 }
