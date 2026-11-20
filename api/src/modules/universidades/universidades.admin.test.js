@@ -165,6 +165,22 @@ describe('GET /api/v1/universidades/:id/cadastro', () => {
     });
   });
 
+  it('abrir o cadastro marca como lidos os avisos dele (RF14)', async () => {
+    prisma.universidade.findUnique.mockResolvedValue(universidadeFake());
+    prisma.notificacao.updateMany.mockResolvedValue({ count: 1 });
+
+    const resposta = await request(app)
+      .get('/api/v1/universidades/7/cadastro')
+      .set('Authorization', `Bearer ${TOKEN_ADMIN}`);
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.notificacao.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ lida: false, referenciaTipo: 'universidade', referenciaId: { in: [7] } }),
+      }),
+    );
+  });
+
   it('a própria universidade vê a situação e o motivo da reprovação (200)', async () => {
     prisma.universidade.findUnique.mockResolvedValue(
       universidadeFake({ status: 'R', motivoReprovacao: 'CNPJ não confere' }),

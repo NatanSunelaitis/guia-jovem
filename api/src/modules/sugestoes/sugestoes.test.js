@@ -241,6 +241,40 @@ describe('GET /api/v1/sugestoes/:id', () => {
     expect(resposta.body.data).toMatchObject({ id: 12, podeAvaliar: false });
   });
 
+  it('abrir a sugestão marca como lidos os avisos dela e audita (RF14)', async () => {
+    prisma.sugestao.findUnique.mockResolvedValue(sugestaoFake());
+    prisma.notificacao.updateMany.mockResolvedValue({ count: 1 });
+
+    const resposta = await request(app)
+      .get('/api/v1/sugestoes/12')
+      .set('Authorization', `Bearer ${TOKEN_ALUNO}`);
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.notificacao.updateMany).toHaveBeenCalledWith({
+      where: { usuarioId: 1, lida: false, referenciaTipo: 'sugestao', referenciaId: { in: [12] } },
+      data: { lida: true },
+    });
+    expect(prisma.logAuditoria.create).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ entidade: 'notificacao', acao: 'UPDATE' }) }),
+    );
+  });
+
+  it('a lista das próprias sugestões marca os avisos delas como lidos', async () => {
+    prisma.sugestao.findMany.mockResolvedValue([sugestaoFake()]);
+    prisma.sugestao.count.mockResolvedValue(1);
+    prisma.notificacao.updateMany.mockResolvedValue({ count: 0 });
+
+    const resposta = await request(app)
+      .get('/api/v1/sugestoes/minhas')
+      .set('Authorization', `Bearer ${TOKEN_ALUNO}`);
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.notificacao.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: expect.objectContaining({ referenciaTipo: 'sugestao', referenciaId: { in: [12] } }) }),
+    );
+    expect(prisma.logAuditoria.create).not.toHaveBeenCalled();
+  });
+
   it('destinatário vê e pode avaliar enquanto estiver Em análise', async () => {
     prisma.sugestao.findUnique.mockResolvedValue(paraUniversidade());
 

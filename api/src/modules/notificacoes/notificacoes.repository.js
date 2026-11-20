@@ -29,6 +29,13 @@ function marcarLida(prisma, id) {
   return prisma.notificacao.update({ where: { id }, data: { lida: true } });
 }
 
+function marcarLidasDaReferencia(prisma, usuarioId, referenciaTipo, referenciaIds) {
+  return prisma.notificacao.updateMany({
+    where: { usuarioId, lida: false, referenciaTipo, referenciaId: { in: referenciaIds } },
+    data: { lida: true },
+  });
+}
+
 function marcarTodasLidas(prisma, usuarioId) {
   return prisma.notificacao.updateMany({ where: { usuarioId, lida: false }, data: { lida: true } });
 }
@@ -40,5 +47,6 @@ module.exports = {
   countDoUsuario,
   findById,
   marcarLida,
+  marcarLidasDaReferencia,
   marcarTodasLidas,
 };

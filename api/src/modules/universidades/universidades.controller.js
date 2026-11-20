@@ -1,4 +1,5 @@
 const prisma = require('../../config/database');
+const notificacoesService = require('../notificacoes/notificacoes.service');
 const bolsas = require('../programas/bolsas.service');
 const adminService = require('./universidades.admin.service');
 const gestao = require('./universidades.gestao.service');
@@ -73,6 +74,9 @@ async function listarAdmin(req, res, next) {
 async function obterCadastro(req, res, next) {
   try {
     const universidade = await adminService.obterCadastro(prisma, req.params.id);
+    // Abrir o cadastro (o administrador na análise, a universidade no painel)
+    // marca como lidos os avisos dele: pendente, aprovada, reprovada.
+    await notificacoesService.marcarLidasDaReferencia(prisma, req, 'universidade', [universidade.id]);
     res.json({ data: universidade, meta: {} });
   } catch (erro) {
     next(erro);

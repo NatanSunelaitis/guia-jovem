@@ -80,6 +80,32 @@ async function marcarLida(prisma, id, req) {
   return paraPublico(atualizada);
 }
 
+/**
+ * Abrir o item de uma notificação por qualquer caminho (a sugestão, o
+ * cadastro da universidade) também a marca como lida, para o contador do
+ * sino acompanhar na próxima troca de tela. Uma falha aqui não derruba a
+ * leitura que a chamou.
+ */
+async function marcarLidasDaReferencia(prisma, req, referenciaTipo, referenciaIds) {
+  const ids = [...new Set(referenciaIds.map(Number).filter(Number.isInteger))];
+  if (!req.user || ids.length === 0) return 0;
+  try {
+    const resultado = await repo.marcarLidasDaReferencia(prisma, req.user.id, referenciaTipo, ids);
+    const count = resultado?.count ?? 0;
+    if (count > 0) {
+      await req.registrarAuditoria({
+        acao: 'UPDATE',
+        entidade: 'notificacao',
+        dadosDepois: { lida: true, referenciaTipo, referenciaIds: ids, quantidade: count },
+      });
+    }
+    return count;
+  } catch (erro) {
+    console.error('Não foi possível marcar as notificações como lidas:', erro.message);
+    return 0;
+  }
+}
+
 async function marcarTodasLidas(prisma, req) {
   const { count } = await repo.marcarTodasLidas(prisma, req.user.id);
   if (count > 0) {
@@ -98,6 +124,7 @@ module.exports = {
   paraPublico,
   listar,
   contarNaoLidas,
+  marcarLidasDaReferencia,
   marcarLida,
   marcarTodasLidas,
 };

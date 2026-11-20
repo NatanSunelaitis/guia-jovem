@@ -1,4 +1,5 @@
 const prisma = require('../../config/database');
+const notificacoesService = require('../notificacoes/notificacoes.service');
 const service = require('./sugestoes.service');
 
 async function criar(req, res, next) {
@@ -12,7 +13,10 @@ async function criar(req, res, next) {
 
 async function minhas(req, res, next) {
   try {
-    res.json(await service.listarMinhas(prisma, req.user.id, req.query));
+    const resultado = await service.listarMinhas(prisma, req.user.id, req.query);
+    // Ver as próprias sugestões (com as respostas) marca os avisos delas como lidos.
+    await notificacoesService.marcarLidasDaReferencia(prisma, req, 'sugestao', resultado.data.map((s) => s.id));
+    res.json(resultado);
   } catch (erro) {
     next(erro);
   }
@@ -29,6 +33,7 @@ async function recebidas(req, res, next) {
 async function detalhe(req, res, next) {
   try {
     const sugestao = await service.obterDetalhe(prisma, req.params.id, req.user);
+    await notificacoesService.marcarLidasDaReferencia(prisma, req, 'sugestao', [sugestao.id]);
     res.json({ data: sugestao, meta: {} });
   } catch (erro) {
     next(erro);
