@@ -3011,6 +3011,14 @@ components:
             linkOficial: { type: string, nullable: true }
             eventos: { type: array, items: { type: object } }
             universidades: { type: array, items: { type: object } }
+            universidade:
+              type: object
+              nullable: true
+              description: Universidade dona da bolsa institucional; nulo nos programas globais.
+              properties:
+                id: { type: integer }
+                nomeFantasia: { type: string }
+                logoUrl: { type: string, nullable: true }
   responses:
     Sucesso:
       description: Operação concluída

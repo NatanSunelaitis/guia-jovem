@@ -70,6 +70,10 @@ async function obterDetalhe(prisma, id, req) {
     linkOficial: programa.linkOficial,
     imagemUrl: programa.imagemUrl,
     universidadeId: programa.universidadeId,
+    // Bolsa institucional: a universidade dona, mostrada no lugar da lista de quem aceita.
+    universidade: programa.universidade
+      ? { id: programa.universidade.id, nomeFantasia: programa.universidade.nomeFantasia, logoUrl: programa.universidade.logoUrl }
+      : null,
     eventos: programa.eventos.map((evento) => ({
       id: evento.id,
       titulo: evento.titulo,

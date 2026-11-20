@@ -126,6 +126,20 @@ describe('GET /api/v1/programas/:id', () => {
     );
   });
 
+  it('traz a universidade dona quando é bolsa institucional (200)', async () => {
+    prisma.programa.findFirst.mockResolvedValue({
+      ...programaFake(),
+      universidadeId: 7,
+      universidade: { id: 7, nomeFantasia: 'UniVale Sorocaba', logoUrl: null },
+      universidades: [],
+    });
+
+    const resposta = await request(app).get('/api/v1/programas/1');
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data.universidade).toEqual({ id: 7, nomeFantasia: 'UniVale Sorocaba', logoUrl: null });
+  });
+
   it('responde 404 quando o programa não existe', async () => {
     prisma.programa.findFirst.mockResolvedValue(null);
 

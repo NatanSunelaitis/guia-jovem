@@ -29,6 +29,7 @@ function findDetalhePublicado(prisma, id) {
     },
     include: {
       eventos: { orderBy: { dataInicio: 'asc' } },
+      universidade: { select: { id: true, nomeFantasia: true, logoUrl: true } },
       universidades: {
         where: { universidade: { status: 'A' } },
         include: { universidade: { select: { id: true, nomeFantasia: true, logoUrl: true } } },
