@@ -118,7 +118,7 @@ npm run db:demo
 
 Se o banco já tiver qualquer usuário ou universidade, o comando para sem alterar nada. Para apagar tudo e gravar só os dados de demonstração, confirme com `npm run db:demo -- --substituir`. Para usar esse banco, aponte o `DATABASE_URL` do `api/.env` para ele e suba a API.
 
-Conteúdo: 6 universidades aprovadas da região de Sorocaba (fictícias), com campi, cursos, ofertas com turno e vagas, programas aceitos, links e avaliações; 1 universidade pendente e 1 reprovada com motivo, para demonstrar a aprovação; os programas de entrada, financiamento e bolsa com datas importantes; 2 bolsas institucionais; visitas e logins dos últimos 30 dias para o dashboard. Sugestões, pesquisas salvas e faculdades salvas ficam vazias, para serem criadas ao vivo. **Todos os dados factuais (datas, vagas, notas, endereços, telefones, CNPJs e links) são ilustrativos** e ficam em `api/prisma/demo/dados.js`.
+Conteúdo: 6 universidades aprovadas da região de Sorocaba (fictícias), com campi, cursos, ofertas com turno e vagas, programas aceitos, links e avaliações; 1 universidade pendente e 1 reprovada com motivo, para demonstrar a aprovação; os programas de entrada, financiamento e bolsa com datas importantes; 2 bolsas institucionais; visitas e logins dos últimos 30 dias para o dashboard. Sugestões, pesquisas salvas e faculdades salvas ficam vazias, para serem criadas ao vivo. **Todos os dados factuais (datas, vagas, notas, endereços, telefones, CNPJs e links) são ilustrativos** e ficam em `api/prisma/demo/dados.js`; os sites, as páginas de simulados e os e-mails das universidades e dos campi usam o domínio reservado `example.com`.
 
 Contas (senha `Demo@2026` em todas, ou o valor de `DEMO_SENHA`):
 
@@ -127,10 +127,10 @@ Contas (senha `Demo@2026` em todas, ou o valor de `DEMO_SENHA`):
 | Administrador | `admin@demo.guiajovem.com.br` | Dashboard, aprovação da pendente, usuários, programas, sugestões |
 | Aluno | `beatriz@demo.guiajovem.com.br` | Ainda não avaliou UESP, UniTatuí e Faculdade Municipal de Salto |
 | Aluno | `lucas@demo.guiajovem.com.br` | Ainda não avaliou Faculdade Votorantim de Tecnologia, FEITU e Faculdade Municipal de Salto |
-| Universidade aprovada | `univale@demo.guiajovem.com.br` | Painel completo, com bolsa institucional |
-| Universidades aprovadas | `uesp@`, `fvt@`, `feitu@`, `unitatui@` e `fams@demo.guiajovem.com.br` | Demais painéis |
-| Universidade pendente | `fcsboituva@demo.guiajovem.com.br` | Painel em análise; aparece para o administrador aprovar |
-| Universidade reprovada | `isepiedade@demo.guiajovem.com.br` | Motivo da reprovação e "Reenviar para análise" |
+| Universidade aprovada | `univale@example.com` | Painel completo, com bolsa institucional |
+| Universidades aprovadas | `uesp@`, `fvt@`, `feitu@`, `unitatui@` e `fams@example.com` | Demais painéis |
+| Universidade pendente | `fcsboituva@example.com` | Painel em análise; aparece para o administrador aprovar |
+| Universidade reprovada | `isepiedade@example.com` | Motivo da reprovação e "Reenviar para análise" |
 
 ### 5. Testes
 
