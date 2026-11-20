@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/gj_colors.dart';
@@ -50,6 +51,7 @@ class CampoTexto extends StatelessWidget {
     this.keyboardType,
     this.obscureText = false,
     this.enabled = true,
+    this.inputFormatters,
   });
 
   final String rotulo;
@@ -60,6 +62,7 @@ class CampoTexto extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final bool enabled;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +77,7 @@ class CampoTexto extends StatelessWidget {
         keyboardType: keyboardType,
         obscureText: obscureText,
         enabled: enabled,
+        inputFormatters: inputFormatters,
       ),
     );
   }

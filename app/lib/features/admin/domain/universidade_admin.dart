@@ -1,3 +1,7 @@
+import '../../../shared/utils/mascaras.dart';
+
+export '../../../shared/utils/mascaras.dart' show formatarCnpj;
+
 /// Status de aprovação da universidade (RF23): P pendente, A aprovada,
 /// R reprovada, I inativa.
 enum StatusUniversidade { pendente, aprovada, reprovada, inativa }
@@ -25,12 +29,6 @@ String rotuloStatusUniversidade(StatusUniversidade status) => switch (status) {
 
 String rotuloNatureza(String codigo) => codigo == 'P' ? 'Pública' : 'Privada';
 
-/// CNPJ de 14 caracteres no formato 00.000.000/0000-00.
-String formatarCnpj(String cnpj) {
-  if (cnpj.length != 14) return cnpj;
-  return '${cnpj.substring(0, 2)}.${cnpj.substring(2, 5)}.${cnpj.substring(5, 8)}/'
-      '${cnpj.substring(8, 12)}-${cnpj.substring(12)}';
-}
 
 DateTime? _data(dynamic valor) => valor == null ? null : DateTime.parse(valor as String);
 
@@ -99,11 +97,7 @@ class EnderecoCadastro {
 
   String get completo {
     final cep = this.cep;
-    final cepFormatado = cep == null || cep.isEmpty
-        ? null
-        : cep.length == 8
-            ? '${cep.substring(0, 5)}-${cep.substring(5)}'
-            : cep;
+    final cepFormatado = cep == null || cep.isEmpty ? null : formatarCep(cep);
     final comComplemento = complemento == null || complemento!.isEmpty ? '' : ', $complemento';
     return '$logradouro, $numero$comComplemento, $bairro, $cidade / $estado${cepFormatado == null ? '' : ', CEP $cepFormatado'}';
   }

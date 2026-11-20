@@ -28,7 +28,7 @@ void main() {
 
     expect(find.text('Informe a razão social'), findsOneWidget);
     expect(find.text('Informe o nome fantasia'), findsOneWidget);
-    expect(find.text('CNPJ deve ter 14 dígitos'), findsOneWidget);
+    expect(find.text('O CNPJ deve ter 14 caracteres'), findsOneWidget);
     expect(find.text('Informe o telefone'), findsOneWidget);
     expect(find.text('Informe o link da página inicial'), findsOneWidget);
     expect(find.text('Informe um e-mail válido'), findsOneWidget);

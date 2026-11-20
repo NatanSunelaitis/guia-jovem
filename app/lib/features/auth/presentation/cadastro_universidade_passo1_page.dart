@@ -8,6 +8,7 @@ import '../../../core/theme/gj_typography.dart';
 import '../../../shared/widgets/gj_input.dart';
 import '../data/cadastro_universidade_state.dart';
 import 'widgets/cadastro_universidade_shell.dart';
+import '../../../shared/utils/mascaras.dart';
 
 /// T13 Cadastro de Universidade, passo 1 de 3: dados institucionais
 /// (`/cadastro/universidade/dados`, Figura 28).
@@ -83,13 +84,13 @@ class _CadastroUniversidadePasso1PageState extends State<CadastroUniversidadePas
   }
 
   bool _validar() {
-    final cnpjLimpo = _cnpjController.text.replaceAll(RegExp(r'\D'), '');
+    final cnpjLimpo = _cnpjController.text.replaceAll(RegExp(r'[^0-9A-Za-z]'), '');
     final emailValido = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(_emailController.text.trim());
 
     setState(() {
       _erroRazaoSocial = _razaoSocialController.text.trim().isEmpty ? 'Informe a razão social' : null;
       _erroNomeFantasia = _nomeFantasiaController.text.trim().isEmpty ? 'Informe o nome fantasia' : null;
-      _erroCnpj = cnpjLimpo.length != 14 ? 'CNPJ deve ter 14 dígitos' : null;
+      _erroCnpj = cnpjLimpo.length != 14 ? 'O CNPJ deve ter 14 caracteres' : null;
       _erroTelefone = _telefoneController.text.trim().isEmpty ? 'Informe o telefone' : null;
       _erroLinkPagina = _linkPaginaController.text.trim().isEmpty ? 'Informe o link da página inicial' : null;
       _erroEmail = emailValido ? null : 'Informe um e-mail válido';
@@ -142,7 +143,13 @@ class _CadastroUniversidadePasso1PageState extends State<CadastroUniversidadePas
             GJInput(label: 'Nome fantasia', hint: 'Como a instituição é conhecida', controller: _nomeFantasiaController, errorText: _erroNomeFantasia),
           ]),
           linha([
-            GJInput(label: 'CNPJ', hint: '00.000.000/0000-00', controller: _cnpjController, errorText: _erroCnpj),
+            GJInput(
+              label: 'CNPJ',
+              hint: '00.000.000/0000-00',
+              controller: _cnpjController,
+              errorText: _erroCnpj,
+              inputFormatters: [CnpjInputFormatter()],
+            ),
             _campoNatureza(),
           ]),
           linha([

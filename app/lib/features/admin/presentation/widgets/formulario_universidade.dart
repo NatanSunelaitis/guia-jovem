@@ -4,6 +4,7 @@ import '../../../../core/network/api_exception.dart';
 import '../../data/admin_repository.dart';
 import '../../domain/universidade_admin.dart';
 import 'formulario.dart';
+import '../../../../shared/utils/mascaras.dart';
 
 /// Administrador edita os dados institucionais (RF18). O status tem ações
 /// próprias na tela de cadastro.
@@ -42,7 +43,7 @@ class _FormularioUniversidadeState extends State<FormularioUniversidade> {
     final erros = <String, String>{};
     if (_nomeFantasia.text.trim().isEmpty) erros['nomeFantasia'] = 'Informe o nome fantasia';
     if (_razaoSocial.text.trim().isEmpty) erros['razaoSocial'] = 'Informe a razão social';
-    if (_cnpj.text.replaceAll(RegExp(r'\D'), '').length != 14) erros['cnpj'] = 'CNPJ deve ter 14 dígitos';
+    if (_cnpj.text.replaceAll(RegExp(r'[^0-9A-Za-z]'), '').length != 14) erros['cnpj'] = 'O CNPJ deve ter 14 caracteres';
     setState(() {
       _erros = erros;
       _erroGeral = null;
@@ -79,7 +80,7 @@ class _FormularioUniversidadeState extends State<FormularioUniversidade> {
       children: [
         CampoTexto(rotulo: 'Nome fantasia', controller: _nomeFantasia, erro: _erros['nomeFantasia'], maxLength: 100),
         CampoTexto(rotulo: 'Razão social', controller: _razaoSocial, erro: _erros['razaoSocial'], maxLength: 100),
-        CampoTexto(rotulo: 'CNPJ', controller: _cnpj, erro: _erros['cnpj']),
+        CampoTexto(rotulo: 'CNPJ', controller: _cnpj, erro: _erros['cnpj'], inputFormatters: [CnpjInputFormatter()]),
         CampoSelecao<String>(
           rotulo: 'Natureza',
           valor: _natureza,

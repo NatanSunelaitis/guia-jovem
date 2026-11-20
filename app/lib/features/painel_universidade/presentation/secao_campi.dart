@@ -14,6 +14,7 @@ import '../../perfil/presentation/widgets/secao_carregavel.dart';
 import '../data/painel_universidade_repository.dart';
 import '../domain/painel_universidade.dart';
 import 'widgets/faixa_situacao.dart';
+import '../../../shared/utils/mascaras.dart';
 
 /// T23.3 Campi (RF21, RF22): tabela com nome, cidade, telefone, principal e
 /// ações; o formulário completo de campus e endereço abre no painel lateral.
@@ -151,12 +152,12 @@ class FormularioCampus extends StatefulWidget {
 
 class _FormularioCampusState extends State<FormularioCampus> {
   late final _nome = TextEditingController(text: widget.campus?.nome);
-  late final _cnpj = TextEditingController(text: widget.campus?.cnpj);
+  late final _cnpj = TextEditingController(text: widget.campus?.cnpj == null ? null : formatarCnpj(widget.campus!.cnpj!));
   late final _logradouro = TextEditingController(text: widget.campus?.endereco.logradouro);
   late final _numero = TextEditingController(text: widget.campus?.endereco.numero);
   late final _complemento = TextEditingController(text: widget.campus?.endereco.complemento);
   late final _bairro = TextEditingController(text: widget.campus?.endereco.bairro);
-  late final _cep = TextEditingController(text: widget.campus?.endereco.cep);
+  late final _cep = TextEditingController(text: formatarCep(widget.campus?.endereco.cep));
   late final _cidade = TextEditingController(text: widget.campus?.endereco.cidade);
   late final _telefoneFixo = TextEditingController(text: widget.campus?.telefoneFixo);
   late final _telefoneCelular = TextEditingController(text: widget.campus?.telefoneCelular);
@@ -246,12 +247,23 @@ class _FormularioCampusState extends State<FormularioCampus> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         CampoTexto(rotulo: 'Nome do campus', controller: _nome, erro: _erros['nome'], maxLength: 100),
-        CampoTexto(rotulo: 'CNPJ do campus (opcional)', controller: _cnpj, erro: _erros['cnpj']),
+        CampoTexto(
+          rotulo: 'CNPJ do campus (opcional)',
+          controller: _cnpj,
+          erro: _erros['cnpj'],
+          inputFormatters: [CnpjInputFormatter()],
+        ),
         CampoTexto(rotulo: 'Logradouro', controller: _logradouro, erro: _erros['endereco.logradouro'], maxLength: 100),
         CampoTexto(rotulo: 'Número', controller: _numero, erro: _erros['endereco.numero'], maxLength: 10),
         CampoTexto(rotulo: 'Complemento', controller: _complemento, erro: _erros['endereco.complemento'], maxLength: 100),
         CampoTexto(rotulo: 'Bairro', controller: _bairro, erro: _erros['endereco.bairro'], maxLength: 100),
-        CampoTexto(rotulo: 'CEP', controller: _cep, erro: _erros['endereco.cep'], keyboardType: TextInputType.number),
+        CampoTexto(
+          rotulo: 'CEP',
+          controller: _cep,
+          erro: _erros['endereco.cep'],
+          keyboardType: TextInputType.number,
+          inputFormatters: [CepInputFormatter()],
+        ),
         CampoTexto(rotulo: 'Cidade', controller: _cidade, erro: _erros['endereco.cidade'], maxLength: 100),
         CampoSelecao<String>(
           key: const Key('campus-estado'),

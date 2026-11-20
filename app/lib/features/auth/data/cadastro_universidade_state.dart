@@ -70,7 +70,7 @@ class CadastroUniversidadeState {
       'universidade': {
         'razaoSocial': razaoSocial,
         'nomeFantasia': nomeFantasia,
-        'cnpj': _somenteDigitos(cnpj),
+        'cnpj': cnpj.replaceAll(RegExp(r'[^0-9A-Za-z]'), '').toUpperCase(),
         'natureza': natureza,
         if (_semVazio(telefonePrincipal) != null) 'telefonePrincipal': telefonePrincipal.trim(),
         if (_comEsquema(linkPagina) != null) 'linkPagina': _comEsquema(linkPagina),

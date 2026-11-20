@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../core/theme/gj_colors.dart';
@@ -25,6 +26,7 @@ class GJInput extends StatefulWidget {
     this.readOnly = false,
     this.keyboardType,
     this.onChanged,
+    this.inputFormatters,
   });
 
   final String label;
@@ -40,6 +42,9 @@ class GJInput extends StatefulWidget {
   final bool readOnly;
   final TextInputType? keyboardType;
   final ValueChanged<String>? onChanged;
+
+  /// Máscaras aplicadas durante a digitação (CNPJ, CEP).
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   State<GJInput> createState() => _GJInputState();
@@ -108,6 +113,7 @@ class _GJInputState extends State<GJInput> {
               maxLength: widget.maxLength,
               keyboardType: widget.keyboardType,
               onChanged: widget.onChanged,
+              inputFormatters: widget.inputFormatters,
               style: GJTypography.body(),
               cursorColor: GJColors.primary,
               decoration: InputDecoration(

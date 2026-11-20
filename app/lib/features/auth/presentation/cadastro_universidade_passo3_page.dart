@@ -9,6 +9,7 @@ import '../../../shared/widgets/gj_input.dart';
 import '../data/cadastro_universidade_state.dart';
 import '../data/session_controller.dart';
 import 'widgets/cadastro_universidade_shell.dart';
+import '../../../shared/utils/mascaras.dart';
 
 /// T15 Cadastro de Universidade, passo 3 de 3: primeiro campus
 /// (`/cadastro/universidade/campus`, Figura 30).
@@ -165,7 +166,7 @@ class _CadastroUniversidadePasso3PageState extends State<CadastroUniversidadePas
             _campoEstado(),
           ]),
           linha([
-            GJInput(label: 'CEP', hint: '00000-000', controller: _cepController),
+            GJInput(label: 'CEP', hint: '00000-000', controller: _cepController, inputFormatters: [CepInputFormatter()]),
             GJInput(label: 'Telefone', hint: '(00) 0000-0000', controller: _telefoneController),
           ]),
         ],

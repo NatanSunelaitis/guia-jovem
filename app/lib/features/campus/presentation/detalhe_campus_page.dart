@@ -14,6 +14,7 @@ import '../../../shared/widgets/gj_skeleton.dart';
 import '../data/campus_repository.dart';
 import '../domain/campus.dart';
 import '../../../shared/utils/plural.dart';
+import '../../../shared/utils/mascaras.dart';
 
 class DetalheCampusPage extends StatefulWidget {
   const DetalheCampusPage({super.key, required this.id});
@@ -75,7 +76,7 @@ class _DetalheCampusPageState extends State<DetalheCampusPage> {
                     '${campus.endereco.logradouro}, ${campus.endereco.numero}'
                     '${campus.endereco.complemento != null ? ' - ${campus.endereco.complemento}' : ''}\n'
                     '${campus.endereco.bairro}, ${campus.endereco.cidade}/${campus.endereco.estado}'
-                    '${campus.endereco.cep != null ? ' - CEP ${campus.endereco.cep}' : ''}',
+                    '${campus.endereco.cep != null ? ' - CEP ${formatarCep(campus.endereco.cep)}' : ''}',
                     style: GJTypography.body(),
                   ),
                   const SizedBox(height: GJSpace.s3),
