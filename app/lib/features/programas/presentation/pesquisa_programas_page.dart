@@ -9,6 +9,7 @@ import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
 import '../../../shared/utils/programa_estilo.dart';
+import '../../../shared/widgets/gj_aligned_grid.dart';
 import '../../../shared/widgets/gj_card.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
 import '../../../shared/widgets/gj_input.dart';
@@ -118,25 +119,27 @@ class _PesquisaProgramasPageState extends State<PesquisaProgramasPage> {
                   return const GJEmptyState(titulo: 'Nenhum programa encontrado', texto: 'Tente outro termo de busca.');
                 }
 
-                return Wrap(
-                  spacing: GJSpace.s6,
-                  runSpacing: GJSpace.s6,
-                  children: [
-                    for (final programa in programas)
-                      SizedBox(
-                        width: isMobile ? double.infinity : 280,
-                        child: GJCard.programa(
-                          imagemUrl: programa.imagemUrl ?? imagemProgramaPadrao,
-                          icone: iconePrograma(programa.sigla, programa.tipo),
-                          cor: corPrograma(programa.tipo),
-                          sigla: programa.sigla ?? programa.tipo,
-                          nome: programa.nome,
-                          descricao: programa.descricao,
-                          onTap: () => context.go('/programas/${programa.id}'),
-                        ),
-                      ),
-                  ],
-                );
+                final cards = [
+                  for (final programa in programas)
+                    GJCard.programa(
+                      imagemUrl: programa.imagemUrl ?? imagemProgramaPadrao,
+                      icone: iconePrograma(programa.sigla, programa.tipo),
+                      cor: corPrograma(programa.tipo),
+                      sigla: programa.sigla ?? programa.tipo,
+                      nome: programa.nome,
+                      descricao: programa.descricao,
+                      onTap: () => context.go('/programas/${programa.id}'),
+                    ),
+                ];
+                if (isMobile) {
+                  return Column(
+                    children: [
+                      for (final card in cards) Padding(padding: const EdgeInsets.only(bottom: GJSpace.s6), child: card),
+                    ],
+                  );
+                }
+                // Cards da mesma linha com a mesma altura.
+                return GJAlignedGrid(itemWidth: 280, spacing: GJSpace.s6, runSpacing: GJSpace.s6, children: cards);
               },
             ),
           ],
