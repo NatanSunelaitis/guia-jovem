@@ -13,6 +13,7 @@ import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tabs.dart';
 import '../data/cadastros_repository.dart';
 import '../domain/dashboard.dart';
+import '../../../shared/utils/plural.dart';
 
 /// Períodos do seletor do protótipo (T24.1).
 enum PeriodoDashboard {
@@ -157,13 +158,14 @@ class _SecaoDashboardState extends State<SecaoDashboard> {
               icone: Symbols.group,
               rotulo: 'Usuários',
               valor: r.usuarios,
-              nota: '${r.alunos} alunos, ${r.contasUniversidade} universidades, ${r.administradores} administradores',
+              nota: '${contagem(r.alunos, 'aluno', 'alunos')}, ${contagem(r.contasUniversidade, 'universidade', 'universidades')}, '
+                  '${contagem(r.administradores, 'administrador', 'administradores')}',
             ),
             _cartao(
               icone: Symbols.verified,
               rotulo: 'Universidades aprovadas',
               valor: r.universidadesAprovadas,
-              nota: '${r.universidadesReprovadas} reprovadas, ${r.universidadesInativas} inativas',
+              nota: '${contagem(r.universidadesReprovadas, 'reprovada', 'reprovadas')}, ${contagem(r.universidadesInativas, 'inativa', 'inativas')}',
               cor: GJColors.success,
             ),
             _cartao(
@@ -179,7 +181,7 @@ class _SecaoDashboardState extends State<SecaoDashboard> {
               icone: Symbols.school,
               rotulo: 'Programas',
               valor: r.programas,
-              nota: '${r.programasEntrada} entrada, ${r.programasFinanciamento} financiamento, ${r.programasBolsa} bolsa',
+              nota: '${r.programasEntrada} de entrada, ${r.programasFinanciamento} de financiamento, ${r.programasBolsa} de bolsa',
             ),
           ],
         );
@@ -246,7 +248,7 @@ class _SecaoDashboardState extends State<SecaoDashboard> {
                 children: [
                   SizedBox(width: GJSpace.s8, child: Text('${i + 1}', style: GJTypography.label(color: GJColors.primary))),
                   Expanded(child: Text(itens[i].nome, style: GJTypography.body(), overflow: TextOverflow.ellipsis)),
-                  Text('${itens[i].visitas} visitas', style: GJTypography.bodySm()),
+                  Text(contagem(itens[i].visitas, 'visita', 'visitas'), style: GJTypography.bodySm()),
                 ],
               ),
             ),
@@ -298,6 +300,7 @@ class _SecaoDashboardState extends State<SecaoDashboard> {
               child: GJBarChart(
                 cor: GJColors.secondary,
                 descricaoValor: 'contas',
+                descricaoValorSingular: 'conta',
                 barras: [for (final p in acessos.serie) GJBarra(rotulo: p.rotulo, valor: p.loginsUnicos)],
               ),
             ),

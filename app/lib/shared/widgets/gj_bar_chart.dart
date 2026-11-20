@@ -6,6 +6,7 @@ import '../../core/theme/gj_colors.dart';
 import '../../core/theme/gj_radius.dart';
 import '../../core/theme/gj_spacing.dart';
 import '../../core/theme/gj_typography.dart';
+import '../utils/plural.dart';
 
 class GJBarra {
   const GJBarra({required this.rotulo, required this.valor});
@@ -25,6 +26,7 @@ class GJBarChart extends StatelessWidget {
     this.cor = GJColors.primary,
     this.altura = 180,
     this.descricaoValor = 'visitas',
+    this.descricaoValorSingular = 'visita',
   });
 
   final List<GJBarra> barras;
@@ -34,6 +36,9 @@ class GJBarChart extends StatelessWidget {
   /// Unidade na dica (ex.: "12 visitas").
   final String descricaoValor;
 
+  /// A mesma unidade no singular (ex.: "1 visita").
+  final String descricaoValorSingular;
+
   static const _maxRotulos = 8;
 
   @override
@@ -42,7 +47,7 @@ class GJBarChart extends StatelessWidget {
     final passoRotulo = math.max(1, (barras.length / _maxRotulos).ceil());
 
     return Semantics(
-      label: 'Gráfico de barras com ${barras.length} períodos e máximo de $maximo $descricaoValor',
+      label: 'Gráfico de barras com ${barras.length} períodos e máximo de ${contagem(maximo.toInt(), descricaoValorSingular, descricaoValor)}',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -75,7 +80,7 @@ class GJBarChart extends StatelessWidget {
                         for (final barra in barras)
                           Expanded(
                             child: Tooltip(
-                              message: '${barra.rotulo}: ${barra.valor} $descricaoValor',
+                              message: '${barra.rotulo}: ${contagem(barra.valor.toInt(), descricaoValorSingular, descricaoValor)}',
                               child: Padding(
                                 padding: EdgeInsets.symmetric(horizontal: barras.length > 40 ? 0 : GJSpace.s1 / 2),
                                 child: FractionallySizedBox(

@@ -13,6 +13,7 @@ import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../data/campus_repository.dart';
 import '../domain/campus.dart';
+import '../../../shared/utils/plural.dart';
 
 class DetalheCampusPage extends StatefulWidget {
   const DetalheCampusPage({super.key, required this.id});
@@ -110,7 +111,7 @@ class _DetalheCampusPageState extends State<DetalheCampusPage> {
                                   if (curso.turno != null)
                                     Text('Turno: ${curso.turno}', style: GJTypography.bodySm()),
                                   if (curso.vagas != null)
-                                    Text('${curso.vagas} vagas', style: GJTypography.bodySm(color: GJColors.textSecondary)),
+                                    Text(contagem(curso.vagas!, 'vaga', 'vagas'), style: GJTypography.bodySm(color: GJColors.textSecondary)),
                                 ],
                               ),
                             ),

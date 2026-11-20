@@ -100,7 +100,7 @@ void main() {
 
     final post = requisicoesAuthApi.singleWhere((r) => r.method == 'POST');
     expect(post.data, {'nota': 4, 'comentario': 'Ótimos professores'});
-    expect(find.text('4.0 (1 avaliações)'), findsOneWidget);
+    expect(find.text('4.0 (1 avaliação)'), findsOneWidget);
     expect(find.text('Ótimos professores'), findsOneWidget);
     expect(find.text('Editar minha avaliação'), findsOneWidget);
     expect(find.text('Avaliação enviada. Obrigado!'), findsOneWidget);
@@ -147,7 +147,7 @@ void main() {
     final put = requisicoesAuthApi.singleWhere((r) => r.method == 'PUT');
     expect(put.path, '/avaliacoes/50');
     expect(put.data, {'nota': 2, 'comentario': 'Bom'});
-    expect(find.text('2.0 (1 avaliações)'), findsOneWidget);
+    expect(find.text('2.0 (1 avaliação)'), findsOneWidget);
     expect(find.text('Avaliação atualizada.'), findsOneWidget);
   });
 

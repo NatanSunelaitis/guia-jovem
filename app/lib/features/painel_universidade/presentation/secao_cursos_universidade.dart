@@ -17,6 +17,7 @@ import '../../perfil/presentation/widgets/secao_carregavel.dart';
 import '../data/painel_universidade_repository.dart';
 import '../domain/painel_universidade.dart';
 import 'widgets/faixa_situacao.dart';
+import '../../../shared/utils/plural.dart';
 
 /// T23.2 Cursos (RF19, RF20): os cursos da universidade com as ofertas por
 /// campus, turno e vagas. O formulário do curso é o mesmo do administrador
@@ -348,7 +349,7 @@ class _GerenciarOfertasState extends State<GerenciarOfertas> {
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Symbols.location_on),
             title: Text(oferta.campusNome),
-            subtitle: Text([oferta.turno ?? 'Turno não informado', if (oferta.vagas != null) '${oferta.vagas} vagas'].join(' · ')),
+            subtitle: Text([oferta.turno ?? 'Turno não informado', if (oferta.vagas != null) contagem(oferta.vagas!, 'vaga', 'vagas')].join(' · ')),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [

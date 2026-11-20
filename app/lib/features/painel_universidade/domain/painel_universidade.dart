@@ -1,5 +1,6 @@
 import '../../admin/domain/cadastros.dart';
 import '../../admin/domain/universidade_admin.dart';
+import '../../../shared/utils/plural.dart';
 
 /// Turnos aceitos pela API na oferta de curso em campus (RF20).
 const turnosOferta = ['Matutino', 'Vespertino', 'Noturno', 'Integral'];
@@ -118,7 +119,7 @@ class OfertaCurso {
   final String? turno;
   final int? vagas;
 
-  String get resumo => [campusNome, if (turno != null) turno!, if (vagas != null) '$vagas vagas'].join(' · ');
+  String get resumo => [campusNome, if (turno != null) turno!, if (vagas != null) contagem(vagas!, 'vaga', 'vagas')].join(' · ');
 }
 
 /// Curso no painel (`GET /universidades/:id/gestao/cursos`).

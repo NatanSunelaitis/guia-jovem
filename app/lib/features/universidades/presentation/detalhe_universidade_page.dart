@@ -23,6 +23,7 @@ import '../data/universidades_repository.dart';
 import '../domain/avaliacao.dart';
 import '../domain/universidade.dart';
 import 'avaliar_dialog.dart';
+import '../../../shared/utils/plural.dart';
 
 class DetalheUniversidadePage extends StatefulWidget {
   const DetalheUniversidadePage({super.key, required this.id});
@@ -268,7 +269,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                         const SizedBox(width: GJSpace.s1),
                         Text(
                           _media != null
-                              ? '${_media!.toStringAsFixed(1)} ($_total avaliações)'
+                              ? '${_media!.toStringAsFixed(1)} (${contagem(_total, 'avaliação', 'avaliações')})'
                               : 'Sem avaliações ainda',
                           style: GJTypography.bodySm(),
                         ),
@@ -501,7 +502,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                             ),
                         ],
                       ),
-                      Text('$_total avaliações', style: GJTypography.caption()),
+                      Text(contagem(_total, 'avaliação', 'avaliações'), style: GJTypography.caption()),
                     ],
                   ),
                   const SizedBox(width: GJSpace.s6),
