@@ -130,7 +130,7 @@ const PROGRAMAS = [
 ];
 
 // Instituições aprovadas. Endereços com ruas reais das cidades e números,
-// CEPs, telefones, CNPJs e sites ilustrativos.
+// CEPs, telefones e CNPJs ilustrativos; sem site nem página de simulados.
 const UNIVERSIDADES = [
   {
     chave: 'univale',
@@ -142,8 +142,7 @@ const UNIVERSIDADES = [
     responsavel: 'Mariana Torres',
     descricao: 'Centro universitário com cursos de graduação nas áreas de saúde, negócios e tecnologia, com dois campi em Sorocaba e programa próprio de bolsas por mérito.',
     telefonePrincipal: '(15) 3201-4500',
-    linkPagina: 'https://www.univalesorocaba.edu.br',
-    linkSimulados: 'https://www.univalesorocaba.edu.br/simulados',
+    linkPagina: null,
     campi: [
       {
         nome: 'Campus Centro',
@@ -191,8 +190,7 @@ const UNIVERSIDADES = [
     responsavel: 'Carlos Henrique Prado',
     descricao: 'Universidade pública estadual com campi em Sorocaba e Itapetininga. Ingresso pelo SiSU e pelo Provão Paulista, sem mensalidade.',
     telefonePrincipal: '(15) 3229-8000',
-    linkPagina: 'https://www.uesp.edu.br',
-    linkSimulados: 'https://www.uesp.edu.br/vestibular/provas-anteriores',
+    linkPagina: null,
     campi: [
       {
         nome: 'Campus Sorocaba',
@@ -228,7 +226,7 @@ const UNIVERSIDADES = [
     responsavel: 'Renata Gouveia',
     descricao: 'Faculdade de cursos tecnológicos de dois a três anos, com aulas à noite e foco em empregabilidade na indústria da região.',
     telefonePrincipal: '(15) 3243-7100',
-    linkPagina: 'https://www.fvt.edu.br',
+    linkPagina: null,
     linkSimulados: null,
     campi: [
       {
@@ -257,8 +255,7 @@ const UNIVERSIDADES = [
     responsavel: 'Paulo Sérgio Rinaldi',
     descricao: 'Faculdade de engenharia com laboratórios abertos à comunidade e parceria com empresas do polo industrial de Itu e Salto.',
     telefonePrincipal: '(11) 4022-3300',
-    linkPagina: 'https://www.feitu.edu.br',
-    linkSimulados: 'https://www.feitu.edu.br/simulado',
+    linkPagina: null,
     campi: [
       {
         nome: 'Campus Itu',
@@ -295,7 +292,7 @@ const UNIVERSIDADES = [
     responsavel: 'Fernanda Lopes',
     descricao: 'Centro universitário com tradição em licenciaturas e cursos da área de saúde, a uma hora de Sorocaba.',
     telefonePrincipal: '(15) 3251-9000',
-    linkPagina: 'https://www.unitatui.edu.br',
+    linkPagina: null,
     linkSimulados: null,
     campi: [
       {
@@ -324,8 +321,7 @@ const UNIVERSIDADES = [
     responsavel: 'Rogério Antunes',
     descricao: 'Faculdade pública municipal, sem mensalidade, com ingresso por vestibular próprio e pela nota do Enem.',
     telefonePrincipal: '(11) 4602-5500',
-    linkPagina: 'https://www.fams.edu.br',
-    linkSimulados: 'https://www.fams.edu.br/vestibular',
+    linkPagina: null,
     campi: [
       {
         nome: 'Campus Salto',
@@ -354,7 +350,7 @@ const UNIVERSIDADE_PENDENTE = {
   responsavel: 'Juliana Mattos',
   descricao: 'Faculdade nova, com cursos de Enfermagem e Fisioterapia previstos para 2027.',
   telefonePrincipal: '(15) 3363-1200',
-  linkPagina: 'https://www.fcsboituva.edu.br',
+  linkPagina: null,
   campus: {
     nome: 'Campus Boituva',
     telefoneFixo: '(15) 3363-1200',
@@ -373,7 +369,7 @@ const UNIVERSIDADE_REPROVADA = {
   responsavel: 'Antônio Bastos',
   descricao: 'Instituto com cursos de licenciatura.',
   telefonePrincipal: '(15) 3244-0800',
-  linkPagina: 'https://www.isepiedade.edu.br',
+  linkPagina: null,
   motivo: 'O CNPJ informado não corresponde à razão social cadastrada. Envie o cadastro de novo com o CNPJ da mantenedora.',
   campus: {
     nome: 'Campus Piedade',
