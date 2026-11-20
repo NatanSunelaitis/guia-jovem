@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'gj_colors.dart';
+import 'gj_transicoes.dart';
 import 'gj_typography.dart';
 
 /// ThemeData do Guia Jovem, construído a partir dos tokens do GJDS
@@ -55,6 +56,7 @@ abstract final class GJTheme {
         labelSmall: GJTypography.caption(),
       ),
       dividerColor: GJColors.surfaceDim,
+      pageTransitionsTheme: gjPageTransitionsTheme,
     );
   }
 }
