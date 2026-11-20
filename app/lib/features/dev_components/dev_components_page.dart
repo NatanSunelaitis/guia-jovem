@@ -296,8 +296,8 @@ class _DevComponentsPageState extends State<DevComponentsPage> {
                       itens: [
                         GJAvatarMenuItem(label: 'Visualizar Perfil', icon: Symbols.person, onTap: () {}),
                         GJAvatarMenuItem(label: 'Painel Administrativo', icon: Symbols.dashboard, onTap: () {}),
-                        GJAvatarMenuItem(label: 'Desligar', icon: Symbols.logout, onTap: () {}),
-                        GJAvatarMenuItem(label: 'Excluir Conta', icon: Symbols.delete, destructivo: true, dividerAcima: true, onTap: () {}),
+                        GJAvatarMenuItem(label: 'Sair', icon: Symbols.logout, onTap: () {}),
+                        GJAvatarMenuItem(label: 'Excluir conta', icon: Symbols.delete, destructivo: true, dividerAcima: true, onTap: () {}),
                       ],
                     ),
                   ),

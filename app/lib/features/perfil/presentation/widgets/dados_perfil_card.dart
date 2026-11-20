@@ -119,15 +119,15 @@ class _DadosPerfilCardState extends State<DadosPerfilCard> {
         GJButton(
           label: 'Sair',
           icon: Symbols.logout,
-          variant: GJButtonVariant.danger,
+          variant: GJButtonVariant.secondary,
           expand: true,
-          onPressed: () => mostrarDialogoDesligar(context),
+          onPressed: () => mostrarDialogoSair(context),
         ),
         const SizedBox(height: GJSpace.s3),
         GJButton(
           label: 'Excluir conta',
           icon: Symbols.delete,
-          variant: GJButtonVariant.ghost,
+          variant: GJButtonVariant.danger,
           expand: true,
           onPressed: () => mostrarDialogoExcluirConta(context),
         ),

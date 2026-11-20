@@ -54,8 +54,8 @@ void main() {
 
     expect(find.text('Visualizar Perfil'), findsOneWidget);
     expect(find.text('Painel Administrativo'), findsNothing);
-    expect(find.text('Desligar'), findsOneWidget);
-    expect(find.text('Excluir Conta'), findsOneWidget);
+    expect(find.text('Sair'), findsOneWidget);
+    expect(find.text('Excluir conta'), findsOneWidget);
   });
 
   testWidgets('logado (universidade): o menu do avatar mostra o Painel Administrativo', (tester) async {
@@ -85,13 +85,13 @@ void main() {
     expect(find.text('Perfil'), findsOneWidget);
   });
 
-  testWidgets('"Desligar" pede confirmação antes de encerrar a sessão', (tester) async {
+  testWidgets('"Sair" pede confirmação antes de encerrar a sessão', (tester) async {
     sessionController.redefinirParaTestes(usuario: _usuario());
     await pumpLayout(tester);
 
     await tester.tap(find.byType(CircleAvatar));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Desligar'));
+    await tester.tap(find.text('Sair'));
     await tester.pumpAndSettle();
 
     expect(find.text('Tem certeza que deseja sair da sua conta?'), findsOneWidget);
@@ -103,7 +103,7 @@ void main() {
 
     await tester.tap(find.byType(CircleAvatar));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Desligar'));
+    await tester.tap(find.text('Sair'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Sair'));
     await tester.pumpAndSettle();
@@ -118,7 +118,7 @@ void main() {
 
     await tester.tap(find.byType(CircleAvatar));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Excluir Conta'));
+    await tester.tap(find.text('Excluir conta'));
     await tester.pumpAndSettle();
 
     expect(find.text('Confirmação'), findsOneWidget);

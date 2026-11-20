@@ -64,9 +64,9 @@ class PublicLayout extends StatelessWidget {
           ),
         if (usuario.tipoUsuario == TipoUsuario.admin)
           GJAvatarMenuItem(label: 'Painel Administrativo', icon: Symbols.dashboard, onTap: () => context.go('/admin')),
-        GJAvatarMenuItem(label: 'Desligar', icon: Symbols.logout, onTap: () => mostrarDialogoDesligar(context)),
+        GJAvatarMenuItem(label: 'Sair', icon: Symbols.logout, onTap: () => mostrarDialogoSair(context)),
         GJAvatarMenuItem(
-          label: 'Excluir Conta',
+          label: 'Excluir conta',
           icon: Symbols.delete,
           destructivo: true,
           dividerAcima: true,

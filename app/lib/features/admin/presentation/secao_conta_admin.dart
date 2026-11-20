@@ -126,7 +126,7 @@ class _SecaoContaAdminState extends State<SecaoContaAdmin> {
               label: 'Sair',
               icon: Symbols.logout,
               variant: GJButtonVariant.secondary,
-              onPressed: () => mostrarDialogoDesligar(context),
+              onPressed: () => mostrarDialogoSair(context),
             ),
           ],
         ),

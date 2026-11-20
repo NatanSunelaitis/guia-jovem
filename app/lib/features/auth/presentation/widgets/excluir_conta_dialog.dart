@@ -105,7 +105,7 @@ class _ExcluirContaDialogState extends State<_ExcluirContaDialog> {
 }
 
 /// RF06: confirmação antes de encerrar a sessão.
-Future<void> mostrarDialogoDesligar(BuildContext context) async {
+Future<void> mostrarDialogoSair(BuildContext context) async {
   final confirmou = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
@@ -114,7 +114,7 @@ Future<void> mostrarDialogoDesligar(BuildContext context) async {
       content: const Text('Tem certeza que deseja sair da sua conta?'),
       actions: [
         TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancelar')),
-        GJButton(label: 'Sair', variant: GJButtonVariant.danger, onPressed: () => Navigator.of(context).pop(true)),
+        GJButton(label: 'Sair', variant: GJButtonVariant.primary, onPressed: () => Navigator.of(context).pop(true)),
       ],
     ),
   );

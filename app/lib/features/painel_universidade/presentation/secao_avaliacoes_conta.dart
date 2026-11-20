@@ -173,7 +173,7 @@ class SecaoConta extends StatelessWidget {
               label: 'Sair',
               icon: Symbols.logout,
               variant: GJButtonVariant.secondary,
-              onPressed: () => mostrarDialogoDesligar(context),
+              onPressed: () => mostrarDialogoSair(context),
             ),
             GJButton(
               label: 'Excluir conta',
