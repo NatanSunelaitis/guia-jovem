@@ -46,6 +46,27 @@ function Esperar([string]$url, [int]$segundos, $processo) {
   return $false
 }
 
+# Sobe um processo node em segundo plano, com a saída e os erros em arquivos,
+# e devolve o processo node. Antes era Start-Process com -RedirectStandard*,
+# que cria o processo herdando os handles deste PowerShell: quando quem chamou
+# o iniciar-demo.cmd lia a saída por um pipe (iniciar-demo.cmd | more, o
+# terminal de uma IDE, um script), a API e o servidor do app ficavam com o
+# pipe aberto e o comando não devolvia o terminal enquanto eles rodassem.
+# Sem redirecionamento, o Start-Process usa o ShellExecute, que não passa
+# handles adiante; quem grava os logs é o cmd oculto que inicia o node.
+function IniciarNode([string]$argumentos, [string]$saida, [string]$erro) {
+  $linha = "/d /s /c `"node $argumentos > `"$saida`" 2> `"$erro`"`""
+  $cmd = Start-Process cmd.exe -ArgumentList $linha -WorkingDirectory $pastaApi -WindowStyle Hidden -PassThru
+  $limite = (Get-Date).AddSeconds(15)
+  while ((Get-Date) -lt $limite) {
+    $filho = Get-CimInstance Win32_Process -Filter "ParentProcessId=$($cmd.Id) AND Name='node.exe'" | Select-Object -First 1
+    if ($filho) { return Get-Process -Id $filho.ProcessId }
+    if ($cmd.HasExited) { break }
+    Start-Sleep -Milliseconds 200
+  }
+  return $null
+}
+
 function Parar($processos) {
   foreach ($p in $processos) {
     if ($p -and -not $p.HasExited) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
@@ -104,8 +125,8 @@ $logs = @{
 }
 
 Etapa "Subindo a API em $urlApi"
-$api = Start-Process node -ArgumentList @('scripts/demo/api-demo.js', $PortaApi, $urlApp) -WorkingDirectory $pastaApi `
-  -WindowStyle Hidden -RedirectStandardOutput $logs.apiSaida -RedirectStandardError $logs.apiErro -PassThru
+$api = IniciarNode "scripts/demo/api-demo.js $PortaApi $urlApp" $logs.apiSaida $logs.apiErro
+if (-not $api) { Falhar "A API não iniciou. Veja $($logs.apiErro)." }
 if (-not (Esperar "$urlApi/api/v1/health" 30 $api)) {
   Parar @($api)
   Falhar "A API não respondeu no /health. Veja $($logs.apiErro) e $($logs.apiSaida)."
@@ -116,8 +137,8 @@ if (-not (Esperar "$urlApi/docs/" 10 $api)) {
 }
 
 Etapa "Servindo o app em $urlApp"
-$app = Start-Process node -ArgumentList @('scripts/demo/servir-web.js', "`"$pastaBuild`"", $PortaApp) -WorkingDirectory $pastaApi `
-  -WindowStyle Hidden -RedirectStandardOutput $logs.appSaida -RedirectStandardError $logs.appErro -PassThru
+$app = IniciarNode "scripts/demo/servir-web.js `"$pastaBuild`" $PortaApp" $logs.appSaida $logs.appErro
+if (-not $app) { Parar @($api); Falhar "O servidor do app não iniciou. Veja $($logs.appErro)." }
 if (-not (Esperar $urlApp 15 $app)) {
   Parar @($api, $app)
   Falhar "O servidor do app não respondeu. Veja $($logs.appErro)."
