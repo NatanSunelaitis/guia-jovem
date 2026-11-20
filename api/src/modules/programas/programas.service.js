@@ -46,9 +46,24 @@ async function listar(prisma, query) {
   return { data: programas.map(paraLista), meta: buildMeta({ page, pageSize, total }) };
 }
 
+// Figura 14 do TG: o carrossel da home abre com ENEM, SISU, ProUni e FIES,
+// nessa ordem; os demais programas vêm depois, pela data de cadastro.
+const PRIORIDADE_DESTAQUES = ['ENEM', 'SISU', 'PROUNI', 'FIES'];
+
+function prioridade(programa) {
+  const posicao = PRIORIDADE_DESTAQUES.indexOf((programa.sigla ?? '').toUpperCase());
+  return posicao === -1 ? PRIORIDADE_DESTAQUES.length : posicao;
+}
+
 async function listarDestaques(prisma, limite = DESTAQUES_PADRAO, tipo = undefined) {
-  const programas = await repo.destaques(prisma, limite, tipo);
-  return programas.map(paraLista);
+  // Os programas globais são poucos: busca todos para aplicar a prioridade
+  // antes do limite.
+  const programas = await repo.destaques(prisma, undefined, tipo);
+  const ordenados = programas
+    .map((programa, indice) => ({ programa, indice }))
+    .sort((a, b) => prioridade(a.programa) - prioridade(b.programa) || a.indice - b.indice)
+    .map(({ programa }) => programa);
+  return ordenados.slice(0, limite).map(paraLista);
 }
 
 async function obterDetalhe(prisma, id, req) {

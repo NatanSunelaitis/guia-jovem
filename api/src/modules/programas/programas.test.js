@@ -94,14 +94,31 @@ describe('GET /api/v1/programas/destaques', () => {
     expect(prisma.programa.findMany.mock.calls[0][0].where).toEqual({ ativo: true, universidadeId: null });
   });
 
+  it('abre com ENEM, SISU, ProUni e FIES, nessa ordem, e respeita o limite (Figura 14)', async () => {
+    const programa = (id, sigla, tipo) => ({ ...programaFake(), id, sigla, tipo });
+    prisma.programa.findMany.mockResolvedValue([
+      programa(1, 'Vestibular', 'ENTRADA'),
+      programa(2, 'FIES', 'FINANCIAMENTO'),
+      programa(3, 'ENEM', 'ENTRADA'),
+      programa(4, 'ProUni', 'BOLSA'),
+      programa(5, 'SiSU', 'ENTRADA'),
+    ]);
+
+    const resposta = await request(app).get('/api/v1/programas/destaques?limite=4');
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data.map((p) => p.sigla)).toEqual(['ENEM', 'SiSU', 'ProUni', 'FIES']);
+  });
+
   it('filtra os destaques por tipo (home: programas de entrada)', async () => {
     prisma.programa.findMany.mockResolvedValue([programaFake()]);
 
     const resposta = await request(app).get('/api/v1/programas/destaques?tipo=ENTRADA&limite=4');
 
     expect(resposta.status).toBe(200);
+    // O limite vale depois da prioridade da Figura 14, então a consulta traz todos do tipo.
     expect(prisma.programa.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { ativo: true, universidadeId: null, tipo: 'ENTRADA' }, take: 4 }),
+      expect.objectContaining({ where: { ativo: true, universidadeId: null, tipo: 'ENTRADA' } }),
     );
   });
 

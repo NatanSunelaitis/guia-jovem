@@ -48,8 +48,9 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _universidades = universidadesRepository.destaques();
-    // Carrossel de programas de entrada (seção 4.5 do TG).
-    _programas = programasRepository.destaques(tipo: 'ENTRADA');
+    // Carrossel de programas (Figura 14 do TG): ENEM, SISU, ProUni e FIES
+    // primeiro, com os três tipos; a API aplica essa prioridade.
+    _programas = programasRepository.destaques();
     _cursos = cursosRepository.destaques();
   }
 
