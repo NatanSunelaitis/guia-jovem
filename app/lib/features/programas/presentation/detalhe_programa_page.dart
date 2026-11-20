@@ -136,10 +136,11 @@ class _Conteudo extends StatelessWidget {
         Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (programa.comoFunciona != null || programa.requisitos != null) ...[
               _secaoDuasColunas(
                 isMobile,
                 esquerda: programa.comoFunciona == null
-                    ? const SizedBox.shrink()
+                    ? null
                     : _cartao(
                         titulo: 'Como Funciona',
                         corFundo: GJColors.surfaceLow,
@@ -147,7 +148,7 @@ class _Conteudo extends StatelessWidget {
                         child: Text(programa.comoFunciona!, style: GJTypography.body()),
                       ),
                 direita: programa.requisitos == null
-                    ? const SizedBox.shrink()
+                    ? null
                     : _cartao(
                         titulo: 'Elegibilidade',
                         corFundo: _cor,
@@ -159,10 +160,13 @@ class _Conteudo extends StatelessWidget {
                       ),
               ),
               const SizedBox(height: GJSpace.s8),
+              ],
+              // Sem datas importantes, os próximos passos ocupam a largura
+              // toda (em duas colunas no desktop), sem um bloco vazio ao lado.
               _secaoDuasColunas(
                 isMobile,
                 esquerda: programa.eventos.isEmpty
-                    ? const SizedBox.shrink()
+                    ? null
                     : _cartao(
                         titulo: tituloCronograma(programa.eventos),
                         corFundo: GJColors.surfaceLowest,
@@ -187,23 +191,7 @@ class _Conteudo extends StatelessWidget {
                   titulo: 'Próximos Passos',
                   corFundo: GJColors.surfaceLow,
                   corTexto: GJColors.textPrimary,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (final passo in passos)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: GJSpace.s3),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(passo.icon, size: 22, color: _cor),
-                              const SizedBox(width: GJSpace.s3),
-                              Expanded(child: Text(passo.texto, style: GJTypography.body())),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
+                  child: _passos(passos, duasColunas: programa.eventos.isEmpty && !isMobile),
                 ),
               ),
               const SizedBox(height: GJSpace.s8),
@@ -315,7 +303,37 @@ class _Conteudo extends StatelessWidget {
     );
   }
 
-  Widget _secaoDuasColunas(bool isMobile, {required Widget esquerda, required Widget direita}) {
+  Widget _passos(List<({IconData icon, String texto})> passos, {required bool duasColunas}) {
+    Widget passo(({IconData icon, String texto}) p) => Padding(
+          padding: const EdgeInsets.only(bottom: GJSpace.s3),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(p.icon, size: 22, color: _cor),
+              const SizedBox(width: GJSpace.s3),
+              Expanded(child: Text(p.texto, style: GJTypography.body())),
+            ],
+          ),
+        );
+
+    if (!duasColunas) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [for (final p in passos) passo(p)]);
+    }
+    final metade = (passos.length / 2).ceil();
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: Column(children: [for (final p in passos.take(metade)) passo(p)])),
+        const SizedBox(width: GJSpace.s8),
+        Expanded(child: Column(children: [for (final p in passos.skip(metade)) passo(p)])),
+      ],
+    );
+  }
+
+  /// Duas colunas lado a lado no desktop. Quando só um lado tem conteúdo,
+  /// ele ocupa a largura toda, sem deixar a outra coluna vazia.
+  Widget _secaoDuasColunas(bool isMobile, {Widget? esquerda, Widget? direita}) {
+    if (esquerda == null || direita == null) return esquerda ?? direita ?? const SizedBox.shrink();
     if (isMobile) {
       return Column(children: [esquerda, const SizedBox(height: GJSpace.s6), direita]);
     }

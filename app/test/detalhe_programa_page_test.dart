@@ -96,6 +96,61 @@ void main() {
     expect(find.text('2027'), findsOneWidget);
   });
 
+  Map<String, dynamic> programa({required List<Map<String, dynamic>> eventos}) => envelope({
+        'id': 8,
+        'nome': 'Programa Escola da Família',
+        'sigla': 'Escola da Família',
+        'tipo': 'BOLSA',
+        'descricao': 'Descrição',
+        'requisitos': 'Requisitos',
+        'comoFunciona': 'Como funciona',
+        'linkOficial': null,
+        'imagemUrl': null,
+        'universidadeId': null,
+        'eventos': eventos,
+        'universidades': <Map<String, dynamic>>[],
+      });
+
+  testWidgets('sem datas importantes, os próximos passos ocupam a largura toda', (tester) async {
+    tester.view.physicalSize = const Size(1366, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    mockApi({'/programas/8': programa(eventos: [])});
+
+    await pump(tester, 8);
+
+    expect(find.textContaining('Cronograma'), findsNothing);
+    // Começa na mesma coluna do "Como Funciona" e passa da metade da página.
+    final passos = find.text('Próximos Passos');
+    expect(tester.getTopLeft(passos).dx, tester.getTopLeft(find.text('Como Funciona')).dx);
+    final ultimoPasso = find.textContaining('Anote as datas');
+    expect(tester.getTopLeft(ultimoPasso).dx, greaterThan(1366 / 2));
+  });
+
+  testWidgets('com datas, cronograma e próximos passos ficam lado a lado', (tester) async {
+    tester.view.physicalSize = const Size(1366, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    mockApi({
+      '/programas/8': programa(eventos: [
+        {'id': 1, 'titulo': 'Inscrições', 'descricao': null, 'dataInicio': '2027-01-11T00:00:00.000Z', 'dataFim': null},
+      ]),
+    });
+
+    await pump(tester, 8);
+
+    expect(tester.getTopLeft(find.text('Próximos Passos')).dx, greaterThan(tester.getTopLeft(find.text('Cronograma 2027')).dx));
+  });
+
+  testWidgets('o cabeçalho mostra a foto do programa', (tester) async {
+    mockApi({'/programas/8': programa(eventos: [])});
+
+    await pump(tester, 8);
+
+    final imagem = tester.widget<Image>(find.byType(Image).first);
+    expect((imagem.image as AssetImage).assetName, 'assets/fotos/programas/escola-da-familia.jpg');
+  });
+
   test('o título do cronograma traz os anos das datas', () {
     ProgramaEvento evento(int ano) => ProgramaEvento(id: ano, titulo: 't', dataInicio: DateTime(ano, 3, 1));
     expect(tituloCronograma([evento(2027), evento(2027)]), 'Cronograma 2027');
