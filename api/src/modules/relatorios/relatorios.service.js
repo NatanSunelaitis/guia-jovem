@@ -12,13 +12,18 @@ async function buscarUniversidades(prisma, query) {
   return repo.buscarParaRelatorio(prisma, { where, orderBy, take: MAX_LINHAS });
 }
 
+// O Excel em português usa ponto e vírgula como separador de lista e vírgula
+// decimal; com o BOM UTF-8 no início, o arquivo abre direto em colunas e
+// com a acentuação certa.
+const SEPARADOR_CSV = ';';
+
 const CABECALHO_CSV = [
   'Universidade',
   'Natureza',
   'Cidade',
   'Estado',
-  'Media de avaliacao',
-  'Total de avaliacoes',
+  'Média de avaliação',
+  'Total de avaliações',
   'Campus',
   'Cursos',
   'Programas',
@@ -30,7 +35,7 @@ function campusPrincipal(universidade) {
 
 function escapeCsv(valor) {
   const texto = valor == null ? '' : String(valor);
-  if (/[",\n]/.test(texto)) {
+  if (/[";\n\r]/.test(texto)) {
     return `"${texto.replace(/"/g, '""')}"`;
   }
   return texto;
@@ -52,7 +57,7 @@ function linhaRelatorio(universidade) {
 }
 
 function gerarCsv(universidades) {
-  const linhas = [CABECALHO_CSV.map(escapeCsv).join(',')];
+  const linhas = [CABECALHO_CSV.map(escapeCsv).join(SEPARADOR_CSV)];
 
   for (const universidade of universidades) {
     const linha = linhaRelatorio(universidade);
@@ -62,14 +67,14 @@ function gerarCsv(universidades) {
         linha.natureza,
         linha.cidade,
         linha.estado,
-        linha.mediaAvaliacao,
+        linha.mediaAvaliacao === '' ? '' : String(linha.mediaAvaliacao).replace('.', ','),
         linha.totalAvaliacoes,
         linha.campus,
         linha.cursos,
         linha.programas,
       ]
         .map(escapeCsv)
-        .join(','),
+        .join(SEPARADOR_CSV),
     );
   }
 

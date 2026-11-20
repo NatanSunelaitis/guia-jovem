@@ -45,6 +45,10 @@ describe('GET /api/v1/relatorios/pesquisa', () => {
     expect(resposta.text).toContain('Fatec Sorocaba');
     expect(resposta.text).toContain('Administração');
     expect(resposta.text).toContain('ENEM');
+    // Excel em português: BOM, ponto e vírgula e cabeçalho acentuado.
+    expect(resposta.text.replace(/^﻿/, '')).toMatch(
+      /^Universidade;Natureza;Cidade;Estado;Média de avaliação;Total de avaliações;Campus;Cursos;Programas\r\n/,
+    );
 
     const chamada = prisma.universidade.findMany.mock.calls[0][0];
     expect(chamada.where.campus.some.endereco.cidade).toEqual({ contains: 'Sorocaba' });
