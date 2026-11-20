@@ -43,7 +43,8 @@ class GJCard extends StatefulWidget {
     return GJCard(
       key: key,
       onTap: onTap,
-      child: Column(
+      child: _ConteudoComBotao(
+        conteudo: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -54,7 +55,7 @@ class GJCard extends StatefulWidget {
             ],
           ),
           const SizedBox(height: GJSpace.s4),
-          Text(nomeFantasia, style: GJTypography.h4(), maxLines: 2, overflow: TextOverflow.ellipsis),
+          Text(nomeFantasia, style: GJTypography.h4(), maxLines: _linhasTitulo, overflow: TextOverflow.ellipsis),
           if (cidade != null) ...[
             const SizedBox(height: GJSpace.s1),
             Text([cidade, estado].whereType<String>().join('/'), style: GJTypography.bodySm()),
@@ -75,14 +76,20 @@ class GJCard extends StatefulWidget {
             Wrap(spacing: GJSpace.s1, runSpacing: GJSpace.s1, children: tags),
           ],
           const SizedBox(height: GJSpace.s3),
-          GJButton(label: 'Saiba mais', variant: GJButtonVariant.secondary, expand: true, onPressed: onTap),
         ],
+        ),
+        botao: GJButton(label: 'Saiba mais', variant: GJButtonVariant.secondary, expand: true, onPressed: onTap),
       ),
     );
   }
 
-  /// Card de um programa (Design System Deck, seção 15): imagem 16:9, ícone
-  /// e sigla na cor da categoria, título, descrição e "Ver detalhes".
+  /// Títulos dos cards em até três linhas: nomes longos (ex.: "Fundo de
+  /// Financiamento Estudantil") aparecem inteiros nos carrosséis e grades.
+  static const int _linhasTitulo = 3;
+
+  /// Card de um programa (Design System Deck, seção 15): imagem 16:9 (foto do
+  /// programa, ver shared/utils/fotos.dart), ícone e sigla na cor da
+  /// categoria, título, descrição e "Ver detalhes".
   factory GJCard.programa({
     Key? key,
     required String imagemUrl,
@@ -97,47 +104,53 @@ class GJCard extends StatefulWidget {
       key: key,
       onTap: onTap,
       padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(GJRadius.xl)),
-            child: AspectRatio(
-              aspectRatio: 16 / 9,
-              child: GJRemoteOrAssetImage(url: imagemUrl),
+      child: _ConteudoComBotao(
+        conteudo: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(GJRadius.xl)),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: GJRemoteOrAssetImage(url: imagemUrl),
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(GJSpace.s6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Icon(icone, size: 20, color: cor, fill: 1),
-                    const SizedBox(width: GJSpace.s2),
-                    Text(sigla, style: GJTypography.eyebrow(color: cor)),
-                  ],
-                ),
-                const SizedBox(height: GJSpace.s3),
-                Text(nome, style: GJTypography.h4(), maxLines: 2, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: GJSpace.s1),
-                Text(descricao, style: GJTypography.bodySm(), maxLines: 3, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: GJSpace.s3),
-                GJButton(label: 'Ver detalhes', variant: GJButtonVariant.secondary, color: cor, expand: true, onPressed: onTap),
-              ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(GJSpace.s6, GJSpace.s6, GJSpace.s6, GJSpace.s3),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Icon(icone, size: 20, color: cor, fill: 1),
+                      const SizedBox(width: GJSpace.s2),
+                      Flexible(
+                        child: Text(sigla, style: GJTypography.eyebrow(color: cor), maxLines: 1, overflow: TextOverflow.ellipsis),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: GJSpace.s3),
+                  Text(nome, style: GJTypography.h4(), maxLines: _linhasTitulo, overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: GJSpace.s1),
+                  Text(descricao, style: GJTypography.bodySm(), maxLines: 3, overflow: TextOverflow.ellipsis),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+        botao: Padding(
+          padding: const EdgeInsets.fromLTRB(GJSpace.s6, 0, GJSpace.s6, GJSpace.s6),
+          child: GJButton(label: 'Ver detalhes', variant: GJButtonVariant.secondary, color: cor, expand: true, onPressed: onTap),
+        ),
       ),
     );
   }
 
-  /// Card de um curso (Design System Deck, seção 15): ilustração 16:10 por
-  /// área do curso (a especificação não define uma imagem própria por
-  /// curso) e o nome centralizado.
+  /// Card de um curso (Design System Deck, seção 15): imagem 16:10 (foto do
+  /// curso, ou da área quando o curso não tem foto própria, ver
+  /// shared/utils/fotos.dart) e o nome centralizado.
   factory GJCard.curso({
     Key? key,
     required String nome,
@@ -164,7 +177,7 @@ class GJCard extends StatefulWidget {
                     nome,
                     style: GJTypography.label().copyWith(fontSize: 15, color: GJColors.textPrimary),
                     textAlign: TextAlign.center,
-                    maxLines: 2,
+                    maxLines: _linhasTitulo,
                     overflow: TextOverflow.ellipsis,
                   )
                 : Column(
@@ -174,7 +187,7 @@ class GJCard extends StatefulWidget {
                       Text(
                         nome,
                         style: GJTypography.h4(),
-                        maxLines: 2,
+                        maxLines: _linhasTitulo,
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: GJSpace.s2),
@@ -233,6 +246,26 @@ class _GJCardState extends State<GJCard> {
   }
 }
 
+/// Conteúdo do card com o botão no rodapé. Quando o card recebe uma altura
+/// fixa (carrossel e grade esticam os cards de uma linha até o mais alto),
+/// a sobra fica entre o conteúdo e o botão, e os botões da linha se alinham.
+/// Sem altura fixa, os dois ficam colados como antes.
+class _ConteudoComBotao extends StatelessWidget {
+  const _ConteudoComBotao({required this.conteudo, required this.botao});
+
+  final Widget conteudo;
+  final Widget botao;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      mainAxisSize: MainAxisSize.min,
+      children: [conteudo, botao],
+    );
+  }
+}
 
 class _CaixaLogo extends StatelessWidget {
   const _CaixaLogo({required this.logoUrl, required this.nome});

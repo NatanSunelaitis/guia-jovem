@@ -90,9 +90,11 @@ class _GJCarouselState extends State<GJCarousel> {
         SingleChildScrollView(
           controller: _controller,
           scrollDirection: Axis.horizontal,
+          // Todos os cards com a altura do mais alto (título em três linhas,
+          // por exemplo), sem cortar o conteúdo de nenhum.
           child: IntrinsicHeight(
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 for (var i = 0; i < widget.itemCount; i++) ...[
                   if (i > 0) SizedBox(width: widget.gap),
