@@ -24,6 +24,7 @@ import '../domain/avaliacao.dart';
 import '../domain/universidade.dart';
 import 'avaliar_dialog.dart';
 import '../../../shared/utils/plural.dart';
+import '../../../shared/widgets/gj_estrelas.dart';
 
 class DetalheUniversidadePage extends StatefulWidget {
   const DetalheUniversidadePage({super.key, required this.id});
@@ -259,13 +260,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        for (var i = 1; i <= 5; i++)
-                          Icon(
-                            Symbols.star,
-                            size: 18,
-                            fill: _media != null && i <= _media!.round() ? 1 : 0,
-                            color: _media != null ? GJColors.rating : GJColors.border,
-                          ),
+                        GJEstrelasMedia(media: _media),
                         const SizedBox(width: GJSpace.s1),
                         Text(
                           _media != null
@@ -490,18 +485,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                         _media?.toStringAsFixed(1) ?? '-',
                         style: GJTypography.display(size: 40).copyWith(color: GJColors.primary),
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (var i = 1; i <= 5; i++)
-                            Icon(
-                              Symbols.star,
-                              size: 16,
-                              fill: _media != null && i <= _media!.round() ? 1 : 0,
-                              color: GJColors.rating,
-                            ),
-                        ],
-                      ),
+                      GJEstrelasMedia(media: _media, tamanho: 16),
                       Text(contagem(_total, 'avaliação', 'avaliações'), style: GJTypography.caption()),
                     ],
                   ),
