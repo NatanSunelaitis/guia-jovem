@@ -1451,6 +1451,7 @@ paths:
                     type: object
                     properties:
                       nome: { type: string }
+                      areaCurso: { type: string, nullable: true, description: "Área do curso (do primeiro cadastro com esse nome)" }
                       universidades: { type: array, items: { type: object } }
                   meta: { type: object }
         '404': { $ref: '#/components/responses/NaoEncontrado' }

@@ -113,6 +113,8 @@ async function obterPorNome(prisma, nome, req) {
 
   return {
     nome,
+    // Área do primeiro cadastro: o app usa para escolher a foto do curso.
+    areaCurso: cursos[0].areaCurso ?? null,
     universidades: cursos.map((curso) => ({
       cursoId: curso.id,
       universidade: curso.universidade,

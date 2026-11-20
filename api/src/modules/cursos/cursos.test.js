@@ -96,6 +96,7 @@ describe('GET /api/v1/cursos/nome/:nome', () => {
 
     expect(resposta.status).toBe(200);
     expect(resposta.body.data.universidades[0].universidade.nomeFantasia).toBe('Fatec Sorocaba');
+    expect(resposta.body.data.areaCurso).toBe('Negócios');
     expect(prisma.visitaPagina.create).toHaveBeenCalledWith({
       data: expect.objectContaining({ entidade: 'curso', entidadeId: null, rota: '/api/v1/cursos/nome/:nome' }),
     });
