@@ -236,6 +236,7 @@ class _NovaSugestaoDialogState extends State<_NovaSugestaoDialog> {
               TextField(
                 key: const Key('texto-sugestao'),
                 controller: _textoController,
+                style: GJTypography.body(),
                 enabled: !_enviando,
                 maxLength: 2000,
                 minLines: 4,
@@ -245,6 +246,7 @@ class _NovaSugestaoDialogState extends State<_NovaSugestaoDialog> {
                   fillColor: GJColors.surfaceLow,
                   border: OutlineInputBorder(borderRadius: GJRadius.borderMd, borderSide: BorderSide.none),
                   hintText: 'Descreva sua ideia ou o problema encontrado',
+                  hintStyle: GJTypography.body().copyWith(color: GJColors.textDisabled),
                   errorText: _errosCampo['texto'],
                 ),
               ),
@@ -255,7 +257,10 @@ class _NovaSugestaoDialogState extends State<_NovaSugestaoDialog> {
                 Text(_erroGeral!, style: GJTypography.label(color: GJColors.error)),
               ],
               const SizedBox(height: GJSpace.s6),
-              Wrap(
+              // Botões à direita, como nos demais diálogos e formulários.
+              SizedBox(
+                width: double.infinity,
+                child: Wrap(
                 alignment: WrapAlignment.end,
                 spacing: GJSpace.s3,
                 runSpacing: GJSpace.s2,
@@ -267,6 +272,7 @@ class _NovaSugestaoDialogState extends State<_NovaSugestaoDialog> {
                   ),
                   GJButton(label: 'Enviar sugestão', loading: _enviando, onPressed: _enviando ? null : _enviar),
                 ],
+                ),
               ),
             ],
           ),

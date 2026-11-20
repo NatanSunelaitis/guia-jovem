@@ -125,6 +125,7 @@ class _MotivoReprovacaoDialogState extends State<_MotivoReprovacaoDialog> {
             TextField(
               key: const Key('motivo-reprovacao'),
               controller: _motivoController,
+              style: GJTypography.body(),
               autofocus: true,
               maxLength: 500,
               minLines: 3,

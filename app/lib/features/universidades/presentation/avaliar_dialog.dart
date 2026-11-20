@@ -126,6 +126,7 @@ class _AvaliarDialogState extends State<_AvaliarDialog> {
               const SizedBox(height: GJSpace.s2),
               TextField(
                 controller: _comentarioController,
+                style: GJTypography.body(),
                 enabled: !_enviando,
                 maxLength: 500,
                 maxLines: 4,
@@ -134,6 +135,7 @@ class _AvaliarDialogState extends State<_AvaliarDialog> {
                   fillColor: GJColors.surfaceLow,
                   border: OutlineInputBorder(borderRadius: GJRadius.borderMd, borderSide: BorderSide.none),
                   hintText: 'Conte para outros estudantes...',
+                  hintStyle: GJTypography.body().copyWith(color: GJColors.textDisabled),
                 ),
               ),
               if (_erro != null) ...[

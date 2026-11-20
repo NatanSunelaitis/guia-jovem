@@ -104,6 +104,7 @@ class CampoTextoLongo extends StatelessWidget {
           TextField(
             key: campoKey,
             controller: controller,
+            style: GJTypography.body(),
             minLines: 3,
             maxLines: 6,
             decoration: InputDecoration(

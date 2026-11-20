@@ -284,6 +284,7 @@ class _AvaliarSugestaoFormState extends State<AvaliarSugestaoForm> {
           TextField(
             key: const Key('resposta-sugestao'),
             controller: _respostaController,
+            style: GJTypography.body(),
             enabled: !_enviando,
             maxLength: 2000,
             minLines: 3,
@@ -293,6 +294,7 @@ class _AvaliarSugestaoFormState extends State<AvaliarSugestaoForm> {
               fillColor: GJColors.surfaceLow,
               border: OutlineInputBorder(borderRadius: GJRadius.borderMd, borderSide: BorderSide.none),
               hintText: 'Resposta para o autor',
+              hintStyle: GJTypography.body().copyWith(color: GJColors.textDisabled),
               errorText: _erroResposta,
             ),
           ),
