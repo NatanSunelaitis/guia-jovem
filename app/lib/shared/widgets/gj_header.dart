@@ -89,7 +89,9 @@ class GJHeader extends StatelessWidget implements PreferredSizeWidget {
                   // (não há navItems no header de painel), e em janelas
                   // estreitas o Row estoura e o ClipRect externo corta o
                   // que vem depois (sino/avatar/Entrar).
-                  Flexible(
+                  // Expanded (e não Flexible com um Spacer depois): o título
+                  // ocupa o meio e o sino e o avatar ficam na borda direita.
+                  Expanded(
                     child: Text(
                       tituloPainel!,
                       style: GJTypography.body().copyWith(color: GJColors.textSecondary),
@@ -109,7 +111,7 @@ class GJHeader extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ),
                 )
-              else
+              else if (tituloPainel == null || isMobile)
                 const Spacer(),
               const SizedBox(width: GJSpace.s4),
               if (notificationBell != null) ...[notificationBell!, const SizedBox(width: GJSpace.s3)],
