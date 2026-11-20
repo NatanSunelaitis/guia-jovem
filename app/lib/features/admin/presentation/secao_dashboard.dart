@@ -154,6 +154,7 @@ class _SecaoDashboardState extends State<SecaoDashboard> {
         // Cards da mesma linha com a mesma altura, ocupando a largura toda.
         return GJAlignedGrid(
           itemWidth: 200,
+          ocuparLargura: true,
           spacing: GJSpace.s4,
           runSpacing: GJSpace.s4,
           children: [
@@ -275,6 +276,7 @@ class _SecaoDashboardState extends State<SecaoDashboard> {
             // Mesma grade dos cards de resumo: a mesma largura de card.
             GJAlignedGrid(
               itemWidth: 200,
+              ocuparLargura: true,
               spacing: GJSpace.s4,
               runSpacing: GJSpace.s4,
               children: [

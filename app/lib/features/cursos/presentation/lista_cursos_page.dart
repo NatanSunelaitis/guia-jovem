@@ -8,6 +8,7 @@ import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
+import '../../../shared/widgets/gj_aligned_grid.dart';
 import '../../../shared/widgets/gj_card.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
 import '../../../shared/widgets/gj_input.dart';
@@ -97,14 +98,9 @@ class _ListaCursosPageState extends State<ListaCursosPage> {
                     return const GJEmptyState(titulo: 'Nenhum curso encontrado', texto: 'Tente outro termo de busca.');
                   }
 
-                  return Wrap(
-                    spacing: GJSpace.s4,
-                    runSpacing: GJSpace.s4,
-                    children: [
+                  final cards = [
                       for (final curso in cursos)
-                        SizedBox(
-                          width: isMobile ? (MediaQuery.sizeOf(context).width - GJSpace.s8) : 240,
-                          child: GJCard.curso(
+                          GJCard.curso(
                             nome: curso.nome,
                             ilustracao: fotoCurso(nome: curso.nome, areaCurso: curso.areaCurso),
                             onTap: () => context.go('/cursos/nome/${Uri.encodeComponent(curso.nome)}'),
@@ -121,9 +117,14 @@ class _ListaCursosPageState extends State<ListaCursosPage> {
                               ],
                             ),
                           ),
-                        ),
-                    ],
-                  );
+                  ];
+                  if (isMobile) {
+                    return Column(
+                      children: [for (final card in cards) Padding(padding: const EdgeInsets.only(bottom: GJSpace.s4), child: card)],
+                    );
+                  }
+                  // Cards da mesma linha com a mesma altura (nomes em até três linhas).
+                  return GJAlignedGrid(itemWidth: 240, spacing: GJSpace.s4, runSpacing: GJSpace.s4, children: cards);
                 },
               ),
             ],
