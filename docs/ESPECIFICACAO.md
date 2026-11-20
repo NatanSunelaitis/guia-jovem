@@ -2,6 +2,7 @@
 
 > Documento de referência para o desenvolvimento da plataforma.
 > Origem: Trabalho de Graduação "Guia Jovem: Seu Guia Completo para Financiamento Estudantil, Ingresso Universitário e Bolsas de Estudos" (FATEC Sorocaba, ADS, 2026), de Mayara Sabrina dos Santos e Natan Pierre de Almeida Sunelaitis.
+> Numeração: os RF e RNF citados aqui seguem o documento final do TG (RF01 a RF25 e RNF01 a RNF12), a mesma usada no código e no OpenAPI.
 > Regra de ouro: tudo o que está aqui foi derivado do TG. Quando houver dúvida entre o que este documento diz e o que o TG diz, o TG prevalece e a divergência deve ser registrada na seção 12.
 
 ---
@@ -11,7 +12,7 @@
 1. Este arquivo vive em `docs/ESPECIFICACAO.md` e é a fonte de verdade do escopo.
 2. O `docs/DESIGN-SYSTEM.md` é a fonte de verdade visual; as convenções de código estão na seção 3.
 3. Desenvolver seguindo a ordem de fases da seção 11. Cada fase termina com os testes descritos nela passando.
-4. Cada requisito funcional (RF) possui um ID. Commits, branches e testes devem referenciar o RF (`feat(RF02): avaliação de universidade`).
+4. Cada requisito funcional (RF) possui um ID. Commits, branches e testes devem referenciar o RF (`feat(RF01): avaliação de universidade`).
 5. Antes de implementar uma tela, ler a seção 8 (telas) e a seção 9 (matriz de rastreabilidade) para saber quais endpoints e tabelas ela consome.
 
 ---
@@ -29,7 +30,7 @@
 - Painel de Administração da Universidade (dados institucionais, cursos, campus, programas de ingresso, bolsas, sugestões recebidas).
 - Painel de Administração geral (dashboard, usuários, universidades, cursos, financiamento, bolsas, sugestões, aprovações).
 - Login com e-mail/senha e com conta Google, recuperação de senha, alteração de senha, exclusão de conta.
-- Relatório de pesquisa exportável (RF03) e estatísticas do site (RF18).
+- Relatório de pesquisa exportável (RF02) e estatísticas do site (RF16).
 
 **Fora do escopo (não implementar sem alinhar):** fórum entre alunos, intercâmbio, chat, conteúdo editorial de artigos. Aparecem apenas como sugestões dos entrevistados no Apêndice.
 
@@ -44,13 +45,13 @@
 | Universidade | `U` | Representante de uma instituição | Tudo do Aluno (exceto avaliar) + Painel de Administração da Universidade (somente da sua instituição). Só aparece publicamente após aprovação |
 | Administrador | `D` | Equipe Guia Jovem | Painel de Administração geral: CRUD de tudo, aprovação de universidades, avaliação de sugestões, estatísticas |
 
-Observação sobre o TG: o modelo lógico define `tipoUsuario VARCHAR(1)`. Mantemos o campo com um caractere e a legenda acima. No diagrama de classes o administrador possui `CPF`; manter o campo `cpf` apenas para o perfil `D`, opcional, respeitando o RNF24 (não coletar dados além do necessário).
+Observação sobre o TG: o modelo lógico define `tipoUsuario VARCHAR(1)`. Mantemos o campo com um caractere e a legenda acima. No diagrama de classes o administrador possui `CPF`; manter o campo `cpf` apenas para o perfil `D`, opcional, respeitando o RNF07 (não coletar dados além do necessário).
 
 ---
 
 ## 3. Stack, arquitetura e convenções
 
-### 3.1 Stack (fixada pelo RNF08 do TG)
+### 3.1 Stack (fixada pelo RNF12 do TG)
 
 | Camada | Tecnologia | Observação |
 | --- | --- | --- |
@@ -95,28 +96,28 @@ api/
 │   │   ├── role.middleware.js      requireRole('D'), requireRole('U','D')
 │   │   ├── ownership.middleware.js Universidade só altera a própria instituição
 │   │   ├── validate.middleware.js  valida body/query com Zod
-│   │   ├── audit.middleware.js     grava log_auditoria (RNF07)
-│   │   ├── metrics.middleware.js   grava visita_pagina (RF18)
+│   │   ├── audit.middleware.js     grava log_auditoria (RNF09)
+│   │   ├── metrics.middleware.js   grava visita_pagina (RF16)
 │   │   └── error.middleware.js     formato padrão de erro
 │   ├── modules/
-│   │   ├── auth/                   RF07, RF08, RF09
-│   │   ├── usuarios/               RF11, alterar senha, excluir conta
-│   │   ├── universidades/          RF04, RF05, RF20, RF25
-│   │   ├── campus/                 RF23, RF24
-│   │   ├── cursos/                 RF21, RF22
-│   │   ├── programas/              RF12, RF13, RF14, RF15, RF19 (entrada, financiamento, bolsa)
-│   │   ├── avaliacoes/             RF02
-│   │   ├── sugestoes/              RF10, RF16, RF17
-│   │   ├── pesquisa/               RF06, RF03
+│   │   ├── auth/                   RF05, RF06, RF07
+│   │   ├── usuarios/               RF09, alterar senha, excluir conta
+│   │   ├── universidades/          RF03, RF18, RF23
+│   │   ├── campus/                 RF21, RF22
+│   │   ├── cursos/                 RF19, RF20
+│   │   ├── programas/              RF10, RF11, RF12, RF13, RF17 (entrada, financiamento, bolsa)
+│   │   ├── avaliacoes/             RF01
+│   │   ├── sugestoes/              RF08, RF14, RF15
+│   │   ├── pesquisa/               RF04, RF02
 │   │   ├── favoritos/              faculdades salvas e pesquisas salvas (perfil aluno)
-│   │   ├── notificacoes/           RF16
-│   │   └── estatisticas/           RF18
+│   │   ├── notificacoes/           RF14
+│   │   └── estatisticas/           RF16
 │   │   (cada módulo: *.routes.js, *.controller.js, *.service.js, *.repository.js, *.schema.js, *.test.js)
 │   ├── shared/
 │   │   ├── errors/AppError.js
 │   │   ├── utils/pagination.js
 │   │   ├── utils/cnpj.js           validação de CNPJ
-│   │   └── utils/report.js         geração de CSV/PDF (RF03)
+│   │   └── utils/report.js         geração de CSV/PDF (RF02)
 │   └── docs/openapi.yaml           contrato da API (Swagger UI em /docs)
 ├── prisma/
 │   ├── schema.prisma
@@ -175,9 +176,9 @@ app/
 - Respostas da API sempre em envelope: `{ "data": ..., "meta": {...} }` para sucesso e `{ "error": { "code": "...", "message": "...", "details": [...] } }` para erro.
 - Paginação padrão: `?page=1&pageSize=20`, resposta `meta: { page, pageSize, total, totalPages }`.
 - Datas em ISO 8601 UTC.
-- Toda ação de escrita gera registro em `log_auditoria` (RNF07).
+- Toda ação de escrita gera registro em `log_auditoria` (RNF09).
 - Tempo de resposta alvo abaixo de 5 s em qualquer operação (RNF11). Índices nas colunas de filtro da pesquisa.
-- Exclusões de usuário são físicas (RNF17 e Figura 36: "eliminar permanentemente"), com anonimização das avaliações e sugestões deixadas (mantém a média, remove o vínculo). Exclusões de catálogo (universidade, campus, curso, programa) são lógicas via `ativo`.
+- Exclusões de usuário são físicas (RNF07 e Figura 36: "eliminar permanentemente"), com anonimização das avaliações e sugestões deixadas (mantém a média, remove o vínculo). Exclusões de catálogo (universidade, campus, curso, programa) são lógicas via `ativo`.
 
 ---
 
@@ -189,11 +190,11 @@ O modelo lógico do TG traz as tabelas `USUARIO`, `UNIVERSIDADE`, `CAMPUS`, `END
 
 ### 4.2 Decisões de modelagem (registrar no TG se necessário)
 
-1. **Curso x Campus:** o modelo lógico coloca `idCampus` dentro de `CURSO`. O RF22 ("Relacionar curso e campus") e a Figura 19 (campus mostra os cursos que oferece) indicam que um mesmo curso da universidade pode existir em vários campus. Decisão: `curso` pertence à universidade e a tabela `campus_curso` faz o relacionamento N:N. Isso atende ao RF21, RF22 e RF23 sem duplicar cursos.
-2. **Programa de entrada unificado:** o modelo lógico tem uma tabela `PROGRAMA DE ENTRADA` com coluna `tipo VARCHAR(15)`. Decisão: uma única tabela `programa` com `tipo ENUM('ENTRADA','FINANCIAMENTO','BOLSA')`. RF12 (financiamento), RF13 (bolsa) e RF19 (entrada) são o mesmo CRUD filtrado por tipo. Programas globais (ENEM, SiSU, ProUni, FIES) são criados pelo Administrador com `id_universidade NULL`. Bolsas institucionais são criadas pela Universidade com `id_universidade` preenchido (aba "Bolsas de Estudo" do painel da universidade).
+1. **Curso x Campus:** o modelo lógico coloca `idCampus` dentro de `CURSO`. O RF20 ("Relacionar curso e campus") e a Figura 19 (campus mostra os cursos que oferece) indicam que um mesmo curso da universidade pode existir em vários campus. Decisão: `curso` pertence à universidade e a tabela `campus_curso` faz o relacionamento N:N. Isso atende ao RF19, RF20 e RF21 sem duplicar cursos.
+2. **Programa de entrada unificado:** o modelo lógico tem uma tabela `PROGRAMA DE ENTRADA` com coluna `tipo VARCHAR(15)`. Decisão: uma única tabela `programa` com `tipo ENUM('ENTRADA','FINANCIAMENTO','BOLSA')`. RF10 (financiamento), RF11 (bolsa) e RF17 (entrada) são o mesmo CRUD filtrado por tipo. Programas globais (ENEM, SiSU, ProUni, FIES) são criados pelo Administrador com `id_universidade NULL`. Bolsas institucionais são criadas pela Universidade com `id_universidade` preenchido (aba "Bolsas de Estudo" do painel da universidade).
 3. **Endereço:** tabela própria conforme o modelo lógico, 1:1 com campus. A universidade tem endereço principal via o campus marcado como `principal = 1`.
-4. **Status da universidade:** `VARCHAR(1)`: `P` pendente, `A` aprovada, `R` reprovada, `I` inativa. Somente `A` aparece nas pesquisas públicas (RF25).
-5. **Sugestão:** status conforme RF17: `EM_ANALISE` (padrão), `APROVADA`, `REPROVADA`. Sugestão pode ser direcionada ao Guia Jovem (`id_universidade NULL`) ou a uma universidade (aba "Sugestões" do painel da universidade).
+4. **Status da universidade:** `VARCHAR(1)`: `P` pendente, `A` aprovada, `R` reprovada, `I` inativa. Somente `A` aparece nas pesquisas públicas (RF23).
+5. **Sugestão:** status conforme RF15: `EM_ANALISE` (padrão), `APROVADA`, `REPROVADA`. Sugestão pode ser direcionada ao Guia Jovem (`id_universidade NULL`) ou a uma universidade (aba "Sugestões" do painel da universidade).
 
 ### 4.3 DDL de referência (MySQL 8)
 
@@ -221,14 +222,14 @@ CREATE TABLE universidade (
   cnpj              CHAR(14) NOT NULL UNIQUE,
   descricao         TEXT NULL,
   telefone_principal VARCHAR(15) NULL,
-  link_pagina        VARCHAR(255) NULL,           -- RF05: site institucional
-  link_simulados     VARCHAR(255) NULL,           -- RF01: página de simulados anteriores
+  link_pagina        VARCHAR(255) NULL,           -- RF03: site institucional
+  link_simulados     VARCHAR(255) NULL,           -- RF03: página de simulados anteriores
   logo_url           VARCHAR(255) NULL,
   natureza           CHAR(1) NOT NULL DEFAULT 'V', -- P pública | V privada (filtro "Públicas/Federais" vs "Privadas" da Figura 17)
-  status             CHAR(1) NOT NULL DEFAULT 'P', -- P pendente | A aprovada | R reprovada | I inativa (RF25)
+  status             CHAR(1) NOT NULL DEFAULT 'P', -- P pendente | A aprovada | R reprovada | I inativa (RF23)
   aprovado_em        DATETIME NULL,
   aprovado_por       INT NULL,
-  media_avaliacao    DECIMAL(3,2) NULL,            -- cache calculado (RF02)
+  media_avaliacao    DECIMAL(3,2) NULL,            -- cache calculado (RF01)
   total_avaliacoes   INT NOT NULL DEFAULT 0,
   criado_em          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   atualizado_em      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -281,7 +282,7 @@ CREATE TABLE curso (
   INDEX idx_curso_area (area_curso)
 );
 
-CREATE TABLE campus_curso (                      -- RF22 (complemento ao modelo lógico)
+CREATE TABLE campus_curso (                      -- RF20 (complemento ao modelo lógico)
   id_campus INT NOT NULL,
   id_curso  INT NOT NULL,
   turno     VARCHAR(20) NULL,                    -- Manhã | Tarde | Noite | Integral
@@ -296,7 +297,7 @@ CREATE TABLE programa (                          -- PROGRAMA DE ENTRADA do model
   nome            VARCHAR(100) NOT NULL,
   sigla           VARCHAR(20) NULL,              -- ENEM, SISU, PROUNI, FIES
   descricao       TEXT NOT NULL,
-  tipo            ENUM('ENTRADA','FINANCIAMENTO','BOLSA') NOT NULL,  -- RF19 | RF12 | RF13
+  tipo            ENUM('ENTRADA','FINANCIAMENTO','BOLSA') NOT NULL,  -- RF17 | RF10 | RF11
   requisitos      TEXT NULL,
   como_funciona   TEXT NULL,
   link_oficial    VARCHAR(255) NULL,
@@ -320,7 +321,7 @@ CREATE TABLE programa_evento (                   -- "Cronograma" e "Datas Import
   FOREIGN KEY (id_programa) REFERENCES programa(id_programa) ON DELETE CASCADE
 );
 
-CREATE TABLE universidade_programa (             -- RF14, RF15, RF19 (relacionamento "Possui" do DER)
+CREATE TABLE universidade_programa (             -- RF12, RF13, RF17 (relacionamento "Possui" do DER)
   id_universidade INT NOT NULL,
   id_programa     INT NOT NULL,
   observacao      VARCHAR(255) NULL,             -- ex.: "aceita nota do ENEM a partir de 450"
@@ -329,7 +330,7 @@ CREATE TABLE universidade_programa (             -- RF14, RF15, RF19 (relacionam
   FOREIGN KEY (id_programa) REFERENCES programa(id_programa) ON DELETE CASCADE
 );
 
-CREATE TABLE avaliacao (                         -- RF02 (relacionamento "Avalia" do DER)
+CREATE TABLE avaliacao (                         -- RF01 (relacionamento "Avalia" do DER)
   id_avaliacao    INT AUTO_INCREMENT PRIMARY KEY,
   id_usuario      INT NULL,                      -- NULL após exclusão de conta (anonimizada)
   id_universidade INT NOT NULL,
@@ -342,7 +343,7 @@ CREATE TABLE avaliacao (                         -- RF02 (relacionamento "Avalia
   CHECK (nota BETWEEN 1 AND 5)
 );
 
-CREATE TABLE sugestao (                          -- RF10, RF17 (classe Sugestão do diagrama)
+CREATE TABLE sugestao (                          -- RF08, RF15 (classe Sugestão do diagrama)
   id_sugestao     INT AUTO_INCREMENT PRIMARY KEY,
   id_usuario      INT NULL,
   id_universidade INT NULL,                      -- NULL = sugestão para o Guia Jovem
@@ -358,7 +359,7 @@ CREATE TABLE sugestao (                          -- RF10, RF17 (classe Sugestão
   FOREIGN KEY (avaliado_por) REFERENCES usuario(id_usuario)
 );
 
-CREATE TABLE notificacao (                       -- RF16, RF25 (complemento)
+CREATE TABLE notificacao (                       -- RF14, RF23 (complemento)
   id_notificacao  INT AUTO_INCREMENT PRIMARY KEY,
   id_usuario      INT NOT NULL,                  -- destinatário
   tipo            VARCHAR(30) NOT NULL,          -- NOVA_SUGESTAO | UNIVERSIDADE_PENDENTE | UNIVERSIDADE_APROVADA | SUGESTAO_AVALIADA
@@ -391,7 +392,7 @@ CREATE TABLE pesquisa_salva (                    -- classe pesquisaSalva do diag
   FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
 );
 
-CREATE TABLE token_recuperacao (                 -- RF09 (complemento)
+CREATE TABLE token_recuperacao (                 -- RF07 (complemento)
   id_token    INT AUTO_INCREMENT PRIMARY KEY,
   id_usuario  INT NOT NULL,
   token_hash  CHAR(64) NOT NULL UNIQUE,
@@ -400,7 +401,7 @@ CREATE TABLE token_recuperacao (                 -- RF09 (complemento)
   FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
 );
 
-CREATE TABLE refresh_token (                     -- RF07, RF08 (complemento)
+CREATE TABLE refresh_token (                     -- RF05, RF06 (complemento)
   id_refresh  INT AUTO_INCREMENT PRIMARY KEY,
   id_usuario  INT NOT NULL,
   token_hash  CHAR(64) NOT NULL UNIQUE,
@@ -409,7 +410,7 @@ CREATE TABLE refresh_token (                     -- RF07, RF08 (complemento)
   FOREIGN KEY (id_usuario) REFERENCES usuario(id_usuario) ON DELETE CASCADE
 );
 
-CREATE TABLE log_auditoria (                     -- RNF07 (complemento)
+CREATE TABLE log_auditoria (                     -- RNF09 (complemento)
   id_log      BIGINT AUTO_INCREMENT PRIMARY KEY,
   id_usuario  INT NULL,
   acao        VARCHAR(20) NOT NULL,              -- CREATE | UPDATE | DELETE | LOGIN | LOGOUT | APROVAR
@@ -421,7 +422,7 @@ CREATE TABLE log_auditoria (                     -- RNF07 (complemento)
   criado_em   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE visita_pagina (                     -- RF18 (complemento). Sem dados pessoais: RNF24
+CREATE TABLE visita_pagina (                     -- RF16 (complemento). Sem dados pessoais: RNF07
   id_visita   BIGINT AUTO_INCREMENT PRIMARY KEY,
   rota        VARCHAR(120) NOT NULL,
   entidade    VARCHAR(30) NULL,                  -- universidade | programa | curso
@@ -446,7 +447,7 @@ CREATE TABLE visita_pagina (                     -- RF18 (complemento). Sem dado
 
 Base: `/api/v1`. Autenticação via header `Authorization: Bearer <access_token>`. Legenda de acesso: **Pub** público, **Aut** qualquer logado, **A** aluno, **U** universidade (dona), **D** administrador.
 
-### 5.1 Auth (RF07, RF08, RF09)
+### 5.1 Auth (RF05, RF06, RF07)
 
 | Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
@@ -455,14 +456,14 @@ Base: `/api/v1`. Autenticação via header `Authorization: Bearer <access_token>
 | POST | `/auth/login` | Pub | Body: `email, senha`. Retorna `accessToken, refreshToken, usuario{ id, nome, email, tipoUsuario, fotoUrl, universidade?{id,status} }` |
 | POST | `/auth/google` | Pub | Body: `idToken` do Google. Cria ou vincula conta `A`. Universidade não pode ser criada via Google (precisa dos dados institucionais) |
 | POST | `/auth/refresh` | Pub | Body: `refreshToken`. Rotaciona o refresh token |
-| POST | `/auth/logout` | Aut | Revoga o refresh token. Frontend pede confirmação antes (RF08, passo 2) |
+| POST | `/auth/logout` | Aut | Revoga o refresh token. Frontend pede confirmação antes (RF06, passo 2) |
 | POST | `/auth/forgot-password` | Pub | Body: `email`. Sempre responde 200 (não revela se o e-mail existe). Envia e-mail com link `/#/redefinir-senha?token=...` válido por 1 h |
 | POST | `/auth/reset-password` | Pub | Body: `token, novaSenha` |
 | GET | `/auth/me` | Aut | Dados do usuário logado |
 
 Regras: senha com mínimo 7 caracteres (Figura 24: "senha com 7 ou mais caracteres"), hash bcrypt custo 12. Access token 15 min, refresh 7 dias. Login de universidade com `status=P` é permitido, mas o painel exibe aviso "Cadastro em análise" e o perfil não aparece publicamente. `status=R` bloqueia o painel com a justificativa.
 
-### 5.2 Usuários (RF11, alteração de senha, exclusão)
+### 5.2 Usuários (RF09, alteração de senha, exclusão)
 
 | Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
@@ -473,27 +474,27 @@ Regras: senha com mínimo 7 caracteres (Figura 24: "senha com 7 ou mais caracter
 | DELETE | `/usuarios/:id` | D ou próprio | Exclusão permanente. Body: `confirmacao: "EXCLUIR"` ou senha atual. Anonimiza avaliações e sugestões. Se for `U`, a universidade vai para `status=I` |
 | POST | `/usuarios` | D | Admin cria usuário de qualquer tipo |
 
-### 5.3 Universidades (RF04, RF05, RF20, RF25)
+### 5.3 Universidades (RF03, RF18, RF23)
 
 | Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
-| GET | `/universidades` | Pub | Pesquisa dinâmica (RF06). Query: `q, cidade, estado, natureza (P/V), programaId, cursoId, areaCurso, page, pageSize, sort (nome|media|avaliacoes)`. Retorna só `status=A` |
+| GET | `/universidades` | Pub | Pesquisa dinâmica (RF04). Query: `q, cidade, estado, natureza (P/V), programaId, cursoId, areaCurso, page, pageSize, sort (nome|media|avaliacoes)`. Retorna só `status=A` |
 | GET | `/universidades/destaques` | Pub | Carrossel da home (Figura 13): top N por média/visitas |
 | GET | `/universidades/:id` | Pub | Detalhe (Figura 18): dados, endereço principal, media, total avaliações, `programas[]` agrupados por tipo, `campus[]` resumido, `linkPagina`, `linkSimulados`. Registra `visita_pagina` |
 | GET | `/universidades/:id/campus` | Pub | Lista campus com cursos (Figura 19) |
 | GET | `/universidades/:id/cursos` | Pub | Cursos da universidade |
 | GET | `/universidades/:id/avaliacoes` | Pub | Lista paginada de avaliações |
-| POST | `/universidades` | D | Admin cadastra universidade já aprovada (RF20) |
+| POST | `/universidades` | D | Admin cadastra universidade já aprovada (RF18) |
 | PATCH | `/universidades/:id` | U (dona) ou D | Atualiza dados institucionais (aba Informações do painel) |
 | DELETE | `/universidades/:id` | D | Exclusão lógica (`status=I`) |
-| PUT | `/universidades/:id/programas` | U (dona) ou D | Body: `programasIds[]`. Substitui o conjunto (RF14, RF15, RF19) |
-| GET | `/universidades/pendentes` | D | Lista `status=P` (RF25) |
-| POST | `/universidades/:id/aprovar` | D | `status=A`, `aprovado_em`, envia e-mail e notificação (RF25) |
+| PUT | `/universidades/:id/programas` | U (dona) ou D | Body: `programasIds[]`. Substitui o conjunto (RF12, RF13, RF17) |
+| GET | `/universidades/pendentes` | D | Lista `status=P` (RF23) |
+| POST | `/universidades/:id/aprovar` | D | `status=A`, `aprovado_em`, envia e-mail e notificação (RF23) |
 | POST | `/universidades/:id/reprovar` | D | Body: `motivo`. `status=R`, envia e-mail |
 
-Regra RF05/RF01: `linkPagina` e `linkSimulados` são retornados como URLs absolutas validadas; o frontend abre em nova aba.
+Regra RF03: `linkPagina` e `linkSimulados` são retornados como URLs absolutas validadas; o frontend abre em nova aba.
 
-### 5.4 Campus (RF23, RF24)
+### 5.4 Campus (RF21, RF22)
 
 | Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
@@ -501,9 +502,9 @@ Regra RF05/RF01: `linkPagina` e `linkSimulados` são retornados como URLs absolu
 | POST | `/universidades/:id/campus` | U (dona) ou D | Body: `nome, telefoneCelular, telefoneFixo, emailCampus, principal, endereco{logradouro, numero, complemento, bairro, cidade, estado, cep}` (Figura 30) |
 | PATCH | `/campus/:id` | U (dona) ou D | Atualiza campus e endereço |
 | DELETE | `/campus/:id` | U (dona) ou D | Lógica. Não permite excluir o único campus |
-| PUT | `/campus/:id/cursos` | U (dona) ou D | Body: `[{cursoId, turno, vagas}]`. RF22 |
+| PUT | `/campus/:id/cursos` | U (dona) ou D | Body: `[{cursoId, turno, vagas}]`. RF20 |
 
-### 5.5 Cursos (RF21, RF22)
+### 5.5 Cursos (RF19, RF20)
 
 | Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
@@ -515,7 +516,7 @@ Regra RF05/RF01: `linkPagina` e `linkSimulados` são retornados como URLs absolu
 | PATCH | `/cursos/:id` | U (dona) ou D | Atualiza |
 | DELETE | `/cursos/:id` | U (dona) ou D | Lógica |
 
-### 5.6 Programas (RF12, RF13, RF19, RF14, RF15)
+### 5.6 Programas (RF10, RF11, RF17, RF12, RF13)
 
 | Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
@@ -529,7 +530,7 @@ Regra RF05/RF01: `linkPagina` e `linkSimulados` são retornados como URLs absolu
 | PATCH/DELETE | `/programas/eventos/:id` | D ou U (dona) | |
 | GET | `/programas/:id/universidades` | Pub | Universidades relacionadas |
 
-### 5.7 Avaliações (RF02)
+### 5.7 Avaliações (RF01)
 
 | Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
@@ -538,7 +539,7 @@ Regra RF05/RF01: `linkPagina` e `linkSimulados` são retornados como URLs absolu
 | DELETE | `/avaliacoes/:id` | próprio ou D | Remove e recalcula |
 | GET | `/avaliacoes/minhas` | A | Avaliações do aluno |
 
-### 5.8 Sugestões e notificações (RF10, RF16, RF17)
+### 5.8 Sugestões e notificações (RF08, RF14, RF15)
 
 | Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
@@ -558,7 +559,7 @@ Regra RF05/RF01: `linkPagina` e `linkSimulados` são retornados como URLs absolu
 | GET/POST/DELETE | `/favoritos/universidades[/:id]` | A, U | Faculdades salvas |
 | GET/POST/DELETE | `/pesquisas-salvas[/:id]` | A, U | Body: `nome, tipo, parametros` |
 
-### 5.10 Relatório de pesquisa (RF03) e estatísticas (RF18)
+### 5.10 Relatório de pesquisa (RF02) e estatísticas (RF16)
 
 | Método | Rota | Acesso | Descrição |
 | --- | --- | --- | --- |
@@ -586,31 +587,31 @@ Regra RF05/RF01: `linkPagina` e `linkSimulados` são retornados como URLs absolu
 
 ## 6. Regras de negócio consolidadas
 
-1. **Aprovação (RF25):** universidade nasce `P`. Só `A` é listada publicamente, recebe avaliações e aparece em relatórios. Ao aprovar, enviar e-mail ("sua conta foi aprovada") e criar notificação. O aviso da Figura 27 informa prazo de até 15 dias.
-2. **Avaliação (RF02):** só perfil `A` logado, uma avaliação por universidade, nota inteira de 1 a 5, comentário opcional até 500 caracteres. Média com 2 decimais, recalculada em transação. Universidade não avalia (evita autoavaliação).
-3. **Sugestão (RF10, RF16, RF17):** qualquer logado envia. Notificação imediata aos destinatários. Status inicial `EM_ANALISE`. Avaliador pode registrar resposta. Autor vê o histórico com status no perfil.
-4. **Pesquisa dinâmica (RF06, RNF18):** todos os filtros são opcionais; sem nenhum filtro, retorna os destaques. O TG coloca "logado" como pré-condição no Quadro 8, mas o ator é Visitante e as telas (Figuras 17 e 20) são públicas. Decisão: pesquisa pública; salvar pesquisa exige login.
-5. **Links externos (RF01, RF05):** sempre `target=_blank` com `rel=noopener`. Se a universidade não informou `linkSimulados`, ocultar o botão em vez de mostrar link quebrado (RNF20).
+1. **Aprovação (RF23):** universidade nasce `P`. Só `A` é listada publicamente, recebe avaliações e aparece em relatórios. Ao aprovar, enviar e-mail ("sua conta foi aprovada") e criar notificação. O aviso da Figura 27 informa prazo de até 15 dias.
+2. **Avaliação (RF01):** só perfil `A` logado, uma avaliação por universidade, nota inteira de 1 a 5, comentário opcional até 500 caracteres. Média com 2 decimais, recalculada em transação. Universidade não avalia (evita autoavaliação).
+3. **Sugestão (RF08, RF14, RF15):** qualquer logado envia. Notificação imediata aos destinatários. Status inicial `EM_ANALISE`. Avaliador pode registrar resposta. Autor vê o histórico com status no perfil.
+4. **Pesquisa dinâmica (RF04, RNF05):** todos os filtros são opcionais; sem nenhum filtro, retorna os destaques. O TG coloca "logado" como pré-condição no Quadro 6, mas o ator é Visitante e as telas (Figuras 17 e 20) são públicas. Decisão: pesquisa pública; salvar pesquisa exige login.
+5. **Links externos (RF03, RNF06):** sempre `target=_blank` com `rel=noopener`. Se a universidade não informou `linkSimulados`, ocultar o botão em vez de mostrar link quebrado (RNF06).
 6. **Propriedade (ownership):** perfil `U` só lê/escreve recursos cuja `id_universidade` pertença ao seu usuário. Verificado no middleware, nunca só no frontend.
 7. **Exclusão de conta:** exige confirmação explícita (Figura 36). Irreversível. Universidade excluída deixa de aparecer imediatamente.
-8. **Privacidade (RNF17, RNF24):** não coletar CPF de alunos, não gravar IP em `visita_pagina`, não expor e-mail de usuários em avaliações públicas (mostrar apenas primeiro nome).
-9. **Logs (RNF07):** todo POST/PATCH/PUT/DELETE grava `log_auditoria` antes de responder, dentro da mesma transação quando possível.
-10. **Logoff (RF08):** frontend exibe confirmação; backend revoga refresh token; frontend limpa storage e redireciona para a home.
+8. **Privacidade (RNF07):** não coletar CPF de alunos, não gravar IP em `visita_pagina`, não expor e-mail de usuários em avaliações públicas (mostrar apenas primeiro nome).
+9. **Logs (RNF09):** todo POST/PATCH/PUT/DELETE grava `log_auditoria` antes de responder, dentro da mesma transação quando possível.
+10. **Logoff (RF06):** frontend exibe confirmação; backend revoga refresh token; frontend limpa storage e redireciona para a home.
 
 ---
 
 ## 7. Fluxos principais (diagramas de atividade do TG)
 
-### 7.1 RF02 Avaliar Universidade
+### 7.1 RF01 Avaliar Universidade
 Aluno acessa detalhe da universidade > clica em "Avaliar" > se não logado, abre modal de login e retorna à tela > escolhe nota (1 a 5 estrelas) e escreve comentário > envia > API valida, salva/atualiza, recalcula média > tela atualiza a média e a lista de avaliações com a nova no topo.
 
-### 7.2 RF16 Notificação de Sugestão
-Usuário logado abre "Sugestões" (perfil ou rodapé) > preenche título e texto (e opcionalmente a universidade) > envia > API salva `EM_ANALISE` e cria uma `notificacao` para cada administrador (ou para o dono da universidade) > o sino do header do painel mostra contador > administrador abre a notificação > cai na tela de avaliação da sugestão (RF17) > seleciona status e resposta > autor recebe notificação.
+### 7.2 RF14 Notificação de Sugestão
+Usuário logado abre "Sugestões" (perfil ou rodapé) > preenche título e texto (e opcionalmente a universidade) > envia > API salva `EM_ANALISE` e cria uma `notificacao` para cada administrador (ou para o dono da universidade) > o sino do header do painel mostra contador > administrador abre a notificação > cai na tela de avaliação da sugestão (RF15) > seleciona status e resposta > autor recebe notificação.
 
 ### 7.3 Cadastro de Universidade (Figuras 23, 27 a 30)
 "Criar conta" > escolhe "Universidade" > tela de aviso (avaliação administrativa, dados usados somente para validação, retorno em até 15 dias) > checkbox "Concordo com os termos e condições" > Prosseguir > Passo 1 dados institucionais (razão social, CNPJ, nome fantasia, telefone principal, link da página inicial, link de simulados anteriores, e-mail, senha, confirmar senha) > Passo 2 programas de entrada aceitos (multi-seleção agrupada em Financiamento, Bolsas, Entrada) > Passo 3 primeiro campus (nome, logradouro, bairro, cidade, estado, número, telefone) > Cadastrar > tela de sucesso "Cadastro enviado para análise" > login liberado com aviso de pendência.
 
-### 7.4 Recuperação de senha (RF09)
+### 7.4 Recuperação de senha (RF07)
 Login > "Esqueci minha senha" > informa e-mail > mensagem neutra de sucesso > e-mail com link > tela "Redefinir senha" (nova senha + confirmação) > sucesso > login.
 
 ---
@@ -633,14 +634,14 @@ Numeração alinhada às figuras do TG. Para cada tela: rota, acesso, componente
 ### T02 Pesquisa de Universidades `/universidades` (Figuras 17 e 18) | Pub
 - Barra de filtros: universidade (texto), cidade (texto ou autocomplete), toggle natureza, slider "Nota" mínima (Figura 17), filtros avançados colapsáveis: estado, programa aceito, área do curso. Botão Pesquisar. Chips dos filtros aplicados. Botão "Salvar pesquisa" (só logado).
 - Resultado: grade de cards de universidade (logo, nome, cidade/UF, média, programas em tags). Paginação. Ordenar por nome, média, avaliações.
-- Botão "Gerar relatório" (RF03): abre menu CSV ou PDF, chama `/relatorios/pesquisa` com os filtros atuais.
+- Botão "Gerar relatório" (RF02): abre menu CSV ou PDF, chama `/relatorios/pesquisa` com os filtros atuais.
 - Vazio: ilustração + "Nenhuma universidade encontrada com esses filtros".
 
 ### T03 Detalhe da Universidade `/universidades/:id` (Figura 18) | Pub
-- Apresentado como modal grande no TG (Figura 18) sobre a pesquisa; no design final pode ser página. Conteúdo: logo, nome, descrição, botão "Acessar Página da Faculdade" (RF05), botão "Simulados Anteriores" (RF01, oculto se vazio), média + total avaliações.
+- Apresentado como modal grande no TG (Figura 18) sobre a pesquisa; no design final pode ser página. Conteúdo: logo, nome, descrição, botão "Acessar Página da Faculdade" (RF03), botão "Simulados Anteriores" (RF03, oculto se vazio), média + total avaliações.
 - Bloco "Campus": campo "Pesquisar campus" + lista (nome, cidade, botão "ver campus" > T04).
 - Bloco "Como entrar na universidade": lista dos programas aceitos agrupados (Programas de Entrada, Financiamento, Bolsas) com tags clicáveis para T08.
-- Bloco "Avaliações": média, distribuição por nota, lista paginada (primeiro nome, nota, comentário, data). Botão "Avaliar" (RF02) abre modal T03a.
+- Bloco "Avaliações": média, distribuição por nota, lista paginada (primeiro nome, nota, comentário, data). Botão "Avaliar" (RF01) abre modal T03a.
 - Ação "Salvar faculdade" (ícone de favorito, só logado).
 
 ### T03a Modal Avaliar Universidade | A
@@ -688,7 +689,7 @@ Numeração alinhada às figuras do TG. Para cada tela: rota, acesso, componente
 - "Cadastre seu primeiro Campus!" Campos: nome do campus, logradouro, número, complemento, bairro, cidade, estado (select UF), CEP, telefone. Botões "Voltar" e "Cadastrar". Sucesso: tela "Cadastro enviado para análise, você receberá um e-mail".
 
 ### T16 Perfil do Aluno `/perfil` (Figuras 25 e 26) | A
-- Avatar com botão de câmera para alterar foto, campos nome e e-mail, botões empilhados: Editar Perfil, Alterar Senha (T21), Histórico de Sugestões (T18), Faculdades Salvas (T19), e botão vermelho "Sair" (RF08 com confirmação). Excluir conta fica no menu do header (Figura 26) e abre T22.
+- Avatar com botão de câmera para alterar foto, campos nome e e-mail, botões empilhados: Editar Perfil, Alterar Senha (T21), Histórico de Sugestões (T18), Faculdades Salvas (T19), e botão vermelho "Sair" (RF06 com confirmação). Excluir conta fica no menu do header (Figura 26) e abre T22.
 
 ### T17 Perfil da Universidade `/perfil` (Figuras 31 e 32) | U
 - Igual ao T16 mais o botão "Painel Administrativo" (T23). Badge de status da universidade (Em análise, Aprovada, Reprovada).
@@ -711,22 +712,22 @@ Numeração alinhada às figuras do TG. Para cada tela: rota, acesso, componente
 ### T23 Painel de Administração da Universidade `/painel-universidade` (Figura 33 e protótipo Stitch "Painel de Administração da Universidade") | U aprovada (pendente vê aviso)
 Layout do protótipo: header com "Guia Jovem | Painel de Administração da Universidade", sino de notificações, avatar. Título "Configurações Gerais", botões "Descartar" e "Salvar Alterações". Tabs horizontais com ícones:
 1. **Informações** (`PATCH /universidades/:id`): seções "Identidade Institucional" (nome fantasia, razão social, CNPJ, status de operação read-only), "Localização e Contato" (endereço principal, telefone, e-mail), "Descrição", "Links" (página, simulados). Coluna lateral: card "Visibilidade da Página" (status aprovado/pendente), card "Estatísticas do Perfil" (visualizações 30 d, interessados) via `/estatisticas/universidade/:id`, card upload "Logo da Instituição".
-2. **Cursos** (RF21, RF22): tabela (nome, área, grau, modalidade, campus onde é ofertado, ações). Botão "Novo curso" abre drawer com formulário + multi-seleção de campus com turno e vagas.
-3. **Campus** (RF23): tabela (nome, cidade/UF, telefone, principal, ações). Drawer com formulário completo de campus e endereço. Não permite excluir o único campus.
-4. **Programas de Entrada** (RF14, RF19): multi-seleção dos programas globais tipo ENTRADA e FINANCIAMENTO com salvar.
-5. **Bolsas de Estudo** (RF13, RF15): dois blocos: bolsas globais aceitas (ProUni etc., seleção) e bolsas institucionais (CRUD próprio: nome, descrição, requisitos, percentual, link).
-6. **Sugestões** (RF17 no escopo da universidade): lista de sugestões direcionadas à universidade com filtro por status e ação de avaliar (drawer com status + resposta).
+2. **Cursos** (RF19, RF20): tabela (nome, área, grau, modalidade, campus onde é ofertado, ações). Botão "Novo curso" abre drawer com formulário + multi-seleção de campus com turno e vagas.
+3. **Campus** (RF21): tabela (nome, cidade/UF, telefone, principal, ações). Drawer com formulário completo de campus e endereço. Não permite excluir o único campus.
+4. **Programas de Entrada** (RF12, RF17): multi-seleção dos programas globais tipo ENTRADA e FINANCIAMENTO com salvar.
+5. **Bolsas de Estudo** (RF11, RF13): dois blocos: bolsas globais aceitas (ProUni etc., seleção) e bolsas institucionais (CRUD próprio: nome, descrição, requisitos, percentual, link).
+6. **Sugestões** (RF15 no escopo da universidade): lista de sugestões direcionadas à universidade com filtro por status e ação de avaliar (drawer com status + resposta).
 
 ### T24 Painel de Administração (Guia Jovem) `/admin` (Figura 34) | D
 Mesmo layout do T23, título "Painel de Administração". Tabs:
-1. **Dashboard** (RF18): cards de resumo (`/estatisticas/resumo`), gráfico de visitas por dia/mês, ranking de universidades/programas/cursos mais vistos, filtro de período, botão "Exportar relatório".
-2. **Usuários** (RF11): tabela (nome, e-mail, tipo, ativo, criado em), busca, filtro por tipo, ações editar/excluir, botão "Novo usuário".
-3. **Universidades** (RF20, RF25): sub-aba "Pendentes de aprovação" (cards com dados completos, botões Aprovar e Reprovar com motivo) e sub-aba "Todas" (tabela com status, ações editar/inativar, acesso ao painel da universidade em modo admin).
-4. **Cursos** (RF21): tabela global com filtro por universidade e área, CRUD.
-5. **Financiamento** (RF12): CRUD de programas tipo FINANCIAMENTO com cronograma.
-6. **Bolsas de Estudo** (RF13): CRUD de programas tipo BOLSA globais.
-7. **Programas de Entrada** (RF19): CRUD de programas tipo ENTRADA. (A Figura 34 mostra 7 abas; esta é acrescentada porque o RF19 exige gerenciar programas de entrada.)
-8. **Sugestões** (RF16, RF17): lista de todas as sugestões, filtro por status, indicador de não lidas, avaliação com resposta.
+1. **Dashboard** (RF16): cards de resumo (`/estatisticas/resumo`), gráfico de visitas por dia/mês, ranking de universidades/programas/cursos mais vistos, filtro de período, botão "Exportar relatório".
+2. **Usuários** (RF09): tabela (nome, e-mail, tipo, ativo, criado em), busca, filtro por tipo, ações editar/excluir, botão "Novo usuário".
+3. **Universidades** (RF18, RF23): sub-aba "Pendentes de aprovação" (cards com dados completos, botões Aprovar e Reprovar com motivo) e sub-aba "Todas" (tabela com status, ações editar/inativar, acesso ao painel da universidade em modo admin).
+4. **Cursos** (RF19): tabela global com filtro por universidade e área, CRUD.
+5. **Financiamento** (RF10): CRUD de programas tipo FINANCIAMENTO com cronograma.
+6. **Bolsas de Estudo** (RF11): CRUD de programas tipo BOLSA globais.
+7. **Programas de Entrada** (RF17): CRUD de programas tipo ENTRADA. (A Figura 34 mostra 7 abas; esta é acrescentada porque o RF17 exige gerenciar programas de entrada.)
+8. **Sugestões** (RF14, RF15): lista de todas as sugestões, filtro por status, indicador de não lidas, avaliação com resposta.
 
 ### T25 Redefinir senha `/redefinir-senha?token=` | Pub
 - Nova senha, confirmar, botão Redefinir. Token inválido mostra mensagem e link para solicitar de novo.
@@ -743,35 +744,32 @@ Mesmo layout do T23, título "Painel de Administração". Tabs:
 
 | RF | Descrição | Telas | Endpoints | Tabelas |
 | --- | --- | --- | --- | --- |
-| RF01 | Simulado anterior (link) | T03 | GET /universidades/:id (`linkSimulados`) | universidade |
-| RF02 | Avaliar universidade | T03, T03a | POST /universidades/:id/avaliacoes | avaliacao, universidade |
-| RF03 | Relatório de pesquisa | T02 | GET /relatorios/pesquisa | universidade, campus, curso, programa |
-| RF04 | Página de detalhamento | T03, T04 | GET /universidades/:id, /campus | universidade, campus, endereco, curso |
-| RF05 | Acessar perfil da universidade (site) | T03 | GET /universidades/:id (`linkPagina`) | universidade |
-| RF06 | Pesquisa dinâmica | T01, T02, T05, T07 | GET /universidades, /programas, /cursos | todas de catálogo |
-| RF07 | Login | T09 | POST /auth/login, /auth/google | usuario, refresh_token |
-| RF08 | Logoff | menu header, T16, T17 | POST /auth/logout | refresh_token |
-| RF09 | Recuperar senha | T26, T25 | POST /auth/forgot-password, /auth/reset-password | token_recuperacao |
-| RF10 | Área de sugestão | T20, T18 | POST /sugestoes, GET /sugestoes/minhas | sugestao |
-| RF11 | Gerenciar usuário | T11, T16, T17, T24.2 | /usuarios, /auth/register/* | usuario |
-| RF12 | Gerenciar financiamento | T24.5 | /programas (tipo FINANCIAMENTO) | programa, programa_evento |
-| RF13 | Gerenciar bolsa | T24.6, T23.5 | /programas (tipo BOLSA) | programa |
-| RF14 | Relacionar financiamento x universidade | T14, T23.4 | PUT /universidades/:id/programas | universidade_programa |
-| RF15 | Relacionar bolsa x universidade | T14, T23.5 | PUT /universidades/:id/programas | universidade_programa |
-| RF16 | Notificação de sugestão | T27 | GET /notificacoes | notificacao |
-| RF17 | Avaliação de sugestão | T24.8, T23.6 | PATCH /sugestoes/:id/status | sugestao, notificacao |
-| RF18 | Estatísticas do site | T24.1 | /estatisticas/* | visita_pagina e agregações |
-| RF19 | Relacionar programa de entrada x universidade | T14, T23.4, T24.7 | PUT /universidades/:id/programas | universidade_programa |
-| RF20 | Gerenciar universidade | T13 a T15, T23.1, T24.3 | /universidades | universidade |
-| RF21 | Gerenciar curso | T23.2, T24.4 | /cursos | curso |
-| RF22 | Relacionar curso x campus | T23.2 | PUT /campus/:id/cursos | campus_curso |
-| RF23 | Gerenciar campus | T15, T23.3 | /campus | campus, endereco |
-| RF24 | Relacionar campus x universidade | T15, T23.3 | POST /universidades/:id/campus | campus |
-| RF25 | Aprovar universidade | T24.3 | POST /universidades/:id/aprovar | universidade, notificacao |
-| Figura 35 | Alterar senha | T21 | PATCH /usuarios/:id/senha | usuario |
-| Figura 36 | Excluir conta | T22 | DELETE /usuarios/:id | usuario e dependentes |
-| Figura 25 | Faculdades salvas | T19 | /favoritos/universidades | universidade_salva |
-| Classe pesquisaSalva | Pesquisas salvas | T19 | /pesquisas-salvas | pesquisa_salva |
+| RF01 | Avaliar universidade | T03, T03a | POST /universidades/:id/avaliacoes | avaliacao, universidade |
+| RF02 | Relatório de pesquisa | T02 | GET /relatorios/pesquisa | universidade, campus, curso, programa |
+| RF03 | Página de detalhamento da universidade, com os links do site e dos simulados | T03, T04 | GET /universidades/:id (`linkPagina`, `linkSimulados`), /campus | universidade, campus, endereco, curso |
+| RF04 | Pesquisa dinâmica | T01, T02, T05, T07 | GET /universidades, /programas, /cursos | todas de catálogo |
+| RF04 (extensão) | Salvar pesquisa | T02, T19 | /pesquisas-salvas | pesquisa_salva |
+| RF05 | Login | T09 | POST /auth/login, /auth/google | usuario, refresh_token |
+| RF06 | Logoff | menu header, T16, T17 | POST /auth/logout | refresh_token |
+| RF07 | Recuperar senha | T26, T25 | POST /auth/forgot-password, /auth/reset-password | token_recuperacao |
+| RF08 | Área de sugestão | T20, T18 | POST /sugestoes, GET /sugestoes/minhas | sugestao |
+| RF09 | Fazer cadastro, gerenciar perfil e gerenciar usuários | T11, T16, T17, T21, T22, T24.2 | /usuarios, /auth/register/*, PATCH /usuarios/:id/senha, DELETE /usuarios/:id | usuario e dependentes |
+| RF10 | Gerenciar financiamento | T24.5 | /programas (tipo FINANCIAMENTO) | programa, programa_evento |
+| RF11 | Gerenciar bolsa | T24.6, T23.5 | /programas (tipo BOLSA) | programa |
+| RF12 | Relacionar financiamento x universidade | T14, T23.4 | PUT /universidades/:id/programas | universidade_programa |
+| RF13 | Relacionar bolsa x universidade | T14, T23.5 | PUT /universidades/:id/programas | universidade_programa |
+| RF14 | Notificação de sugestão | T27 | GET /notificacoes | notificacao |
+| RF15 | Avaliação de sugestão | T24.8, T23.6 | PATCH /sugestoes/:id/status | sugestao, notificacao |
+| RF16 | Estatísticas do site | T24.1 | /estatisticas/* | visita_pagina e agregações |
+| RF17 | Relacionar programa de entrada x universidade | T14, T23.4, T24.7 | PUT /universidades/:id/programas | universidade_programa |
+| RF18 | Gerenciar universidade | T13 a T15, T23.1, T24.3 | /universidades | universidade |
+| RF19 | Gerenciar curso | T23.2, T24.4 | /cursos | curso |
+| RF20 | Relacionar curso x campus | T23.2 | PUT /campus/:id/cursos | campus_curso |
+| RF21 | Gerenciar campus | T15, T23.3 | /campus | campus, endereco |
+| RF22 | Relacionar campus x universidade | T15, T23.3 | POST /universidades/:id/campus | campus |
+| RF23 | Aprovar universidade | T24.3 | POST /universidades/:id/aprovar | universidade, notificacao |
+| RF24 | Salvar universidade (faculdades salvas) | T03, T02, T19 | /favoritos/universidades | universidade_salva |
+| RF25 | Página de detalhamento do programa | T08 | GET /programas/:id | programa, programa_evento, universidade_programa |
 
 ---
 
@@ -779,18 +777,16 @@ Mesmo layout do T23, título "Painel de Administração". Tabs:
 
 | RNF | Implementação |
 | --- | --- |
-| RNF01, RNF12, RNF13 (usabilidade) | Design system, navegação com no máximo 3 níveis, breadcrumbs nos painéis, estados vazios com orientação |
-| RNF18 (mínimo de dados) | Pesquisa funciona sem filtros; barra única na home |
-| RNF20 (links visíveis) | Botões "Acessar página" e "Simulados" em destaque no detalhe |
+| RNF01, RNF03, RNF04 (navegação, interface e informações) | Design system, navegação com no máximo 3 níveis, breadcrumbs nos painéis, estados vazios com orientação |
 | RNF02 (senha criptografada) | bcrypt custo 12, nunca retornar `senha_hash` |
-| RNF17 (confidencialidade) | Ownership middleware, e-mails ocultos em conteúdo público, HTTPS em produção, CORS restrito |
-| RNF19 (responsivo) | Breakpoints do design system, testes em 360, 768, 1024, 1440 px |
-| RNF07 (log resiliente) | `log_auditoria` na mesma transação; MySQL com InnoDB e `innodb_flush_log_at_trx_commit=1` |
+| RNF05 (mínimo de dados) | Pesquisa funciona sem filtros; barra única na home |
+| RNF06 (links visíveis) | Botões "Acessar página" e "Simulados" em destaque no detalhe |
+| RNF07 (confidencialidade) | Ownership middleware, e-mails ocultos em conteúdo público, HTTPS em produção, CORS restrito; sem CPF de alunos, sem IP em métricas, `visita_pagina` agregável apenas por tipo |
+| RNF08 (responsivo) | Breakpoints do design system, testes em 360, 768, 1024, 1440 px |
+| RNF09 (log resiliente) | `log_auditoria` na mesma transação; MySQL com InnoDB e `innodb_flush_log_at_trx_commit=1` |
 | RNF10 (escala) | API stateless, pool de conexões, paginação obrigatória, índices |
 | RNF11 (< 5 s) | Índices, cache das médias, `EXPLAIN` nas queries de pesquisa, imagens otimizadas |
-| RNF08 (stack) | Node/Express + Flutter + MySQL |
-| RNF21 (relatórios e comentários) | RF03, RF18, RF02, RF10 |
-| RNF24 (não coletar dados) | Sem CPF de alunos, sem IP em métricas, `visita_pagina` agregável apenas por tipo |
+| RNF12 (stack) | Node/Express + Flutter + MySQL |
 
 ---
 
@@ -801,40 +797,40 @@ Cada fase gera um PR revisado. Critério de conclusão entre parênteses.
 **Fase 0. Fundação (1 semana)**
 Monorepo, Docker Compose, Prisma schema com todas as tabelas da seção 4, migrations, seed, Express com middlewares, Swagger, CI com lint e testes. Flutter com tema do design system, router, layouts, componentes base. (`docker compose up` sobe API em `/docs` e app mostra home com dados do seed.)
 
-**Fase 1. Autenticação e perfis (RF07, RF08, RF09, RF11 parcial)**
+**Fase 1. Autenticação e perfis (RF05, RF06, RF07, RF09 parcial)**
 Register aluno, login, Google, refresh, logout, forgot/reset, alterar senha, excluir conta. Telas T09, T10, T11, T16, T21, T22, T25, T26. (Testes de integração de todos os endpoints de auth.)
 
-**Fase 2. Catálogo público (RF04, RF05, RF01, RF06)**
+**Fase 2. Catálogo público (RF03, RF04)**
 Endpoints GET de universidades, campus, cursos, programas. Telas T01 a T08. Registro de visitas. (Lighthouse acessibilidade > 90, pesquisa responde < 1 s com seed.)
 
-**Fase 3. Cadastro e painel da universidade (RF20, RF21, RF22, RF23, RF24, RF14, RF15, RF19, RF13 institucional)**
+**Fase 3. Cadastro e painel da universidade (RF18, RF19, RF20, RF21, RF22, RF12, RF13, RF17, RF11 institucional)**
 Register universidade em 3 passos (T12 a T15), painel T23 completo, ownership. (Universidade consegue cadastrar-se e gerenciar tudo da sua instituição; outra universidade recebe 403.)
 
-**Fase 4. Interação (RF02, RF10, RF16, RF17)**
+**Fase 4. Interação (RF01, RF08, RF14, RF15)**
 Avaliações, sugestões, notificações, favoritos, pesquisas salvas. Telas T03a, T18, T19, T20, T27. (Média recalcula corretamente com testes de concorrência; notificações chegam aos admins.)
 
-**Fase 5. Administração (RF25, RF11, RF12, RF13, RF19, RF18, RF03)**
+**Fase 5. Administração (RF23, RF09, RF10, RF11, RF17, RF16, RF02)**
 Painel T24 completo, aprovação com e-mail, CRUDs globais, dashboard e relatórios CSV/PDF. (Fluxo completo: universidade se cadastra > admin aprova > aparece na pesquisa > aluno avalia > relatório exportado.)
 
 **Fase 6. Qualidade e implantação**
-Testes E2E do fluxo principal, revisão de RNFs, README com instruções da seção 5 do TG (`npm install`, `flutter pub get`, `npm start`, `flutter run`), backup automatizado (mysqldump agendado) e logs (RNF07, seção Implantação do TG).
+Testes E2E do fluxo principal, revisão de RNFs, README com instruções da seção 5 do TG (`npm install`, `flutter pub get`, `npm start`, `flutter run`), backup automatizado (mysqldump agendado) e logs (RNF09, seção Implantação do TG).
 
 ---
 
 ## 12. Divergências encontradas no TG e decisões tomadas
 
-Registrar aqui para alinhar com a orientadora antes da versão final do texto.
+Registrar aqui para alinhar com a orientadora antes da versão final do texto. Os itens 3, 4 e 10 se referiam à versão anterior do TG e foram resolvidos no documento final.
 
-1. Quadro 8 (RF06) coloca "usuário logado" como pré-condição, mas o ator é Visitante e as telas de pesquisa são públicas. Decisão: pesquisa pública.
-2. Quadro 11 (RF09) coloca "usuário logado" como pré-condição para recuperar senha. Faz sentido "possuir cadastro". Decisão: público.
-3. Quadro 27 está intitulado "Relacionar campus e Universidade", mas descreve RF25 Aprovar Universidade. Ajustar o título no TG.
-4. Quadro 3 está intitulado "Gerenciar Anúncio", mas descreve RF01 Simulado Anterior. Ajustar o título.
-5. Modelo lógico: `CURSO` com `idCampus` e `idUniversidade`. Decisão: `curso` por universidade e `campus_curso` N:N para atender RF22.
-6. Modelo lógico não contém avaliação, sugestão, notificação, faculdades salvas, pesquisas salvas nem endereço da universidade, embora RF02, RF10, RF16, RF17 e as Figuras 25/26 exijam. Decisão: tabelas complementares da seção 4.3. Sugere-se atualizar as Figuras 8 e 9 do TG.
+1. Quadro 6 (RF04) coloca "usuário logado" como pré-condição, mas o ator é Visitante e as telas de pesquisa são públicas. Decisão: pesquisa pública.
+2. Quadro 10 (RF07) coloca "usuário logado" como pré-condição para recuperar senha. Faz sentido "possuir cadastro". Decisão: público.
+3. Quadro 27 está intitulado "Relacionar campus e Universidade", mas descreve RF23 Aprovar Universidade. Ajustar o título no TG.
+4. Quadro 3 está intitulado "Gerenciar Anúncio", mas descreve o Simulado Anterior (no documento final, parte do RF03). Ajustar o título.
+5. Modelo lógico: `CURSO` com `idCampus` e `idUniversidade`. Decisão: `curso` por universidade e `campus_curso` N:N para atender RF20.
+6. Modelo lógico não contém avaliação, sugestão, notificação, faculdades salvas, pesquisas salvas nem endereço da universidade, embora RF01, RF08, RF14, RF15 e as Figuras 25/26 exijam. Decisão: tabelas complementares da seção 4.3. Sugere-se atualizar as Figuras 8 e 9 do TG.
 7. Modelo lógico: `telefoneCelular NUMERIC(12)` e `telefoneFixo VARCHAR(12)`. Decisão: ambos `VARCHAR(15)` para aceitar máscara e DDI.
 8. Modelo lógico: `ENDERECO.idCampus VARCHAR(100)`. Decisão: FK fica em `campus.id_endereco` (1:1), evitando tipo inconsistente.
-9. Figura 34 mostra 7 abas no painel admin, sem "Programas de Entrada", embora exista RF19. Decisão: incluir a aba.
-10. RNF numerados fora de sequência (RNF01, RNF12, RNF13...). Apenas cosmético.
+9. Figura 34 mostra 7 abas no painel admin, sem "Programas de Entrada", embora exista RF17. Decisão: incluir a aba.
+10. RNF numerados fora de sequência na versão anterior do TG. No documento final vão de RNF01 a RNF12, em sequência.
 11. Rodapé das figuras com "© 2024". Atualizar para 2026.
-12. Protótipo traz seções "Cronograma" e "Datas Importantes" para programas, que não estão no TG. Decisão: incluir via `programa_evento`, pois enriquece o RF12/RF13/RF19 sem alterar o escopo.
+12. Protótipo traz seções "Cronograma" e "Datas Importantes" para programas, que não estão no TG. Decisão: incluir via `programa_evento`, pois enriquece o RF10/RF11/RF17 sem alterar o escopo.
 
