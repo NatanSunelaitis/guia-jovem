@@ -1,5 +1,6 @@
 import 'package:app/features/auth/data/google_login.dart';
 import 'package:app/features/auth/data/session_controller.dart';
+import 'package:app/features/auth/domain/usuario_sessao.dart';
 import 'package:app/features/auth/presentation/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -90,6 +91,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Recuperar'), findsOneWidget);
+  });
+
+  test('depois do login, administrador e universidade vão para o próprio painel', () {
+    expect(destinoAposLogin(TipoUsuario.admin, '/'), '/admin');
+    expect(destinoAposLogin(TipoUsuario.admin, '/admin/universidades/7'), '/admin/universidades/7');
+    expect(destinoAposLogin(TipoUsuario.universidade, '/universidades/1'), '/painel-universidade');
+    expect(destinoAposLogin(TipoUsuario.universidade, '/painel-universidade/conta'), '/painel-universidade/conta');
+    expect(destinoAposLogin(TipoUsuario.aluno, '/universidades/1'), '/universidades/1');
+    expect(destinoAposLogin(TipoUsuario.aluno, null), '/');
   });
 
   group('Entrar com Google (RF05)', () {

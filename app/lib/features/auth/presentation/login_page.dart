@@ -15,7 +15,21 @@ import '../../../shared/widgets/gj_button.dart';
 import '../../../shared/widgets/gj_input.dart';
 import '../data/google_login.dart';
 import '../data/session_controller.dart';
+import '../domain/usuario_sessao.dart';
 import 'widgets/gj_auth_background.dart';
+
+/// Para onde o login leva: o administrador e a universidade vão para o
+/// próprio painel (a não ser que a página de origem já esteja nele); o aluno
+/// volta para a página de onde veio, ou para a home.
+String destinoAposLogin(TipoUsuario? tipo, String? redirecionarPara) {
+  final origem = redirecionarPara;
+  return switch (tipo) {
+    TipoUsuario.admin => origem != null && origem.startsWith('/admin') ? origem : '/admin',
+    TipoUsuario.universidade =>
+      origem != null && origem.startsWith('/painel-universidade') ? origem : '/painel-universidade',
+    _ => origem ?? '/',
+  };
+}
 
 /// T09 Login (`/login`, Figura 22).
 class LoginPage extends StatefulWidget {
@@ -48,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await sessionController.login(email: _emailController.text.trim(), senha: _senhaController.text);
       if (!mounted) return;
-      context.go(widget.redirecionarPara ?? '/');
+      context.go(destinoAposLogin(sessionController.usuario?.tipoUsuario, widget.redirecionarPara));
     } on ApiException catch (erro) {
       setState(() => _erro = erro.message);
     } finally {
@@ -64,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       await sessionController.loginComGoogle(idToken);
       if (!mounted) return;
-      context.go(widget.redirecionarPara ?? '/');
+      context.go(destinoAposLogin(sessionController.usuario?.tipoUsuario, widget.redirecionarPara));
     } on ApiException catch (erro) {
       if (mounted) setState(() => _erro = erro.message);
     } finally {
