@@ -216,6 +216,7 @@ async function popular(cliente, senha) {
         universidadeId: universidades[avaliacao.universidade].id,
         nota: avaliacao.nota,
         comentario: avaliacao.comentario,
+        criadoEm: new Date(Date.now() - (avaliacao.diasAtras ?? 0) * 24 * 60 * 60 * 1000),
       },
     });
   }

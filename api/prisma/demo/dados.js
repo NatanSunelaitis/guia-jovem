@@ -392,13 +392,15 @@ const UNIVERSIDADE_REPROVADA = {
 
 // Avaliações dos dois alunos de demonstração. Beatriz ainda não avaliou a
 // UESP, a UniTatuí e a FAMS, para a avaliação ao vivo.
+// diasAtras: quando a avaliação foi feita, contando da gravação dos dados,
+// para as datas não saírem todas no mesmo dia.
 const AVALIACOES = [
-  { aluno: 'beatriz', universidade: 'univale', nota: 5, comentario: 'Fiz o vestibular de verão e consegui a Bolsa Mérito. Os laboratórios de Enfermagem são muito bem equipados.' },
-  { aluno: 'beatriz', universidade: 'fvt', nota: 4, comentario: 'Curso de ADS bem prático e com aulas à noite, dá para trabalhar durante o dia. A biblioteca é pequena.' },
-  { aluno: 'beatriz', universidade: 'feitu', nota: 4, comentario: 'Professores com experiência na indústria. O transporte de Sorocaba até Itu à noite é o ponto difícil.' },
-  { aluno: 'lucas', universidade: 'univale', nota: 4, comentario: 'Boa estrutura no Campus Campolim. A secretaria demorou para responder sobre o Fies.' },
-  { aluno: 'lucas', universidade: 'uesp', nota: 5, comentario: 'Entrei pelo SiSU. Universidade pública com ótimos professores e projetos de pesquisa desde o primeiro ano.' },
-  { aluno: 'lucas', universidade: 'unitatui', nota: 3, comentario: 'Curso de Nutrição bom, mas faltam horários de estágio para quem trabalha.' },
+  { aluno: 'beatriz', universidade: 'univale', diasAtras: 41, nota: 5, comentario: 'Fiz o vestibular de verão e consegui a Bolsa Mérito. Os laboratórios de Enfermagem são muito bem equipados.' },
+  { aluno: 'beatriz', universidade: 'fvt', diasAtras: 18, nota: 4, comentario: 'Curso de ADS bem prático e com aulas à noite, dá para trabalhar durante o dia. A biblioteca é pequena.' },
+  { aluno: 'beatriz', universidade: 'feitu', diasAtras: 9, nota: 4, comentario: 'Professores com experiência na indústria. O transporte de Sorocaba até Itu à noite é o ponto difícil.' },
+  { aluno: 'lucas', universidade: 'univale', diasAtras: 33, nota: 4, comentario: 'Boa estrutura no Campus Campolim. A secretaria demorou para responder sobre o Fies.' },
+  { aluno: 'lucas', universidade: 'uesp', diasAtras: 64, nota: 5, comentario: 'Entrei pelo SiSU. Universidade pública com ótimos professores e projetos de pesquisa desde o primeiro ano.' },
+  { aluno: 'lucas', universidade: 'unitatui', diasAtras: 5, nota: 3, comentario: 'Curso de Nutrição bom, mas faltam horários de estágio para quem trabalha.' },
 ];
 
 module.exports = { CONTAS, PROGRAMAS, UNIVERSIDADES, UNIVERSIDADE_PENDENTE, UNIVERSIDADE_REPROVADA, AVALIACOES };
