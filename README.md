@@ -82,6 +82,8 @@ A API fica em `http://localhost:3000`, com a documentação Swagger em `http://l
 
 Sem `SMTP_HOST`, a API não envia e-mail: fora de produção, o conteúdo (com o link de recuperação de senha) aparece no terminal da API.
 
+O CORS aceita só as origens de `CORS_ORIGENS` (separadas por vírgula). Vazia, vale o `APP_URL` e, fora de produção, também `http://localhost:8080` e `http://127.0.0.1:8080`. Em produção, defina a lista com o endereço do site (e o do Netlify, se for usado). Se o app rodar em outra porta no computador, inclua a origem dele na lista.
+
 ### 3. App
 
 ```bash

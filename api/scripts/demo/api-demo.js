@@ -56,6 +56,8 @@ if (require.main === module && process.argv[2] === '--conferir') {
   process.env.NODE_ENV = 'development';
   process.env.SMTP_HOST = '';
   process.env.APP_URL = appUrl;
+  // O CORS aceita só a origem do app servido pelo iniciar-demo (com localhost e 127.0.0.1).
+  process.env.CORS_ORIGENS = [appUrl, appUrl.replace('localhost', '127.0.0.1')].join(',');
   process.chdir(RAIZ_API);
   require(path.join(RAIZ_API, 'src', 'server.js'));
 }

@@ -1,5 +1,6 @@
 const cors = require('cors');
 const express = require('express');
+const helmet = require('helmet');
 const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 const path = require('path');
@@ -22,9 +23,17 @@ const sugestoesRoutes = require('./modules/sugestoes/sugestoes.routes');
 const notificacoesRoutes = require('./modules/notificacoes/notificacoes.routes');
 const estatisticasRoutes = require('./modules/estatisticas/estatisticas.routes');
 
+const env = require('./config/env');
+const { origensPermitidas } = require('./config/cors');
+
 const app = express();
 
-app.use(cors());
+// Cabeçalhos de segurança (RNF07). O helmet também tira o x-powered-by. A
+// política de recursos fica cross-origin porque o app é servido em outra
+// origem; a de conteúdo segue o padrão, que a página /docs atende.
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+app.disable('x-powered-by');
+app.use(cors({ origin: origensPermitidas(env) }));
 app.use(express.json());
 app.use(auditMiddleware);
 app.use(metricsMiddleware);

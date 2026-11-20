@@ -19,6 +19,9 @@ const schema = z.object({
   // 5.11: tentativas de login e de recuperação de senha por IP a cada 15 minutos.
   LIMITE_TENTATIVAS_LOGIN: z.coerce.number().int().positive().default(10),
   APP_URL: z.string().optional().default('http://localhost:8080'),
+  // Origens aceitas pelo CORS, separadas por vírgula. Vazio: o APP_URL, mais
+  // http://localhost:8080 e http://127.0.0.1:8080 fora de produção.
+  CORS_ORIGENS: z.string().optional().default(''),
   ADMIN_NOME: z.string().optional().default('Administrador Guia Jovem'),
   ADMIN_EMAIL: z.string().optional().default('admin@guiajovem.com.br'),
   ADMIN_SENHA: z.string().optional().default('troque-esta-senha'),
