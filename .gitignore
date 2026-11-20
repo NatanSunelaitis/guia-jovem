@@ -39,3 +39,6 @@ app/**/GeneratedPluginRegistrant.*
 .DS_Store
 Thumbs.db
 *.log
+
+# Demonstração local (iniciar-demo.cmd): PIDs e logs
+.demo/

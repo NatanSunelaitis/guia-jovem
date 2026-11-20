@@ -1,0 +1,142 @@
+﻿# Sobe a demonstração local: API contra o banco guiajovem_demo (sem SMTP, os
+# e-mails vão para o log), build web release do app e um servidor estático
+# para ele, os dois em segundo plano. Para parar: parar-demo.cmd.
+#
+#   iniciar-demo.cmd [-PortaApi 3000] [-PortaApp 8080] [-SemBuild]
+#
+# -SemBuild reaproveita o app/build/web existente (precisa ter sido gerado
+# para a mesma porta da API).
+param(
+  [int]$PortaApi = 3000,
+  [int]$PortaApp = 8080,
+  [switch]$SemBuild
+)
+
+$ErrorActionPreference = 'Stop'
+$raiz = Split-Path -Parent $PSScriptRoot
+$pastaApi = Join-Path $raiz 'api'
+$pastaApp = Join-Path $raiz 'app'
+$pastaBuild = Join-Path $pastaApp 'build\web'
+$estado = Join-Path $raiz '.demo'
+$arquivoPids = Join-Path $estado 'pids.json'
+$urlApi = "http://localhost:$PortaApi"
+$urlApp = "http://localhost:$PortaApp"
+
+function Falhar([string]$mensagem) {
+  Write-Host ''
+  Write-Host "ERRO: $mensagem" -ForegroundColor Red
+  exit 1
+}
+
+function Etapa([string]$mensagem) {
+  Write-Host "> $mensagem" -ForegroundColor Cyan
+}
+
+function Esperar([string]$url, [int]$segundos, $processo) {
+  $limite = (Get-Date).AddSeconds($segundos)
+  while ((Get-Date) -lt $limite) {
+    if ($processo -and $processo.HasExited) { return $false }
+    try {
+      $resposta = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 3
+      if ($resposta.StatusCode -eq 200) { return $true }
+    } catch {
+      Start-Sleep -Milliseconds 500
+    }
+  }
+  return $false
+}
+
+function Parar($processos) {
+  foreach ($p in $processos) {
+    if ($p -and -not $p.HasExited) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
+  }
+}
+
+# 1. Pré-condições
+if (Test-Path $arquivoPids) {
+  $anteriores = Get-Content $arquivoPids -Raw | ConvertFrom-Json
+  $vivos = @($anteriores.api, $anteriores.app) | Where-Object { Get-Process -Id $_ -ErrorAction SilentlyContinue }
+  if ($vivos) { Falhar 'A demonstração já está rodando. Rode parar-demo.cmd antes de iniciar de novo.' }
+  Remove-Item $arquivoPids
+}
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) { Falhar 'Node.js não encontrado no PATH.' }
+if (-not $SemBuild -and -not (Get-Command flutter -ErrorAction SilentlyContinue)) { Falhar 'Flutter não encontrado no PATH (ou use -SemBuild com um build já gerado).' }
+if (-not (Test-Path (Join-Path $pastaApi 'node_modules'))) { Falhar 'Dependências da API ausentes. Rode na pasta api: npm install' }
+
+foreach ($porta in @($PortaApi, $PortaApp)) {
+  $ocupada = Get-NetTCPConnection -LocalPort $porta -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($ocupada) {
+    $dono = Get-Process -Id $ocupada.OwningProcess -ErrorAction SilentlyContinue
+    Falhar "A porta $porta está ocupada por $($dono.ProcessName) (PID $($ocupada.OwningProcess)). Feche esse programa ou escolha outra porta com -PortaApi ou -PortaApp."
+  }
+}
+
+Etapa 'Conferindo o banco de demonstração'
+Push-Location $pastaApi
+& node scripts/demo/api-demo.js --conferir
+$codigo = $LASTEXITCODE
+Pop-Location
+if ($codigo -ne 0) { Falhar 'O banco de demonstração não está pronto (mensagem acima).' }
+
+# 2. Build web release
+if ($SemBuild) {
+  if (-not (Test-Path (Join-Path $pastaBuild 'index.html'))) { Falhar "Não há build em $pastaBuild. Rode sem -SemBuild." }
+  Etapa 'Reaproveitando o build web existente'
+} else {
+  Etapa "Gerando o build web release (API em $urlApi/api/v1). Leva cerca de 1 minuto"
+  $defines = @("--dart-define=API_BASE_URL=$urlApi/api/v1")
+  $linhaGoogle = Get-Content (Join-Path $pastaApi '.env') -ErrorAction SilentlyContinue | Where-Object { $_ -match '^GOOGLE_CLIENT_ID=(.+)$' } | Select-Object -First 1
+  if ($linhaGoogle) { $defines += "--dart-define=GOOGLE_CLIENT_ID=$($linhaGoogle.Split('=', 2)[1].Trim())" }
+  Push-Location $pastaApp
+  & flutter build web --release @defines
+  $codigo = $LASTEXITCODE
+  Pop-Location
+  if ($codigo -ne 0) { Falhar 'O build web falhou (mensagens acima).' }
+}
+
+# 3. API e app em segundo plano
+New-Item -ItemType Directory -Force $estado | Out-Null
+$logs = @{
+  apiSaida = Join-Path $estado 'api.log'
+  apiErro = Join-Path $estado 'api-erros.log'
+  appSaida = Join-Path $estado 'app.log'
+  appErro = Join-Path $estado 'app-erros.log'
+}
+
+Etapa "Subindo a API em $urlApi"
+$api = Start-Process node -ArgumentList @('scripts/demo/api-demo.js', $PortaApi, $urlApp) -WorkingDirectory $pastaApi `
+  -WindowStyle Hidden -RedirectStandardOutput $logs.apiSaida -RedirectStandardError $logs.apiErro -PassThru
+if (-not (Esperar "$urlApi/api/v1/health" 30 $api)) {
+  Parar @($api)
+  Falhar "A API não respondeu no /health. Veja $($logs.apiErro) e $($logs.apiSaida)."
+}
+if (-not (Esperar "$urlApi/docs/" 10 $api)) {
+  Parar @($api)
+  Falhar "A API subiu, mas o /docs não abriu. Veja $($logs.apiErro)."
+}
+
+Etapa "Servindo o app em $urlApp"
+$app = Start-Process node -ArgumentList @('scripts/demo/servir-web.js', "`"$pastaBuild`"", $PortaApp) -WorkingDirectory $pastaApi `
+  -WindowStyle Hidden -RedirectStandardOutput $logs.appSaida -RedirectStandardError $logs.appErro -PassThru
+if (-not (Esperar $urlApp 15 $app)) {
+  Parar @($api, $app)
+  Falhar "O servidor do app não respondeu. Veja $($logs.appErro)."
+}
+
+@{ api = $api.Id; app = $app.Id; portaApi = $PortaApi; portaApp = $PortaApp } | ConvertTo-Json | Set-Content -Encoding utf8 $arquivoPids
+
+Write-Host ''
+Write-Host 'Demonstração no ar.' -ForegroundColor Green
+Write-Host "  App:              $urlApp"
+Write-Host "  API:              $urlApi/api/v1  (health em $urlApi/api/v1/health)"
+Write-Host "  Documentação:     $urlApi/docs"
+Write-Host "  Logs:             $estado  (os e-mails, sem SMTP, saem em api.log)"
+Write-Host ''
+Write-Host '  Contas (senha Demo@2026, ou o DEMO_SENHA usado no db:demo):'
+Write-Host '    Administrador           admin@demo.guiajovem.com.br'
+Write-Host '    Aluno                   beatriz@demo.guiajovem.com.br, lucas@demo.guiajovem.com.br'
+Write-Host '    Universidade aprovada   univale@example.com (também uesp@, fvt@, feitu@, unitatui@, fams@example.com)'
+Write-Host '    Universidade pendente   fcsboituva@example.com'
+Write-Host '    Universidade reprovada  isepiedade@example.com'
+Write-Host ''
+Write-Host '  Para parar: parar-demo.cmd'

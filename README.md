@@ -132,6 +132,32 @@ Contas (senha `Demo@2026` em todas, ou o valor de `DEMO_SENHA`):
 | Universidade pendente | `fcsboituva@example.com` | Painel em análise; aparece para o administrador aprovar |
 | Universidade reprovada | `isepiedade@example.com` | Motivo da reprovação e "Reenviar para análise" |
 
+#### Rodar a demonstração no Windows com um comando
+
+Com o MySQL no ar, o `guiajovem_demo` já gravado (`npm run db:demo`) e o `npm install` da API feito, na raiz do repositório:
+
+```bat
+iniciar-demo.cmd
+```
+
+O script confere se o banco de demonstração responde e tem dados, gera o build web release do app (cerca de 1 minuto) apontando para a API local, sobe a API contra o `guiajovem_demo` sem SMTP (os e-mails vão para o log) e serve o build num servidor estático. Os dois ficam em segundo plano:
+
+| O quê | Endereço |
+| --- | --- |
+| App | http://localhost:8080 |
+| API | http://localhost:3000/api/v1 (health em `/api/v1/health`) |
+| Documentação da API | http://localhost:3000/docs |
+
+O banco usado é o `DEMO_DATABASE_URL` do `api/.env` ou, sem ele, o `DATABASE_URL` com o nome trocado para `guiajovem_demo`; o banco do `DATABASE_URL` não é tocado. Os logs (inclusive os e-mails) ficam em `.demo/`, fora do Git.
+
+Opções: `-PortaApi 3001` e `-PortaApp 8081` trocam as portas; `-SemBuild` reaproveita o `app/build/web` existente (gerado para a mesma porta da API). Se uma porta estiver ocupada, o script para e diz qual programa a usa, sem derrubar nada.
+
+Para parar a API e o app:
+
+```bat
+parar-demo.cmd
+```
+
 ### 5. Testes
 
 ```bash
