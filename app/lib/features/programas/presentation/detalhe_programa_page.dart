@@ -379,16 +379,16 @@ class _Conteudo extends StatelessWidget {
                     ),
             ),
             const SizedBox(height: GJSpace.s3),
-            // Altura de duas linhas para todos os cards: o nome inteiro cabe e
-            // os cards ficam do mesmo tamanho, com uma linha ou duas.
+            // Altura de até três linhas para todos os cards: o nome inteiro
+            // cabe e os cards ficam do mesmo tamanho.
             SizedBox(
-              height: GJSpace.s12,
+              height: GJSpace.s16,
               child: Center(
                 child: Text(
                   universidade.nomeFantasia,
                   style: GJTypography.label().copyWith(color: GJColors.textPrimary),
                   textAlign: TextAlign.center,
-                  maxLines: 2,
+                  maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

@@ -272,7 +272,9 @@ class _SecaoDashboardState extends State<SecaoDashboard> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Wrap(
+            // Mesma grade dos cards de resumo: a mesma largura de card.
+            GJAlignedGrid(
+              itemWidth: 200,
               spacing: GJSpace.s4,
               runSpacing: GJSpace.s4,
               children: [
