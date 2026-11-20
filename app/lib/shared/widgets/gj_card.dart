@@ -8,6 +8,7 @@ import '../../core/theme/gj_spacing.dart';
 import '../../core/theme/gj_typography.dart';
 import 'gj_button.dart';
 import 'gj_remote_or_asset_image.dart';
+import '../utils/sigla_instituicao.dart';
 
 enum GJCardVariant { base, elevated }
 
@@ -232,15 +233,6 @@ class _GJCardState extends State<GJCard> {
   }
 }
 
-const _palavrasIgnoradasIniciais = {'de', 'da', 'do', 'dos', 'das', 'e'};
-
-String _iniciais(String nome) {
-  final palavras = nome
-      .split(RegExp(r'\s+'))
-      .where((palavra) => palavra.isNotEmpty && !_palavrasIgnoradasIniciais.contains(palavra.toLowerCase()));
-  final letras = palavras.take(3).map((palavra) => palavra[0].toUpperCase()).join();
-  return letras.isNotEmpty ? letras : nome.isNotEmpty ? nome[0].toUpperCase() : '?';
-}
 
 class _CaixaLogo extends StatelessWidget {
   const _CaixaLogo({required this.logoUrl, required this.nome});
@@ -255,7 +247,7 @@ class _CaixaLogo extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(GJSpace.s4),
       alignment: Alignment.center,
-      // Sem logo: caixa com iniciais sobre primary.fixed (fallback do design
+      // Sem logo: caixa com a sigla sobre primary.fixed (fallback do design
       // system quando logo_url é nulo).
       decoration: BoxDecoration(
         color: logoUrl != null ? GJColors.surfaceLowest : GJColors.primaryFixed,
@@ -264,7 +256,7 @@ class _CaixaLogo extends StatelessWidget {
       child: logoUrl != null
           ? GJRemoteOrAssetImage(url: logoUrl!, fit: BoxFit.contain)
           : Text(
-              _iniciais(nome),
+              siglaDaInstituicao(nome),
               style: GJTypography.h3().copyWith(color: GJColors.primary),
               textAlign: TextAlign.center,
               maxLines: 1,

@@ -18,6 +18,7 @@ import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_timeline.dart';
 import '../data/programas_repository.dart';
 import '../domain/programa.dart';
+import '../../../shared/utils/sigla_instituicao.dart';
 
 const _meses = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
@@ -370,7 +371,7 @@ class _Conteudo extends StatelessWidget {
                       child: GJRemoteOrAssetImage(url: universidade.logoUrl!, fit: BoxFit.contain),
                     )
                   : Text(
-                      universidade.nomeFantasia,
+                      siglaDaInstituicao(universidade.nomeFantasia),
                       style: GJTypography.label().copyWith(color: GJColors.primary, fontWeight: FontWeight.w800),
                       textAlign: TextAlign.center,
                       maxLines: 1,

@@ -25,6 +25,7 @@ import '../domain/universidade.dart';
 import 'avaliar_dialog.dart';
 import '../../../shared/utils/plural.dart';
 import '../../../shared/widgets/gj_estrelas.dart';
+import '../../../shared/utils/sigla_instituicao.dart';
 
 class DetalheUniversidadePage extends StatefulWidget {
   const DetalheUniversidadePage({super.key, required this.id});
@@ -212,7 +213,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
             child: universidade.logoUrl != null
                 ? GJRemoteOrAssetImage(url: universidade.logoUrl!, fit: BoxFit.contain)
                 : Text(
-                    universidade.nomeFantasia,
+                    siglaDaInstituicao(universidade.nomeFantasia),
                     style: GJTypography.h3().copyWith(color: GJColors.primary),
                     textAlign: TextAlign.center,
                     maxLines: 2,
