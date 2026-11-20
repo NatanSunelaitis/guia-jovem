@@ -11,7 +11,9 @@ class GJTabItem {
   final IconData? icon;
 }
 
-/// Abas horizontais do Guia Jovem Design System (seção 3.8).
+/// Abas horizontais do Guia Jovem Design System (seção 3.8). Quando não
+/// cabem numa linha, quebram para a linha de baixo em vez de rolar na
+/// horizontal, para todas as seções (e a ativa) ficarem sempre à vista.
 class GJTabs extends StatelessWidget {
   const GJTabs({
     super.key,
@@ -30,18 +32,15 @@ class GJTabs extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: GJColors.border.withOpacity(0.1))),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var i = 0; i < tabs.length; i++) _GJTabButton(
+      child: Wrap(
+        children: [
+          for (var i = 0; i < tabs.length; i++)
+            _GJTabButton(
               item: tabs[i],
               selected: i == selectedIndex,
               onTap: () => onChanged(i),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }
