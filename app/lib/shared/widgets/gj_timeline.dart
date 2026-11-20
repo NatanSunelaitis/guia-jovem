@@ -55,7 +55,14 @@ class _TimelineRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final corPonto = item.concluido ? cor : GJColors.border;
+    // Evento concluído: ponto cheio na cor do programa. Evento futuro: anel na
+    // mesma cor sobre o fundo do card (antes era um ponto cinza claro, quase
+    // invisível sobre o fundo branco).
+    final ponto = BoxDecoration(
+      color: item.concluido ? cor : GJColors.surfaceLowest,
+      shape: BoxShape.circle,
+      border: item.concluido ? null : Border.all(color: cor, width: 2),
+    );
 
     return IntrinsicHeight(
       child: Row(
@@ -72,18 +79,21 @@ class _TimelineRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: GJSpace.s4),
+          // Coluna da largura do ponto, com a linha de 2 px centralizada. Com
+          // a coluna de 2 px, o Stack limitava o ponto a 2 px e ele sumia.
           SizedBox(
-            width: 2,
+            width: 12,
             child: Stack(
               alignment: Alignment.topCenter,
               children: [
                 // No último evento a linha desce só até o ponto, para chegar nele.
                 if (ultimo) Container(width: 2, height: 13, color: GJColors.border) else Container(width: 2, color: GJColors.border),
                 Container(
-                  margin: const EdgeInsets.only(top: 8),
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(color: corPonto, shape: BoxShape.circle),
+                  key: ValueKey(item.concluido ? 'ponto-concluido' : 'ponto-futuro'),
+                  margin: const EdgeInsets.only(top: 7),
+                  width: 12,
+                  height: 12,
+                  decoration: ponto,
                 ),
               ],
             ),
