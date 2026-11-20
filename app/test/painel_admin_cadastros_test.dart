@@ -423,6 +423,30 @@ void main() {
       expect(find.text('Nenhuma data cadastrada.'), findsOneWidget);
     });
 
+    testWidgets('a ilustração interna aparece como prévia, sem expor o caminho, e continua ao salvar', (tester) async {
+      final comIlustracao = {..._programa(), 'imagemUrl': 'assets/img/programas/prouni.svg'};
+      mockAuthApiRotas({
+        'GET /notificacoes': semNotificacoes,
+        'GET /programas/administracao/3': RespostaFalsa(envelope(comIlustracao)),
+        'GET /programas/administracao': RespostaFalsa(paginaDe([comIlustracao])),
+        'PATCH /programas/3': RespostaFalsa(envelope(comIlustracao)),
+      });
+
+      await pumpPainelAdmin(tester, '/admin/bolsas');
+      await tester.tap(find.byTooltip('Editar Programa Universidade para Todos'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('assets/img'), findsNothing);
+      expect(find.textContaining('ilustração padrão do programa'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Salvar'));
+      await tester.tap(find.text('Salvar'));
+      await tester.pumpAndSettle();
+
+      final patch = requisicoes('PATCH', '/programas/3').single;
+      expect((patch.corpo as Map)['imagemUrl'], 'assets/img/programas/prouni.svg');
+    });
+
     testWidgets('programa aceito por universidades não é excluído (bloqueio da API)', (tester) async {
       const mensagem = 'Este programa é aceito por 4 universidades. Ele só pode ser excluído quando nenhuma universidade o aceitar.';
       mockAuthApiRotas({

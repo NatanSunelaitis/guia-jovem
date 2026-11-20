@@ -16,6 +16,7 @@ import '../data/cadastros_repository.dart';
 import '../domain/cadastros.dart';
 import 'widgets/confirmacao_dialogs.dart';
 import 'widgets/formulario.dart';
+import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 
 String rotuloTipoPrograma(TipoPrograma tipo) => switch (tipo) {
       TipoPrograma.entrada => 'Programa de Entrada',
@@ -221,6 +222,10 @@ class _FormularioProgramaState extends State<FormularioPrograma> {
 
   int? _id;
   List<EventoPrograma> _eventos = const [];
+
+  /// Ilustração empacotada no app (`assets/...`): não aparece como endereço
+  /// no campo, só como prévia, e continua valendo se o campo ficar vazio.
+  String? _imagemInterna;
   bool _carregando = false;
   ApiException? _erroCarregar;
   Map<String, String> _erros = const {};
@@ -249,7 +254,9 @@ class _FormularioProgramaState extends State<FormularioPrograma> {
     _requisitos.text = programa.requisitos ?? '';
     _comoFunciona.text = programa.comoFunciona ?? '';
     _linkOficial.text = programa.linkOficial ?? '';
-    _imagemUrl.text = programa.imagemUrl ?? '';
+    final imagem = programa.imagemUrl;
+    _imagemInterna = imagem != null && imagem.startsWith('assets/') ? imagem : null;
+    _imagemUrl.text = _imagemInterna != null ? '' : imagem ?? '';
     _tipo = programa.tipo;
     _eventos = programa.eventos;
   }
@@ -287,7 +294,7 @@ class _FormularioProgramaState extends State<FormularioPrograma> {
       'requisitos': textoOuNulo(_requisitos),
       'comoFunciona': textoOuNulo(_comoFunciona),
       'linkOficial': textoOuNulo(_linkOficial),
-      'imagemUrl': textoOuNulo(_imagemUrl),
+      'imagemUrl': textoOuNulo(_imagemUrl) ?? _imagemInterna,
     };
 
     setState(() => _salvando = true);
@@ -377,8 +384,13 @@ class _FormularioProgramaState extends State<FormularioPrograma> {
           else if (_eventos.isEmpty)
             Text('Nenhuma data cadastrada.', style: GJTypography.bodySm())
           else
-            for (final evento in _eventos)
-              Row(
+            for (final (indice, evento) in _eventos.indexed)
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: GJSpace.s3),
+                decoration: BoxDecoration(
+                  border: indice == 0 ? null : Border(top: BorderSide(color: GJColors.border.withOpacity(0.4))),
+                ),
+                child: Row(
                 children: [
                   Expanded(
                     child: Column(
@@ -405,6 +417,7 @@ class _FormularioProgramaState extends State<FormularioPrograma> {
                     onPressed: () => _excluirEvento(evento),
                   ),
                 ],
+                ),
               ),
         ],
       ),
@@ -443,7 +456,26 @@ class _FormularioProgramaState extends State<FormularioPrograma> {
         CampoTextoLongo(rotulo: 'Como funciona', controller: _comoFunciona, erro: _erros['comoFunciona']),
         CampoTextoLongo(rotulo: 'Requisitos', controller: _requisitos, erro: _erros['requisitos']),
         CampoTexto(rotulo: 'Link oficial', controller: _linkOficial, erro: _erros['linkOficial'], dica: 'https://'),
-        CampoTexto(rotulo: 'Imagem (URL)', controller: _imagemUrl, erro: _erros['imagemUrl'], dica: 'https://'),
+        if (_imagemInterna != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: GJSpace.s2),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: GJRadius.borderMd,
+                  child: SizedBox(width: 64, height: 40, child: GJRemoteOrAssetImage(url: _imagemInterna!)),
+                ),
+                const SizedBox(width: GJSpace.s3),
+                Expanded(
+                  child: Text(
+                    'Usando a ilustração padrão do programa. Para trocar, informe o endereço de outra imagem.',
+                    style: GJTypography.bodySm(),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        CampoTexto(rotulo: 'Imagem (endereço)', controller: _imagemUrl, erro: _erros['imagemUrl'], dica: 'https://'),
         _datasImportantes(),
         RodapeFormulario(
           salvando: _salvando,
