@@ -482,6 +482,21 @@ describe('PATCH /api/v1/universidades/:id (edição pelo administrador)', () => 
   const patch = (body, token = TOKEN_ADMIN) =>
     request(app).patch('/api/v1/universidades/7').set('Authorization', `Bearer ${token}`).send(body);
 
+  it('aceita o CNPJ alfanumérico e grava sem pontuação, em maiúsculas', async () => {
+    const estado = bancoComUniversidade(universidadeFake({ status: 'A' }));
+    prisma.universidade.update.mockImplementation(async ({ data }) => {
+      Object.assign(estado, data);
+      return { ...estado };
+    });
+
+    const resposta = await patch({ cnpj: '12.abc.345/01de-35' });
+
+    expect(resposta.status).toBe(200);
+    expect(prisma.universidade.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: expect.objectContaining({ cnpj: '12ABC34501DE35' }) }),
+    );
+  });
+
   it('edita os dados institucionais, normaliza o CNPJ e grava antes e depois (200)', async () => {
     const estado = bancoComUniversidade(universidadeFake({ status: 'A' }));
     prisma.universidade.update.mockImplementation(async ({ data }) => {

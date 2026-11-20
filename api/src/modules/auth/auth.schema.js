@@ -1,5 +1,7 @@
 const { z } = require('zod');
 
+const { cnpjObrigatorio } = require('../../shared/validation/cnpj');
+
 const senha = z.string().min(7, 'Informe uma senha com 7 ou mais caracteres');
 
 const registerAlunoSchema = {
@@ -24,11 +26,7 @@ const registerUniversidadeSchema = {
     universidade: z.object({
       razaoSocial: z.string().trim().min(1, 'Informe a razão social').max(100),
       nomeFantasia: z.string().trim().min(1, 'Informe o nome fantasia').max(100),
-      cnpj: z
-        .string()
-        .trim()
-        .transform((valor) => valor.replace(/\D/g, ''))
-        .refine((valor) => valor.length === 14, 'CNPJ deve ter 14 dígitos'),
+      cnpj: cnpjObrigatorio,
       telefonePrincipal: z.string().trim().min(1).max(15).optional(),
       linkPagina: z.string().trim().url('Informe uma URL válida').max(255).optional(),
       linkSimulados: z.string().trim().url('Informe uma URL válida').max(255).optional(),

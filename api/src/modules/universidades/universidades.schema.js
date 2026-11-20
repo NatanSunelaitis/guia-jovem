@@ -1,5 +1,7 @@
 const { z } = require('zod');
 
+const { cnpjObrigatorio } = require('../../shared/validation/cnpj');
+
 const idParamSchema = {
   params: z.object({ id: z.coerce.number().int().positive('id inválido') }),
 };
@@ -88,11 +90,7 @@ const atualizarUniversidadeSchema = {
     .object({
       nomeFantasia: z.string().trim().min(1, 'Informe o nome fantasia').max(100),
       razaoSocial: z.string().trim().min(1, 'Informe a razão social').max(100),
-      cnpj: z
-        .string()
-        .trim()
-        .transform((valor) => valor.replace(/\D/g, ''))
-        .refine((valor) => valor.length === 14, 'CNPJ deve ter 14 dígitos'),
+      cnpj: cnpjObrigatorio,
       natureza: z.enum(['P', 'V'], { errorMap: () => ({ message: 'natureza deve ser P ou V' }) }),
       descricao: textoOpcional(5000),
       telefonePrincipal: textoOpcional(15),
