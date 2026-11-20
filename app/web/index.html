@@ -66,6 +66,18 @@
     <img src="guia-jovem-loading-loop.svg" alt="Guia Jovem">
   </div>
   <script>
+    // O conversor de teclado do Flutter 3.13 (web) lança uma exceção nas
+    // teclas / * - + do teclado numérico (location 3). Esses eventos não
+    // seguem para o Flutter; o caractere continua chegando ao campo pelo
+    // evento de digitação do navegador. Pode sair ao atualizar o Flutter.
+    ['keydown', 'keyup'].forEach(function(tipo) {
+      window.addEventListener(tipo, function(evento) {
+        if (evento.location === 3 && '/*-+'.indexOf(evento.key) !== -1) {
+          evento.stopImmediatePropagation();
+        }
+      }, true);
+    });
+
     // Remove a tela de carregamento quando o app desenha o primeiro quadro.
     window.addEventListener('flutter-first-frame', function() {
       var carregando = document.getElementById('carregando');
