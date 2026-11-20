@@ -46,7 +46,7 @@ describe('GET /api/v1/relatorios/pesquisa', () => {
     expect(resposta.text).toContain('Administração');
     expect(resposta.text).toContain('ENEM');
     // Excel em português: BOM, ponto e vírgula e cabeçalho acentuado.
-    expect(resposta.text.replace(/^﻿/, '')).toMatch(
+    expect(resposta.text.replace(/^\uFEFF/, '')).toMatch(
       /^Universidade;Natureza;Cidade;Estado;Média de avaliação;Total de avaliações;Campus;Cursos;Programas\r\n/,
     );
 
