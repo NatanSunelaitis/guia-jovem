@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/router/app_router.dart';
 import 'core/theme/gj_theme.dart';
@@ -28,6 +29,11 @@ class _GuiaJovemAppState extends State<GuiaJovemApp> {
       debugShowCheckedModeBanner: false,
       theme: GJTheme.light,
       routerConfig: appRouter,
+      // Textos internos do Flutter (contador de caracteres, seletores de data,
+      // leitores de tela) em português.
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [Locale('pt', 'BR')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
     );
   }
 }
