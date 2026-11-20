@@ -50,4 +50,17 @@ void main() {
 
     expect(find.text('Nenhuma universidade encontrada'), findsOneWidget);
   });
+  testWidgets('a busca pelo nome também mostra a etiqueta do filtro', (tester) async {
+    mockApi({
+      '/universidades': envelope(<dynamic>[], {'page': 1, 'pageSize': 20, 'total': 0, 'totalPages': 1}),
+    });
+
+    await pump(tester);
+    await tester.enterText(find.byType(TextField).first, 'UniVale');
+    await tester.tap(find.text('Pesquisar'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Nome: UniVale'), findsOneWidget);
+  });
 }

@@ -302,6 +302,11 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
 
   Widget _chipsEContagem(int total, bool isMobile) {
     final chips = <Widget>[
+      if (_qController.text.isNotEmpty)
+        GJTag(label: 'Nome: ${_qController.text}', tone: GJTagTone.entrada, onRemove: () {
+          _qController.clear();
+          _buscar();
+        }),
       if (_cidadeController.text.isNotEmpty)
         GJTag(label: _cidadeController.text, tone: GJTagTone.entrada, onRemove: () {
           _cidadeController.clear();
