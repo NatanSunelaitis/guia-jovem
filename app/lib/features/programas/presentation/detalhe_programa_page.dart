@@ -37,6 +37,12 @@ const _proximosPassos = {
     (icon: Symbols.fact_check, texto: 'Confira se você atende aos critérios de renda e desempenho exigidos.'),
     (icon: Symbols.event, texto: 'Anote as datas do cronograma e prepare os documentos com antecedência.'),
   ],
+  // Bolsa institucional: passos da própria instituição, sem critérios genéricos.
+  'INSTITUCIONAL': [
+    (icon: Symbols.person_add, texto: 'Crie sua conta no Guia Jovem para salvar a universidade e receber avisos de prazo.'),
+    (icon: Symbols.account_balance, texto: 'Conheça a página da universidade, com os campi e os cursos oferecidos.'),
+    (icon: Symbols.event, texto: 'Anote as datas e prepare os documentos pedidos nos requisitos.'),
+  ],
   'ENTRADA': [
     (icon: Symbols.person_add, texto: 'Crie sua conta no Guia Jovem para salvar universidades e receber avisos de prazo.'),
     (icon: Symbols.search, texto: 'Pesquise universidades que aceitam este programa na sua cidade.'),
@@ -91,12 +97,25 @@ class _DetalheProgramaPageState extends State<DetalheProgramaPage> {
   }
 }
 
+/// Título do cronograma com os anos das datas exibidas: um ano (2027), dois
+/// (2026 e 2027) ou um intervalo (2026 a 2028).
+String tituloCronograma(List<ProgramaEvento> eventos) {
+  final anos = {for (final evento in eventos) evento.dataInicio.year}.toList()..sort();
+  if (anos.isEmpty) return 'Cronograma';
+  if (anos.length == 1) return 'Cronograma ${anos.first}';
+  if (anos.length == 2) return 'Cronograma ${anos.first} e ${anos.last}';
+  return 'Cronograma ${anos.first} a ${anos.last}';
+}
+
 class _Conteudo extends StatelessWidget {
   const _Conteudo({required this.programa});
 
   final ProgramaDetalhe programa;
 
   bool get _financiamento => programa.tipo == 'FINANCIAMENTO';
+
+  /// Bolsa institucional: tem uma universidade dona em vez de uma lista de quem aceita.
+  UniversidadeQueAceita? get _dona => programa.universidade;
 
   Color get _cor => corPrograma(programa.tipo);
 
@@ -105,7 +124,7 @@ class _Conteudo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.sizeOf(context).width < 600;
-    final passos = _proximosPassos[programa.tipo] ?? _proximosPassos['ENTRADA']!;
+    final passos = _proximosPassos[_dona != null ? 'INSTITUCIONAL' : programa.tipo] ?? _proximosPassos['ENTRADA']!;
 
     return GJPageContainer(
       child: Column(
@@ -143,7 +162,7 @@ class _Conteudo extends StatelessWidget {
                 esquerda: programa.eventos.isEmpty
                     ? const SizedBox.shrink()
                     : _cartao(
-                        titulo: 'Cronograma 2026',
+                        titulo: tituloCronograma(programa.eventos),
                         corFundo: GJColors.surfaceLowest,
                         corTexto: GJColors.textPrimary,
                         elevado: true,
@@ -154,6 +173,7 @@ class _Conteudo extends StatelessWidget {
                               GJTimelineItem(
                                 mes: _meses[evento.dataInicio.month - 1],
                                 dia: evento.dataInicio.day.toString().padLeft(2, '0'),
+                                ano: '${evento.dataInicio.year}',
                                 titulo: evento.titulo,
                                 descricao: evento.descricao,
                                 concluido: evento.dataInicio.isBefore(DateTime.now()),
@@ -185,9 +205,17 @@ class _Conteudo extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: GJSpace.s8),
-              Text('Universidades que aceitam este programa', style: GJTypography.h2(size: 24)),
+              Text(
+                _dona != null ? 'Universidade que oferece esta bolsa' : 'Universidades que aceitam este programa',
+                style: GJTypography.h2(size: 24),
+              ),
               const SizedBox(height: GJSpace.s4),
-              if (programa.universidades.isEmpty)
+              if (_dona != null)
+                SizedBox(
+                  width: isMobile ? (MediaQuery.sizeOf(context).width - GJSpace.s8) / 2 : 180,
+                  child: _cardUniversidade(context, _dona!),
+                )
+              else if (programa.universidades.isEmpty)
                 const GJEmptyState(titulo: 'Nenhuma universidade cadastrada ainda para este programa')
               else
                 Wrap(
@@ -236,13 +264,22 @@ class _Conteudo extends StatelessWidget {
                 variant: _financiamento ? GJButtonVariant.financiamento : GJButtonVariant.primary,
                 onPressed: () => abrirLinkExterno(programa.linkOficial!),
               ),
-            GJButton(
-              label: 'Pesquisar universidades',
-              icon: Symbols.search,
-              variant: GJButtonVariant.secondary,
-              color: _cor,
-              onPressed: () => context.go('/universidades', extra: {'programaId': '${programa.id}'}),
-            ),
+            if (_dona != null)
+              GJButton(
+                label: 'Ver universidade',
+                icon: Symbols.account_balance,
+                variant: GJButtonVariant.secondary,
+                color: _cor,
+                onPressed: () => context.go('/universidades/${_dona!.id}'),
+              )
+            else
+              GJButton(
+                label: 'Pesquisar universidades',
+                icon: Symbols.search,
+                variant: GJButtonVariant.secondary,
+                color: _cor,
+                onPressed: () => context.go('/universidades', extra: {'programaId': '${programa.id}'}),
+              ),
           ],
         ),
       ],
@@ -376,16 +413,23 @@ class _Conteudo extends StatelessWidget {
               children: [
                 Text('Pronto para começar seu futuro?', style: GJTypography.h2(size: 28)),
                 const SizedBox(height: GJSpace.s2),
-                Text('Veja quais universidades aceitam este programa na sua cidade.', style: GJTypography.body()),
+                Text(
+                  _dona != null
+                      ? 'Veja os campi e os cursos da ${_dona!.nomeFantasia}.'
+                      : 'Veja quais universidades aceitam este programa na sua cidade.',
+                  style: GJTypography.body(),
+                ),
               ],
             ),
           ),
           SizedBox(width: isMobile ? 0 : GJSpace.s8, height: isMobile ? GJSpace.s4 : 0),
           GJButton(
-            label: 'Pesquisar universidades',
+            label: _dona != null ? 'Ver universidade' : 'Pesquisar universidades',
             variant: _financiamento ? GJButtonVariant.financiamento : GJButtonVariant.primary,
             expand: isMobile,
-            onPressed: () => context.go('/universidades', extra: {'programaId': '${programa.id}'}),
+            onPressed: () => _dona != null
+                ? context.go('/universidades/${_dona!.id}')
+                : context.go('/universidades', extra: {'programaId': '${programa.id}'}),
           ),
         ],
       ),

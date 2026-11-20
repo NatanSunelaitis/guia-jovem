@@ -8,6 +8,7 @@ class GJTimelineItem {
   const GJTimelineItem({
     required this.mes,
     required this.dia,
+    this.ano,
     required this.titulo,
     this.descricao,
     this.concluido = false,
@@ -15,6 +16,9 @@ class GJTimelineItem {
 
   final String mes;
   final String dia;
+
+  /// Ano da data, exibido abaixo do dia.
+  final String? ano;
   final String titulo;
   final String? descricao;
   final bool concluido;
@@ -63,6 +67,7 @@ class _TimelineRow extends StatelessWidget {
               children: [
                 Text(item.mes.toUpperCase(), style: GJTypography.caption().copyWith(fontWeight: FontWeight.w600)),
                 Text(item.dia, style: GJTypography.h3().copyWith(color: cor)),
+                if (item.ano != null) Text(item.ano!, style: GJTypography.caption()),
               ],
             ),
           ),
@@ -72,7 +77,8 @@ class _TimelineRow extends StatelessWidget {
             child: Stack(
               alignment: Alignment.topCenter,
               children: [
-                if (!ultimo) Container(width: 2, color: GJColors.border),
+                // No último evento a linha desce só até o ponto, para chegar nele.
+                if (ultimo) Container(width: 2, height: 13, color: GJColors.border) else Container(width: 2, color: GJColors.border),
                 Container(
                   margin: const EdgeInsets.only(top: 8),
                   width: 10,

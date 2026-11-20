@@ -74,6 +74,7 @@ class ProgramaDetalhe {
     this.linkOficial,
     this.imagemUrl,
     this.universidadeId,
+    this.universidade,
     required this.eventos,
     required this.universidades,
   });
@@ -89,6 +90,9 @@ class ProgramaDetalhe {
         linkOficial: json['linkOficial'] as String?,
         imagemUrl: json['imagemUrl'] as String?,
         universidadeId: json['universidadeId'] as int?,
+        universidade: json['universidade'] is Map<String, dynamic>
+            ? UniversidadeQueAceita.fromJson(json['universidade'] as Map<String, dynamic>)
+            : null,
         eventos: (json['eventos'] as List<dynamic>? ?? [])
             .map((item) => ProgramaEvento.fromJson(item as Map<String, dynamic>))
             .toList(),
@@ -107,6 +111,9 @@ class ProgramaDetalhe {
   final String? linkOficial;
   final String? imagemUrl;
   final int? universidadeId;
+
+  /// Universidade dona da bolsa institucional; nula nos programas globais.
+  final UniversidadeQueAceita? universidade;
   final List<ProgramaEvento> eventos;
   final List<UniversidadeQueAceita> universidades;
 }
