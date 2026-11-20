@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/network/api_exception.dart';
-import '../../../core/theme/gj_illustrations.dart';
+import '../../../shared/utils/fotos.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/gj_page_container.dart';
@@ -106,7 +106,7 @@ class _ListaCursosPageState extends State<ListaCursosPage> {
                           width: isMobile ? (MediaQuery.sizeOf(context).width - GJSpace.s8) : 240,
                           child: GJCard.curso(
                             nome: curso.nome,
-                            ilustracao: GJIllustrations.porAreaCurso(curso.areaCurso),
+                            ilustracao: fotoCurso(nome: curso.nome, areaCurso: curso.areaCurso),
                             onTap: () => context.go('/cursos/nome/${Uri.encodeComponent(curso.nome)}'),
                             rodape: Wrap(
                               spacing: GJSpace.s2,

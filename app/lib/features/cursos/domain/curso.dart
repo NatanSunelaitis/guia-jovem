@@ -138,15 +138,19 @@ class UniversidadeComCurso {
 }
 
 class CursoPorNome {
-  CursoPorNome({required this.nome, required this.universidades});
+  CursoPorNome({required this.nome, this.areaCurso, required this.universidades});
 
   factory CursoPorNome.fromJson(Map<String, dynamic> json) => CursoPorNome(
         nome: json['nome'] as String,
+        areaCurso: json['areaCurso'] as String?,
         universidades: (json['universidades'] as List<dynamic>? ?? [])
             .map((item) => UniversidadeComCurso.fromJson(item as Map<String, dynamic>))
             .toList(),
       );
 
   final String nome;
+
+  /// Área do curso, usada para a foto quando o curso não tem foto própria.
+  final String? areaCurso;
   final List<UniversidadeComCurso> universidades;
 }

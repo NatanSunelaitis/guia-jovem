@@ -34,12 +34,15 @@ void main() {
     expect(find.text('Administração'), findsOneWidget);
     expect(find.text('Descrição do curso'), findsOneWidget);
     expect(find.text('Fatec Sorocaba'), findsOneWidget);
+    final imagem = tester.widget<Image>(find.byType(Image).first);
+    expect((imagem.image as AssetImage).assetName, 'assets/fotos/cursos/administracao.jpg');
   });
 
   testWidgets('mostra universidades por nome do curso', (tester) async {
     mockApi({
       '/cursos/nome/Farmácia': envelope({
         'nome': 'Farmácia',
+        'areaCurso': 'Saúde',
         'universidades': [
           {
             'cursoId': 7,
@@ -58,6 +61,8 @@ void main() {
 
     expect(find.text('Farmácia'), findsOneWidget);
     expect(find.text('USP'), findsOneWidget);
+    final imagem = tester.widget<Image>(find.byType(Image).first);
+    expect((imagem.image as AssetImage).assetName, 'assets/fotos/cursos/farmacia.jpg');
     expect(find.text('Em quais universidades este curso está disponível'), findsOneWidget);
   });
 }

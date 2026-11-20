@@ -4,7 +4,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/gj_colors.dart';
-import '../../../core/theme/gj_illustrations.dart';
+import '../../../shared/utils/fotos.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/gj_page_container.dart';
@@ -120,7 +120,7 @@ class _HomePageState extends State<HomePage> {
               onVerTodas: () => context.go('/programas'),
               verTodasLabel: 'Ver todos os programas',
               itemBuilder: (programa) => GJCard.programa(
-                imagemUrl: programa.imagemUrl ?? imagemProgramaPadrao,
+                imagemUrl: fotoPrograma(nome: programa.nome, sigla: programa.sigla, imagemUrl: programa.imagemUrl),
                 icone: iconePrograma(programa.sigla, programa.tipo),
                 cor: corPrograma(programa.tipo),
                 sigla: programa.sigla ?? programa.tipo,
@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage> {
               itemWidth: 220,
               itemBuilder: (curso) => GJCard.curso(
                 nome: curso.nome,
-                ilustracao: GJIllustrations.porAreaCurso(curso.areaCurso),
+                ilustracao: fotoCurso(nome: curso.nome, areaCurso: curso.areaCurso),
                 onTap: () => context.go('/cursos/nome/${Uri.encodeComponent(curso.nome)}'),
               ),
               vazio: 'Nenhum curso em destaque no momento.',

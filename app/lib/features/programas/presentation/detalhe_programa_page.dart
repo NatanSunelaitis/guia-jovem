@@ -10,6 +10,7 @@ import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
+import '../../../shared/utils/fotos.dart';
 import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/widgets/gj_button.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
@@ -290,7 +291,9 @@ class _Conteudo extends StatelessWidget {
       borderRadius: GJRadius.borderXl,
       child: AspectRatio(
         aspectRatio: isMobile ? 16 / 9 : 16 / 10,
-        child: GJRemoteOrAssetImage(url: programa.imagemUrl ?? imagemProgramaPadrao),
+        child: GJRemoteOrAssetImage(
+          url: fotoPrograma(nome: programa.nome, sigla: programa.sigla, imagemUrl: programa.imagemUrl),
+        ),
       ),
     );
 

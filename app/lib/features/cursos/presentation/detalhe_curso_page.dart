@@ -6,10 +6,13 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/theme/gj_colors.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
+import '../../../core/theme/gj_radius.dart';
 import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
+import '../../../shared/utils/fotos.dart';
 import '../../../shared/widgets/gj_card.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
+import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../data/cursos_repository.dart';
 import '../domain/curso.dart';
@@ -81,6 +84,9 @@ class _DetalheCursoPageState extends State<DetalheCursoPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _CabecalhoCurso(
+                imagem: fotoCurso(nome: curso.nome, areaCurso: curso.areaCurso),
+                children: [
               Text(curso.nome, style: GJTypography.display(size: isMobile ? 32 : 44)),
               const SizedBox(height: GJSpace.s2),
               Wrap(
@@ -97,6 +103,8 @@ class _DetalheCursoPageState extends State<DetalheCursoPage> {
                 const SizedBox(height: GJSpace.s4),
                 Text(curso.descricao!, style: GJTypography.body()),
               ],
+                ],
+              ),
               const SizedBox(height: GJSpace.s8),
               Text('Universidades que oferecem este curso', style: GJTypography.h2()),
               const SizedBox(height: GJSpace.s4),
@@ -156,11 +164,16 @@ class _DetalheCursoPageState extends State<DetalheCursoPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _CabecalhoCurso(
+                imagem: fotoCurso(nome: resultado.nome, areaCurso: resultado.areaCurso),
+                children: [
               Text(resultado.nome, style: GJTypography.h1()),
               const SizedBox(height: GJSpace.s2),
               Text(
                 'Em quais universidades este curso está disponível',
                 style: GJTypography.body().copyWith(color: GJColors.textSecondary),
+              ),
+                ],
               ),
               const SizedBox(height: GJSpace.s6),
               if (resultado.universidades.isEmpty)
@@ -193,6 +206,38 @@ class _DetalheCursoPageState extends State<DetalheCursoPage> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Cabeçalho do T06: texto à esquerda e a foto do curso (ou da área) à
+/// direita, no mesmo arranjo do cabeçalho de programa. No celular, a foto
+/// vem antes do texto.
+class _CabecalhoCurso extends StatelessWidget {
+  const _CabecalhoCurso({required this.imagem, required this.children});
+
+  final String imagem;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+    final texto = Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+    final foto = ClipRRect(
+      borderRadius: GJRadius.borderXl,
+      child: AspectRatio(aspectRatio: 16 / 10, child: GJRemoteOrAssetImage(url: imagem)),
+    );
+
+    if (isMobile) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [foto, const SizedBox(height: GJSpace.s6), texto]);
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(flex: 3, child: texto),
+        const SizedBox(width: GJSpace.s8),
+        Expanded(flex: 2, child: foto),
+      ],
     );
   }
 }

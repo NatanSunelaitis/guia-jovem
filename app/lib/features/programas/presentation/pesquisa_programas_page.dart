@@ -8,6 +8,7 @@ import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
+import '../../../shared/utils/fotos.dart';
 import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/widgets/gj_aligned_grid.dart';
 import '../../../shared/widgets/gj_card.dart';
@@ -122,7 +123,7 @@ class _PesquisaProgramasPageState extends State<PesquisaProgramasPage> {
                 final cards = [
                   for (final programa in programas)
                     GJCard.programa(
-                      imagemUrl: programa.imagemUrl ?? imagemProgramaPadrao,
+                      imagemUrl: fotoPrograma(nome: programa.nome, sigla: programa.sigla, imagemUrl: programa.imagemUrl),
                       icone: iconePrograma(programa.sigla, programa.tipo),
                       cor: corPrograma(programa.tipo),
                       sigla: programa.sigla ?? programa.tipo,
