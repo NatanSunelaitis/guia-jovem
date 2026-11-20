@@ -14,6 +14,7 @@ import '../../../shared/widgets/gj_tabs.dart';
 import '../data/cadastros_repository.dart';
 import '../domain/dashboard.dart';
 import '../../../shared/utils/plural.dart';
+import '../../../shared/widgets/gj_aligned_grid.dart';
 
 /// Períodos do seletor do protótipo (T24.1).
 enum PeriodoDashboard {
@@ -109,7 +110,6 @@ class _SecaoDashboardState extends State<SecaoDashboard> {
     VoidCallback? onTap,
   }) {
     final conteudo = Container(
-      width: 220,
       padding: const EdgeInsets.all(GJSpace.s5),
       decoration: BoxDecoration(
         color: GJColors.surfaceLowest,
@@ -123,7 +123,8 @@ class _SecaoDashboardState extends State<SecaoDashboard> {
             children: [
               Icon(icone, color: cor, size: 20),
               const SizedBox(width: GJSpace.s2),
-              Expanded(child: Text(rotulo, style: GJTypography.label(), overflow: TextOverflow.ellipsis)),
+              // Até duas linhas: o rótulo aparece inteiro ("Universidades aprovadas").
+              Expanded(child: Text(rotulo, style: GJTypography.label(), maxLines: 2)),
             ],
           ),
           const SizedBox(height: GJSpace.s3),
@@ -150,7 +151,9 @@ class _SecaoDashboardState extends State<SecaoDashboard> {
           );
         }
         final r = snapshot.data!;
-        return Wrap(
+        // Cards da mesma linha com a mesma altura, ocupando a largura toda.
+        return GJAlignedGrid(
+          itemWidth: 200,
           spacing: GJSpace.s4,
           runSpacing: GJSpace.s4,
           children: [
