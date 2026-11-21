@@ -1947,7 +1947,7 @@ paths:
                         cidade: { type: string, nullable: true, description: 'Cidade do campus principal' }
                         estado: { type: string, nullable: true }
                         observacao: { type: string, nullable: true }
-                  meta: { : '#/components/schemas/Paginacao' }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
   /favoritos/universidades:
