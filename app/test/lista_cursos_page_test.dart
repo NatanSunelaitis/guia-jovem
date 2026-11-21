@@ -29,6 +29,29 @@ void main() {
     expect(find.text('2 universidades'), findsOneWidget);
   });
 
+  testWidgets('volume: 30 cursos em páginas de 12', (tester) async {
+    tester.view.physicalSize = const Size(1366, 3000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    mockApi({
+      '/cursos/destaques': envelope([
+        for (var i = 1; i <= 30; i++) {'nome': 'Curso ${i.toString().padLeft(2, '0')}', 'areaCurso': 'Saúde', 'totalOfertas': 1},
+      ]),
+    });
+
+    await pump(tester);
+
+    expect(find.text('30 cursos'), findsOneWidget);
+    expect(find.text('Página 1 de 3'), findsOneWidget);
+    expect(find.text('Curso 12'), findsOneWidget);
+    expect(find.text('Curso 13'), findsNothing);
+    expect(requisicoesApi.last.url.queryParameters['limite'], '200');
+
+    await tester.tap(find.byTooltip('Próxima página'));
+    await tester.pump();
+    expect(find.text('Curso 13'), findsOneWidget);
+  });
+
   testWidgets('mostra estado vazio quando não há cursos', (tester) async {
     mockApi({
       '/cursos/destaques': envelope(<dynamic>[]),

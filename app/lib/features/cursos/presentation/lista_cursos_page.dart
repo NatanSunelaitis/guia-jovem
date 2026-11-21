@@ -11,6 +11,7 @@ import '../../../shared/layouts/public_layout.dart';
 import '../../../shared/widgets/gj_aligned_grid.dart';
 import '../../../shared/widgets/gj_card.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
+import '../../../shared/widgets/gj_lista_paginada.dart';
 import '../../../shared/widgets/gj_input.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tag.dart';
@@ -28,6 +29,10 @@ class _ListaCursosPageState extends State<ListaCursosPage> {
   final _qController = TextEditingController();
   final _areaController = TextEditingController();
   late Future<List<CursoDestaque>> _future;
+  int _pagina = 1;
+
+  /// Cards por página (três ou quatro linhas da grade).
+  static const _porPagina = 12;
 
   @override
   void initState() {
@@ -44,7 +49,9 @@ class _ListaCursosPageState extends State<ListaCursosPage> {
 
   void _buscar() {
     setState(() {
-      _future = cursosRepository.destaques(limite: 100, q: _qController.text, areaCurso: _areaController.text);
+      _pagina = 1;
+      // 200 é o máximo da API para os nomes de curso; a página mostra 12 por vez.
+      _future = cursosRepository.destaques(limite: 200, q: _qController.text, areaCurso: _areaController.text);
     });
   }
 
@@ -98,8 +105,22 @@ class _ListaCursosPageState extends State<ListaCursosPage> {
                     return const GJEmptyState(titulo: 'Nenhum curso encontrado', texto: 'Tente outro termo de busca.');
                   }
 
+                  final totalPaginas = (cursos.length / _porPagina).ceil();
+                  final pagina = _pagina.clamp(1, totalPaginas);
+                  final daPagina = cursos.skip((pagina - 1) * _porPagina).take(_porPagina);
+                  final paginacao = totalPaginas <= 1
+                      ? const SizedBox.shrink()
+                      : Padding(
+                          padding: const EdgeInsets.only(top: GJSpace.s6),
+                          child: GJPaginacao(pagina: pagina, totalPaginas: totalPaginas, onMudar: (nova) => setState(() => _pagina = nova)),
+                        );
+                  final total = Padding(
+                    padding: const EdgeInsets.only(bottom: GJSpace.s4),
+                    child: Text(cursos.length == 1 ? '1 curso' : '${cursos.length} cursos', style: GJTypography.bodySm()),
+                  );
+
                   final cards = [
-                      for (final curso in cursos)
+                      for (final curso in daPagina)
                           GJCard.curso(
                             nome: curso.nome,
                             ilustracao: fotoCurso(nome: curso.nome, areaCurso: curso.areaCurso),
@@ -120,11 +141,23 @@ class _ListaCursosPageState extends State<ListaCursosPage> {
                   ];
                   if (isMobile) {
                     return Column(
-                      children: [for (final card in cards) Padding(padding: const EdgeInsets.only(bottom: GJSpace.s4), child: card)],
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        total,
+                        for (final card in cards) Padding(padding: const EdgeInsets.only(bottom: GJSpace.s4), child: card),
+                        paginacao,
+                      ],
                     );
                   }
                   // Cards da mesma linha com a mesma altura (nomes em até três linhas).
-                  return GJAlignedGrid(itemWidth: 240, spacing: GJSpace.s4, runSpacing: GJSpace.s4, children: cards);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      total,
+                      GJAlignedGrid(itemWidth: 240, spacing: GJSpace.s4, runSpacing: GJSpace.s4, children: cards),
+                      paginacao,
+                    ],
+                  );
                 },
               ),
             ],
