@@ -278,6 +278,7 @@ class _GerenciarOfertasState extends State<GerenciarOfertas> {
     try {
       await painelUniversidadeRepository.excluirOferta(widget.curso.id, oferta.campusId);
       await _atualizarLista();
+      if (mounted) ScaffoldMessenger.of(context).aviso('Oferta removida.');
       if (_editando?.campusId == oferta.campusId) _limpar();
     } on ApiException catch (erro) {
       if (mounted) setState(() => _erro = erro.message);

@@ -41,6 +41,10 @@ class _NovaSugestaoDialogState extends State<_NovaSugestaoDialog> {
   int _buscaAtual = 0;
   bool _buscando = false;
   List<UniversidadeResumo> _resultados = const [];
+
+  /// Erro da busca de universidade (ex.: sem conexão), mostrado no lugar
+  /// de "nenhuma encontrada", que seria enganoso.
+  String? _erroBusca;
   UniversidadeResumo? _universidade;
 
   bool _enviando = false;
@@ -71,13 +75,21 @@ class _NovaSugestaoDialogState extends State<_NovaSugestaoDialog> {
 
   Future<void> _buscar(String termo) async {
     final busca = ++_buscaAtual;
-    setState(() => _buscando = true);
+    setState(() {
+      _buscando = true;
+      _erroBusca = null;
+    });
     try {
       final pagina = await universidadesRepository.listar(FiltrosUniversidades(q: termo));
       if (!mounted || busca != _buscaAtual) return;
       setState(() => _resultados = pagina.data.take(5).toList());
-    } on ApiException {
-      if (mounted && busca == _buscaAtual) setState(() => _resultados = const []);
+    } on ApiException catch (erro) {
+      if (mounted && busca == _buscaAtual) {
+        setState(() {
+          _resultados = const [];
+          _erroBusca = erro.message;
+        });
+      }
     } finally {
       if (mounted && busca == _buscaAtual) setState(() => _buscando = false);
     }
@@ -174,7 +186,12 @@ class _NovaSugestaoDialogState extends State<_NovaSugestaoDialog> {
             padding: EdgeInsets.only(top: GJSpace.s2),
             child: LinearProgressIndicator(minHeight: 2),
           ),
-        if (!_buscando && _buscaController.text.trim().length >= 2 && _resultados.isEmpty)
+        if (!_buscando && _erroBusca != null)
+          Padding(
+            padding: const EdgeInsets.only(top: GJSpace.s2),
+            child: Text(_erroBusca!, style: GJTypography.caption(color: GJColors.error)),
+          ),
+        if (!_buscando && _erroBusca == null && _buscaController.text.trim().length >= 2 && _resultados.isEmpty)
           Padding(
             padding: const EdgeInsets.only(top: GJSpace.s2),
             child: Text('Nenhuma universidade encontrada.', style: GJTypography.caption()),
