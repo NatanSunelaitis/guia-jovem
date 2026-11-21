@@ -341,6 +341,29 @@ function criarRoteiro({ chamar, prisma, log, admin, base }) {
     conferir(JSON.stringify(detalhe).includes('Até 100% da mensalidade'), 'a observação do programa aceito não aparece');
   });
 
+  ponto('Descrição formatada e página do curso com cada oferta (RF19, RF20, T06)', async () => {
+    const descricao = '## O que você estuda\n\nProgramação **web**.\n\n- Banco de dados\n- [Edital](https://www.example.com)';
+    const salvo = await chamar('PATCH', `/cursos/${estado.curso.id}`, { token: estado.universidade.token, corpo: { descricao } });
+    conferir(status(salvo, 200).data.descricao === descricao, 'a descrição formatada não foi gravada como veio');
+    const longa = await chamar('PATCH', `/cursos/${estado.curso.id}`, {
+      token: estado.universidade.token,
+      corpo: { descricao: 'a'.repeat(10001) },
+    });
+    conferir(status(longa, 400).error.code === 'VALIDATION_ERROR', 'descrição acima de 10.000 caracteres foi aceita');
+
+    const porNome = status(await chamar('GET', `/cursos/nome/${encodeURIComponent(estado.curso.nome)}`), 200).data;
+    const oferta = porNome.universidades.find((o) => o.cursoId === estado.curso.id);
+    conferir(oferta, 'a oferta da universidade não aparece na página do curso');
+    conferir(oferta.descricao === descricao && oferta.grau === 'Tecnólogo' && oferta.duracaoSemestres === 6, 'a oferta veio sem os dados do curso');
+    conferir(oferta.universidade.natureza && oferta.universidade.cidade === 'Votorantim', 'a oferta veio sem natureza ou cidade');
+    conferir(
+      oferta.campus.some((c) => c.id === estado.campusNovo.id && c.turno === 'Noturno' && c.vagas === 40),
+      'a oferta veio sem o campus com turno e vagas',
+    );
+    conferir(oferta.programas.FINANCIAMENTO.some((p) => p.sigla === 'FIES' && p.observacao === 'Até 100% da mensalidade'), 'a oferta veio sem os programas aceitos');
+    conferir(oferta.programas.BOLSA.some((p) => p.institucional), 'a oferta veio sem a bolsa institucional');
+  });
+
   ponto('Sugestão para a universidade: notifica, ela avalia e o aluno é notificado (RF08, RF14, RF15)', async () => {
     const criada = await chamar('POST', '/sugestoes', {
       token: estado.aluno.token,
