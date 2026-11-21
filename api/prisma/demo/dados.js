@@ -455,15 +455,52 @@ Combina com quem gosta de viajar, de conhecer culturas e de lidar com pessoas. C
 };
 
 // Programas globais (administrador). As siglas casam com os ícones e as
-// imagens do app (assets/img/programas).
+// imagens do app (assets/img/programas). A descrição traz as seções da página
+// do programa; "como funciona" e "requisitos" estão dentro dela, por isso os
+// campos próprios ficam vazios.
 const PROGRAMAS = [
   {
     sigla: 'ENEM',
     nome: 'Exame Nacional do Ensino Médio',
     tipo: 'ENTRADA',
-    descricao: 'Prova nacional do Inep que avalia quem concluiu ou está concluindo o ensino médio. A nota é usada no SiSU, no ProUni, no FIES e em vestibulares de instituições privadas.',
-    comoFunciona: 'A inscrição é feita na Página do Participante. As provas acontecem em dois domingos: no primeiro, Linguagens, Ciências Humanas e Redação; no segundo, Matemática e Ciências da Natureza.',
-    requisitos: 'Estar cursando o último ano ou ter concluído o ensino médio. Estudantes de escola pública e famílias de baixa renda podem pedir isenção da taxa.',
+    descricao: `## O que é
+
+Prova nacional do Inep que avalia quem concluiu ou está concluindo o ensino médio. A nota é usada no SiSU, no ProUni, no FIES e em vestibulares de instituições privadas.
+
+Com uma única prova, você pode concorrer a vagas em universidades públicas pelo SiSU, a bolsas pelo ProUni e a financiamento pelo FIES, além de usar a nota em vestibulares de faculdades particulares.
+
+## Quem pode participar
+
+- Quem está cursando o último ano do ensino médio.
+- Quem já concluiu o ensino médio.
+- Estudantes de escola pública e de famílias de baixa renda podem pedir **isenção da taxa** de inscrição.
+
+## Como funciona
+
+- A inscrição é feita na **Página do Participante**.
+- As provas acontecem em **dois domingos**.
+- No primeiro domingo: Linguagens, Ciências Humanas e Redação.
+- No segundo domingo: Matemática e Ciências da Natureza.
+- As notas saem na Página do Participante.
+
+## Documentos normalmente pedidos
+
+- CPF, para fazer a inscrição.
+- Documento oficial de identificação com foto, no dia de cada prova.
+- Para pedir a isenção da taxa, os comprovantes que o edital indicar.
+
+## Passo a passo
+
+1. Acompanhe a divulgação do edital e o período de inscrição.
+2. Se tiver direito, peça a isenção da taxa no prazo do edital.
+3. Faça a inscrição na Página do Participante.
+4. Antes da prova, confira o local onde você vai fazer o exame.
+5. Faça as provas nos dois domingos.
+6. Consulte suas notas na Página do Participante e use-as no SiSU, no ProUni, no FIES ou em vestibulares.
+
+As regras, as datas e os documentos podem mudar a cada edição. Confira sempre o edital no [site oficial do Inep](https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem).`,
+    comoFunciona: null,
+    requisitos: null,
     linkOficial: 'https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem',
     imagemUrl: 'assets/img/programas/enem.svg',
     eventos: [
@@ -476,9 +513,46 @@ const PROGRAMAS = [
     sigla: 'SiSU',
     nome: 'Sistema de Seleção Unificada',
     tipo: 'ENTRADA',
-    descricao: 'Sistema do MEC que seleciona estudantes para vagas em instituições públicas de ensino superior usando a nota do Enem.',
-    comoFunciona: 'Na inscrição, o estudante escolhe até duas opções de curso. Durante o período, o sistema mostra a nota de corte parcial e o estudante pode trocar as opções até o encerramento.',
-    requisitos: 'Ter feito a edição mais recente do Enem e não ter tirado zero na redação.',
+    descricao: `## O que é
+
+Sistema do MEC que seleciona estudantes para vagas em instituições públicas de ensino superior usando a nota do Enem.
+
+O SiSU não tem prova própria: a seleção usa a nota que você tirou no Enem, comparada com a dos outros candidatos que escolheram o mesmo curso.
+
+## Quem pode participar
+
+- Quem fez a edição mais recente do Enem.
+- Quem não tirou zero na redação.
+
+## Como funciona
+
+- Na inscrição, você escolhe até **duas opções** de curso.
+- Durante o período de inscrição, o sistema mostra a **nota de corte parcial** de cada opção.
+- Você pode trocar as opções até o encerramento das inscrições.
+- O resultado da chamada regular sai no portal Acesso Único.
+- Quem não for selecionado pode manifestar interesse na **lista de espera**.
+
+## Documentos normalmente pedidos
+
+Quem é selecionado faz a matrícula na instituição, que costuma pedir:
+
+- Documento de identificação com foto e CPF.
+- Histórico escolar e certificado de conclusão do ensino médio.
+- Comprovante de residência.
+- Para as vagas reservadas, os comprovantes que o edital da instituição indicar.
+
+## Passo a passo
+
+1. Faça o Enem e confira suas notas.
+2. Acompanhe o período de inscrição no portal Acesso Único.
+3. Inscreva-se e escolha até duas opções de curso.
+4. Acompanhe a nota de corte parcial e, se quiser, troque as opções até o fim das inscrições.
+5. Veja o resultado da chamada regular.
+6. Se for selecionado, faça a matrícula no prazo. Se não for, manifeste interesse na lista de espera.
+
+As regras e as datas podem mudar a cada edição. Confira sempre o edital no [portal Acesso Único do MEC](https://acessounico.mec.gov.br/sisu).`,
+    comoFunciona: null,
+    requisitos: null,
     linkOficial: 'https://acessounico.mec.gov.br/sisu',
     imagemUrl: 'assets/img/programas/sisu.svg',
     eventos: [
@@ -491,9 +565,43 @@ const PROGRAMAS = [
     sigla: 'Provão',
     nome: 'Provão Paulista Seriado',
     tipo: 'ENTRADA',
-    descricao: 'Avaliação seriada do governo de São Paulo para estudantes da rede pública estadual, com vagas em universidades estaduais paulistas e nas Fatecs.',
-    comoFunciona: 'Os estudantes fazem uma prova em cada ano do ensino médio na própria escola. As notas das três séries formam a nota final usada na escolha das vagas.',
-    requisitos: 'Estar matriculado no ensino médio da rede pública estadual de São Paulo.',
+    descricao: `## O que é
+
+Avaliação seriada do governo de São Paulo para estudantes da rede pública estadual, com vagas em universidades estaduais paulistas e nas Fatecs.
+
+"Seriada" quer dizer que a avaliação acompanha o estudante ao longo do ensino médio, com uma prova em cada ano, em vez de uma prova única no final.
+
+## Quem pode participar
+
+- Estudantes matriculados no ensino médio da **rede pública estadual de São Paulo**.
+
+## Como funciona
+
+- Os estudantes fazem **uma prova em cada ano** do ensino médio, na própria escola.
+- As notas das três séries formam a **nota final**.
+- A nota final é usada na escolha das vagas.
+- Na 3ª série, o estudante escolhe os cursos no período indicado.
+- As chamadas são divulgadas no site da Vunesp.
+
+## Documentos normalmente pedidos
+
+Quem é convocado faz a matrícula na instituição, que costuma pedir:
+
+- Documento de identificação com foto e CPF.
+- Histórico escolar e certificado de conclusão do ensino médio.
+- Outros documentos que o edital da instituição indicar.
+
+## Passo a passo
+
+1. Faça as provas em cada ano do ensino médio, na sua escola.
+2. Na 3ª série, acompanhe o período de escolha de cursos.
+3. Escolha os cursos no prazo.
+4. Acompanhe a divulgação das chamadas no site da Vunesp.
+5. Se for convocado, faça a matrícula na instituição no prazo.
+
+As regras e as datas podem mudar a cada edição. Confira sempre o edital no [site oficial do Provão Paulista](https://provaopaulista.vunesp.com.br).`,
+    comoFunciona: null,
+    requisitos: null,
     linkOficial: 'https://provaopaulista.vunesp.com.br',
     imagemUrl: null,
     eventos: [
@@ -505,9 +613,39 @@ const PROGRAMAS = [
     sigla: 'VESTIBULAR',
     nome: 'Vestibular Tradicional',
     tipo: 'ENTRADA',
-    descricao: 'Processo seletivo próprio de cada instituição, com edital, provas e calendário definidos por ela.',
-    comoFunciona: 'Cada instituição publica o edital com as datas de inscrição e de prova. Muitas privadas também aceitam a nota do Enem no lugar da prova.',
-    requisitos: 'Ter concluído o ensino médio até a data da matrícula.',
+    descricao: `## O que é
+
+Processo seletivo próprio de cada instituição, com edital, provas e calendário definidos por ela.
+
+Como cada instituição faz o seu, as regras mudam de uma para outra: o tipo de prova, as datas e o número de vagas aparecem no edital de cada vestibular.
+
+## Quem pode participar
+
+- Quem tiver concluído o ensino médio até a data da matrícula.
+
+## Como funciona
+
+- Cada instituição publica o **edital** com as datas de inscrição e de prova.
+- Muitas instituições privadas também aceitam a **nota do Enem** no lugar da prova.
+- Na região, os vestibulares de verão costumam acontecer no fim do ano, e os de inverno, para o segundo semestre, no meio do ano.
+
+## Documentos normalmente pedidos
+
+- Documento de identificação com foto e CPF, na inscrição e no dia da prova.
+- Na matrícula, histórico escolar e certificado de conclusão do ensino médio.
+- Outros documentos que o edital indicar.
+
+## Passo a passo
+
+1. Escolha as instituições e os cursos que interessam a você.
+2. Leia o edital de cada vestibular.
+3. Faça a inscrição no prazo e, se o edital permitir, decida entre fazer a prova ou usar a nota do Enem.
+4. Faça a prova na data marcada.
+5. Acompanhe o resultado e, se for aprovado, faça a matrícula no prazo.
+
+Cada instituição tem as próprias regras. Confira sempre o edital no site oficial da instituição: o link está na página de cada universidade aqui no Guia Jovem, no botão "Acessar página da faculdade".`,
+    comoFunciona: null,
+    requisitos: null,
     linkOficial: null,
     imagemUrl: 'assets/img/programas/vestibular.svg',
     eventos: [
@@ -519,9 +657,42 @@ const PROGRAMAS = [
     sigla: 'FIES',
     nome: 'Fundo de Financiamento Estudantil',
     tipo: 'FINANCIAMENTO',
-    descricao: 'Programa do MEC que financia a graduação em instituições privadas participantes, com pagamento depois da formatura.',
-    comoFunciona: 'O estudante se inscreve com a nota do Enem e escolhe o curso. Se for pré-selecionado, confirma os dados na instituição e no banco. O pagamento começa depois da conclusão do curso, em parcelas de acordo com a renda.',
-    requisitos: 'Ter feito o Enem a partir de 2010 com média de pelo menos 450 pontos e nota acima de zero na redação, e ter renda familiar de até três salários mínimos por pessoa.',
+    descricao: `## O que é
+
+Programa do MEC que financia a graduação em instituições privadas participantes, com pagamento depois da formatura.
+
+É um empréstimo para pagar a faculdade: o valor financiado não precisa ser pago durante o curso, e o pagamento começa depois que você se forma.
+
+## Quem pode participar
+
+- Quem fez o Enem a partir de 2010, com **média de pelo menos 450 pontos** e nota acima de zero na redação.
+- Quem tem renda familiar de até **três salários mínimos por pessoa**.
+
+## Como funciona
+
+- Você se inscreve com a nota do Enem e escolhe o curso.
+- Se for **pré-selecionado**, confirma os dados na instituição e no banco.
+- O pagamento começa depois da conclusão do curso, em parcelas de acordo com a renda.
+
+## Documentos normalmente pedidos
+
+- Documento de identificação com foto e CPF.
+- Comprovantes de renda das pessoas da família.
+- Comprovante de residência.
+- Na instituição e no banco, os documentos que o edital indicar para a contratação.
+
+## Passo a passo
+
+1. Confira se sua nota do Enem e a renda da família atendem às regras.
+2. Acompanhe o período de inscrição no portal Acesso Único.
+3. Inscreva-se e escolha o curso.
+4. Veja o resultado da pré-seleção.
+5. Se for pré-selecionado, complemente a inscrição no prazo.
+6. Confirme os dados na instituição e no banco.
+
+As regras, as datas e as condições podem mudar a cada edição. Confira sempre o edital no [portal Acesso Único do MEC](https://acessounico.mec.gov.br/fies).`,
+    comoFunciona: null,
+    requisitos: null,
     linkOficial: 'https://acessounico.mec.gov.br/fies',
     imagemUrl: 'assets/img/programas/fies.svg',
     eventos: [
@@ -534,9 +705,39 @@ const PROGRAMAS = [
     sigla: 'Fies Social',
     nome: 'Fies Social',
     tipo: 'FINANCIAMENTO',
-    descricao: 'Modalidade do Fies para estudantes de famílias inscritas no Cadastro Único, com financiamento de até 100% da mensalidade.',
-    comoFunciona: 'A inscrição é a mesma do Fies. Parte das vagas é reservada a quem está no CadÚnico, e o financiamento pode cobrir a mensalidade inteira.',
-    requisitos: 'Família inscrita no Cadastro Único com renda de até meio salário mínimo por pessoa, além das regras gerais do Fies.',
+    descricao: `## O que é
+
+Modalidade do Fies para estudantes de famílias inscritas no Cadastro Único, com financiamento de até 100% da mensalidade.
+
+O Cadastro Único (CadÚnico) é o cadastro do governo federal das famílias de baixa renda. O Fies Social usa esse cadastro para reservar vagas a quem mais precisa.
+
+## Quem pode participar
+
+- Estudantes de família inscrita no **Cadastro Único**, com renda de até **meio salário mínimo por pessoa**.
+- Além disso, é preciso atender às regras gerais do Fies.
+
+## Como funciona
+
+- A inscrição é a **mesma do Fies**, no mesmo período.
+- Parte das vagas é reservada a quem está no CadÚnico.
+- O financiamento pode cobrir a mensalidade inteira.
+
+## Documentos normalmente pedidos
+
+- Os mesmos do Fies: identificação com foto, CPF, comprovantes de renda da família e de residência.
+- Os dados da família no Cadastro Único devem estar atualizados.
+- Outros documentos que o edital indicar.
+
+## Passo a passo
+
+1. Confira se sua família está no Cadastro Único e se os dados estão em dia.
+2. Confira se você atende às regras gerais do Fies.
+3. Inscreva-se no Fies no período de inscrição, pelo portal Acesso Único.
+4. Acompanhe o resultado e siga as etapas do Fies.
+
+As regras e as datas podem mudar a cada edição. Confira sempre o edital no [portal Acesso Único do MEC](https://acessounico.mec.gov.br/fies).`,
+    comoFunciona: null,
+    requisitos: null,
     linkOficial: 'https://acessounico.mec.gov.br/fies',
     imagemUrl: null,
     eventos: [{ titulo: 'Inscrições junto com o Fies', descricao: 'Mesmo período do Fies 2027', dataInicio: '2027-02-10', dataFim: '2027-02-13' }],
@@ -545,9 +746,43 @@ const PROGRAMAS = [
     sigla: 'ProUni',
     nome: 'Programa Universidade para Todos',
     tipo: 'BOLSA',
-    descricao: 'Programa do governo federal que oferece bolsas integrais e parciais (50%) em instituições privadas de ensino superior.',
-    comoFunciona: 'A seleção usa a nota do Enem. O estudante escolhe até duas opções de curso e, se for selecionado, comprova as informações na instituição.',
-    requisitos: 'Ter feito o Enem com média de pelo menos 450 pontos e nota acima de zero na redação. Bolsa integral: renda familiar de até 1,5 salário mínimo por pessoa; parcial: até 3 salários mínimos.',
+    descricao: `## O que é
+
+Programa do governo federal que oferece bolsas integrais e parciais (50%) em instituições privadas de ensino superior.
+
+Na bolsa integral, você não paga a mensalidade; na parcial, paga metade. Não é empréstimo: o valor da bolsa não precisa ser devolvido.
+
+## Quem pode participar
+
+- Quem fez o Enem com **média de pelo menos 450 pontos** e nota acima de zero na redação.
+- **Bolsa integral:** renda familiar de até 1,5 salário mínimo por pessoa.
+- **Bolsa parcial:** renda familiar de até 3 salários mínimos por pessoa.
+
+## Como funciona
+
+- A seleção usa a **nota do Enem**.
+- Na inscrição, você escolhe até **duas opções** de curso.
+- O resultado sai em chamadas, no portal.
+- Se for selecionado, você comprova as informações na instituição.
+
+## Documentos normalmente pedidos
+
+- Documento de identificação com foto e CPF.
+- Comprovantes de renda das pessoas da família.
+- Comprovante de residência.
+- Histórico escolar e outros documentos que o edital indicar.
+
+## Passo a passo
+
+1. Confira se sua nota do Enem e a renda da família atendem às regras.
+2. Acompanhe o período de inscrição no portal Acesso Único.
+3. Inscreva-se e escolha até duas opções de curso.
+4. Acompanhe a primeira e a segunda chamada.
+5. Se for selecionado, leve os documentos à instituição no prazo.
+
+As regras, as datas e as faixas de renda podem mudar a cada edição. Confira sempre o edital no [portal Acesso Único do MEC](https://acessounico.mec.gov.br/prouni).`,
+    comoFunciona: null,
+    requisitos: null,
     linkOficial: 'https://acessounico.mec.gov.br/prouni',
     imagemUrl: 'assets/img/programas/prouni.svg',
     eventos: [
@@ -560,9 +795,41 @@ const PROGRAMAS = [
     sigla: 'Escola da Família',
     nome: 'Programa Escola da Família',
     tipo: 'BOLSA',
-    descricao: 'Programa do governo de São Paulo que paga a mensalidade de universitários que atuam aos fins de semana em escolas da rede estadual.',
-    comoFunciona: 'O estudante se inscreve no site do programa e, se selecionado, trabalha como educador universitário nas escolas aos sábados e domingos. Em troca, o estado e a instituição custeiam a mensalidade.',
-    requisitos: 'Ter cursado o ensino médio em escola pública e estar matriculado em instituição privada conveniada ao programa.',
+    descricao: `## O que é
+
+Programa do governo de São Paulo que paga a mensalidade de universitários que atuam aos fins de semana em escolas da rede estadual.
+
+O estudante participa como **educador universitário**, ajudando nas atividades abertas à comunidade que acontecem nas escolas aos sábados e domingos.
+
+## Quem pode participar
+
+- Quem cursou o ensino médio em **escola pública**.
+- Quem está matriculado em uma **instituição privada conveniada** ao programa.
+
+## Como funciona
+
+- O estudante se inscreve no site do programa.
+- Se for selecionado, trabalha como educador universitário nas escolas **aos sábados e domingos**.
+- Em troca, o estado e a instituição custeiam a mensalidade.
+
+## Documentos normalmente pedidos
+
+- Documento de identificação com foto e CPF.
+- Comprovante de matrícula na instituição conveniada.
+- Histórico escolar do ensino médio, para comprovar que foi cursado em escola pública.
+- Outros documentos que o edital indicar.
+
+## Passo a passo
+
+1. Confira se a sua faculdade é conveniada ao programa.
+2. Acompanhe o período de inscrição no site do programa.
+3. Faça a inscrição no prazo.
+4. Acompanhe o resultado da seleção.
+5. Se for selecionado, siga as orientações para começar a atuar na escola.
+
+As regras e as datas podem mudar a cada edição. Confira sempre o edital no [site oficial do Programa Escola da Família](https://escoladafamilia.educacao.sp.gov.br).`,
+    comoFunciona: null,
+    requisitos: null,
     linkOficial: 'https://escoladafamilia.educacao.sp.gov.br',
     imagemUrl: null,
     eventos: [{ titulo: 'Inscrições para educadores universitários', descricao: 'Primeiro semestre', dataInicio: '2027-01-11', dataFim: '2027-02-05' }],
