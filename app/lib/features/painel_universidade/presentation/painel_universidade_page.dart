@@ -64,7 +64,10 @@ class PainelUniversidadePage extends StatefulWidget {
 }
 
 class _PainelUniversidadePageState extends State<PainelUniversidadePage> {
-  final int? _universidadeId = sessionController.usuario?.universidade?.id;
+  // Lido da sessão a cada uso: ao recarregar a página (F5), a rota monta
+  // antes de a sessão ser restaurada do storage, e a universidade só chega
+  // quando o bootstrap termina.
+  int? get _universidadeId => sessionController.usuario?.universidade?.id;
   UniversidadeCadastro? _cadastro;
   ApiException? _erro;
   bool _reenviando = false;
@@ -72,7 +75,23 @@ class _PainelUniversidadePageState extends State<PainelUniversidadePage> {
   @override
   void initState() {
     super.initState();
+    sessionController.addListener(_aoMudarSessao);
     _carregar();
+  }
+
+  @override
+  void dispose() {
+    sessionController.removeListener(_aoMudarSessao);
+    super.dispose();
+  }
+
+  void _aoMudarSessao() {
+    if (!mounted) return;
+    if (_cadastro == null && _universidadeId != null) {
+      _carregar();
+    } else {
+      setState(() {});
+    }
   }
 
   Future<void> _carregar() async {
@@ -129,6 +148,7 @@ class _PainelUniversidadePageState extends State<PainelUniversidadePage> {
   }
 
   Widget _corpo() {
+    if (_universidadeId == null && sessionController.carregando) return const GJSkeleton(height: GJSpace.s24);
     if (_universidadeId == null) {
       return const GJEmptyState(
         titulo: 'Universidade não encontrada',

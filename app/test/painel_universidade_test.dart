@@ -85,6 +85,7 @@ Future<void> _pumpPainel(
   String secao = 'dados',
   String? motivo,
   Map<String, RespostaFalsa Function(RequestOptions)> extras = const {},
+  bool sessaoRestaurando = false,
 }) async {
   final cadastro = cadastroUniversidadeJson(
     status: status,
@@ -92,7 +93,8 @@ Future<void> _pumpPainel(
     aprovadoEm: status == 'A' || status == 'I' ? '2026-11-11T12:00:00.000Z' : null,
   );
   mockAuthApiRotasDinamicas(_rotas(cadastro, extras));
-  sessionController.redefinirParaTestes(usuario: _universidade);
+  // Recarregar a página (F5): a rota monta antes de a sessão ser restaurada.
+  sessionController.redefinirParaTestes(usuario: sessaoRestaurando ? null : _universidade, carregando: sessaoRestaurando);
   await pumpComRouter(
     tester,
     initialLocation: '/painel-universidade/$secao',
@@ -104,12 +106,30 @@ Future<void> _pumpPainel(
       '/universidades/:id': (context) => PaginaMarcadora('Página ${GoRouterState.of(context).pathParameters['id']}'),
     },
   );
-  await tester.pumpAndSettle();
+  // O esqueleto de carregamento anima até a sessão chegar.
+  if (sessaoRestaurando) {
+    await tester.pump();
+  } else {
+    await tester.pumpAndSettle();
+  }
 }
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   setUp(configurarAmbienteDeTeste);
+
+  testWidgets('ao recarregar a página, espera a sessão e carrega a universidade', (tester) async {
+    await _pumpPainel(tester, status: 'A', sessaoRestaurando: true);
+
+    expect(find.text('Universidade não encontrada'), findsNothing);
+    expect(find.text('Editar dados'), findsNothing);
+
+    sessionController.redefinirParaTestes(usuario: _universidade);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Universidade não encontrada'), findsNothing);
+    expect(find.text('Editar dados'), findsOneWidget);
+  });
 
   group('Faixa de situação', () {
     testWidgets('pendente: em análise, com as seções editáveis', (tester) async {
