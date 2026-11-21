@@ -14,6 +14,7 @@ import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/widgets/gj_button.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
 import '../../../shared/widgets/gj_input.dart';
+import '../../../shared/widgets/gj_lista_paginada.dart';
 import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tag.dart';
@@ -40,7 +41,10 @@ class DetalheUniversidadePage extends StatefulWidget {
 
 class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
   late Future<UniversidadeDetalhe> _future;
-  Future<List<Avaliacao>>? _futureAvaliacoes;
+  Future<PaginaAvaliacoes>? _futureAvaliacoes;
+  int _paginaAvaliacoes = 1;
+
+  Future<PaginaAvaliacoes> _carregarAvaliacoes() => universidadesRepository.paginaDeAvaliacoes(widget.id, page: _paginaAvaliacoes);
   late final Future<List<UniversidadeCampusItem>> _futureCampus = universidadesRepository.campus(widget.id);
   final _campusQueryController = TextEditingController();
 
@@ -89,7 +93,8 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
       _minhaAvaliacao = gravada.avaliacao;
       _media = gravada.mediaAvaliacao;
       _total = gravada.totalAvaliacoes;
-      _futureAvaliacoes = universidadesRepository.avaliacoes(widget.id, page: 1).then((r) => r.data);
+      _paginaAvaliacoes = 1;
+      _futureAvaliacoes = _carregarAvaliacoes();
     });
     _avisar(editando ? 'Avaliação atualizada.' : 'Avaliação enviada. Obrigado!');
   }
@@ -511,15 +516,32 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
         ]..sort((a, b) => a.curso.nome.compareTo(b.curso.nome));
         if (ofertas.isEmpty) return const SizedBox.shrink();
 
+        final nomesDosCampi = {for (final oferta in ofertas) oferta.campus.nome}.toList()..sort();
         return Padding(
           padding: const EdgeInsets.only(top: GJSpace.s8),
           child: _cartao(
             titulo: 'Cursos oferecidos',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (final (indice, oferta) in ofertas.indexed)
-                  InkWell(
+            child: GJListaPaginada<({CursoOfertado curso, UniversidadeCampusItem campus})>(
+              key: ValueKey('cursos-${ofertas.length}'),
+              carregar: ({required pagina, busca, filtro}) => paginarLocal(
+                ofertas,
+                pagina: pagina,
+                porPagina: 10,
+                busca: busca,
+                filtro: filtro,
+                texto: (oferta) => oferta.curso.nome,
+                categoria: (oferta) => oferta.campus.nome,
+              ),
+              dicaBusca: 'Buscar curso',
+              rotuloFiltro: nomesDosCampi.length > 1 ? 'Campus' : null,
+              opcoesFiltro: nomesDosCampi,
+              descreverTotal: (total) => contagem(total, 'curso', 'cursos'),
+              textoVazio: 'Nenhum curso encontrado com essa busca',
+              construirItens: (context, pagina) => Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final (indice, oferta) in pagina.indexed)
+                    InkWell(
                     onTap: () => context.go('/campus/${oferta.campus.id}'),
                     borderRadius: GJRadius.borderMd,
                     child: Container(
@@ -550,7 +572,8 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                       ),
                     ),
                   ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -627,19 +650,33 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
     // Criado só aqui (não em initState): esta função só roda depois que
     // `_future` (o detalhe da universidade) já resolveu com sucesso, então
     // uma universidade inexistente nunca dispara essa segunda chamada.
-    _futureAvaliacoes ??= universidadesRepository.avaliacoes(widget.id, page: 1).then((r) => r.data);
+    _futureAvaliacoes ??= _carregarAvaliacoes();
 
     return _cartao(
       titulo: 'Avaliações',
-      child: FutureBuilder<List<Avaliacao>>(
+      child: FutureBuilder<PaginaAvaliacoes>(
         future: _futureAvaliacoes,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const GJSkeleton(height: 120);
           }
+          if (snapshot.hasError) {
+            final erro = snapshot.error;
+            return GJEmptyState(
+              titulo: 'Não foi possível carregar as avaliações',
+              texto: erro is ApiException ? erro.message : 'Tente novamente.',
+              icone: Symbols.wifi_off,
+              acaoLabel: 'Tentar novamente',
+              onAcao: () => setState(() {
+                _futureAvaliacoes = _carregarAvaliacoes();
+              }),
+            );
+          }
 
-          final avaliacoes = snapshot.data ?? <Avaliacao>[];
-          if (avaliacoes.isEmpty) {
+          final resultado = snapshot.data!;
+          final avaliacoes = resultado.pagina.data;
+          final totalAvaliacoes = resultado.pagina.total;
+          if (totalAvaliacoes == 0) {
             return GJEmptyState(
               titulo: 'Nenhuma avaliação ainda',
               texto: mostrarAcoesDeAluno() ? 'Seja o primeiro a avaliar essa universidade.' : 'Os estudantes ainda não avaliaram esta universidade.',
@@ -649,10 +686,8 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
             );
           }
 
-          final distribuicao = <int, int>{for (var i = 1; i <= 5; i++) i: 0};
-          for (final avaliacao in avaliacoes) {
-            distribuicao[avaliacao.nota] = (distribuicao[avaliacao.nota] ?? 0) + 1;
-          }
+          // Distribuição de todas as avaliações (vem da API), não só desta página.
+          final distribuicao = resultado.distribuicao;
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -685,7 +720,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(4),
                                     child: LinearProgressIndicator(
-                                      value: avaliacoes.isEmpty ? 0 : (distribuicao[estrela] ?? 0) / avaliacoes.length,
+                                      value: (distribuicao[estrela] ?? 0) / totalAvaliacoes,
                                       minHeight: 8,
                                       backgroundColor: GJColors.surface,
                                       color: GJColors.rating,
@@ -751,6 +786,15 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                       ],
                     ],
                   ),
+                ),
+              if (resultado.pagina.totalPages > 1)
+                GJPaginacao(
+                  pagina: resultado.pagina.page,
+                  totalPaginas: resultado.pagina.totalPages,
+                  onMudar: (pagina) => setState(() {
+                    _paginaAvaliacoes = pagina;
+                    _futureAvaliacoes = _carregarAvaliacoes();
+                  }),
                 ),
             ],
           );

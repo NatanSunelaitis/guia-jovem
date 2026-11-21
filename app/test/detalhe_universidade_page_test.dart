@@ -145,6 +145,7 @@ void main() {
     });
 
     await pump(tester);
+    await tester.pump(const Duration(milliseconds: 100));
 
     expect(find.text('Cursos oferecidos'), findsOneWidget);
     expect(find.text('Enfermagem'), findsOneWidget);
@@ -202,6 +203,59 @@ void main() {
     expect(find.text('Rua XV de Novembro, 1250 · Centro · Sorocaba/SP · CEP 18010-081'), findsOneWidget);
     expect(find.text('Vestibular de verão com prova on-line'), findsOneWidget);
     expect(find.text('ENEM'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('volume: 25 cursos em 10 por página com busca, e avaliações paginadas com a distribuição de todas', (tester) async {
+    tester.view.physicalSize = const Size(1366, 3200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    mockApi({
+      '/universidades/1/avaliacoes': envelope([
+        for (var i = 1; i <= 5; i++) {'id': i, 'nota': 5, 'comentario': 'Comentário $i', 'criadoEm': '2026-11-01T00:00:00Z', 'autor': 'Aluno'},
+      ], {'page': 1, 'pageSize': 5, 'total': 40, 'totalPages': 8, 'distribuicao': {'1': 10, '2': 0, '3': 10, '4': 0, '5': 20}}),
+      '/universidades/1/campus': envelope([
+        {
+          'id': 4,
+          'nome': 'Campus Centro',
+          'principal': true,
+          'endereco': {'logradouro': 'Rua A', 'numero': '1', 'bairro': 'Centro', 'cidade': 'Sorocaba', 'estado': 'SP'},
+          'cursos': [
+            for (var i = 1; i <= 25; i++) {'id': i, 'nome': i == 7 ? 'Educação Física' : 'Curso ${i.toString().padLeft(2, '0')}', 'turno': 'Noturno', 'vagas': 30},
+          ],
+        },
+      ]),
+      '/universidades/1': envelope({
+        'id': 1,
+        'nomeFantasia': 'Universidade Volume',
+        'razaoSocial': 'Universidade Volume',
+        'natureza': 'V',
+        'mediaAvaliacao': '3.5',
+        'totalAvaliacoes': 40,
+        'campus': <dynamic>[],
+        'programas': <String, dynamic>{},
+      }),
+    });
+
+    await pump(tester);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('25 cursos'), findsOneWidget);
+    expect(find.text('Página 1 de 3'), findsOneWidget);
+    expect(find.text('Curso 01'), findsOneWidget);
+    expect(find.text('Curso 12'), findsNothing);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Buscar curso'), 'educacao');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
+    expect(find.text('Educação Física'), findsOneWidget);
+    expect(find.text('1 curso'), findsOneWidget);
+
+    // Distribuição: 20 de 40 com nota 5 (barra pela metade), embora a página tenha só 5.
+    expect(find.text('Página 1 de 8'), findsOneWidget);
+    final barras = tester.widgetList<LinearProgressIndicator>(find.byType(LinearProgressIndicator)).map((b) => b.value).toList();
+    expect(barras.first, 0.5);
+    expect(find.text('20'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

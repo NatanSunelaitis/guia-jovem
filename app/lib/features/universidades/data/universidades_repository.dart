@@ -120,6 +120,16 @@ class UniversidadesRepository {
     return PaginatedResult.fromJson(json, Avaliacao.fromJson);
   }
 
+  /// Uma página das avaliações e a distribuição por nota de todas elas.
+  Future<PaginaAvaliacoes> paginaDeAvaliacoes(int id, {int page = 1, int porPagina = 5}) async {
+    final json = await _client.get('/universidades/$id/avaliacoes', query: {'page': page, 'pageSize': porPagina});
+    final bruta = (json['meta'] as Map<String, dynamic>? ?? const {})['distribuicao'] as Map<String, dynamic>? ?? const {};
+    return PaginaAvaliacoes(
+      pagina: PaginatedResult.fromJson(json, Avaliacao.fromJson),
+      distribuicao: {for (var nota = 1; nota <= 5; nota++) nota: (bruta['$nota'] as num?)?.toInt() ?? 0},
+    );
+  }
+
   /// RF01: uma avaliação por aluno por universidade (a API responde 409 se já existe).
   Future<AvaliacaoGravada> avaliar(int universidadeId, {required int nota, String? comentario}) async {
     final json = await authApiClient.post(
@@ -144,3 +154,12 @@ class UniversidadesRepository {
 }
 
 final universidadesRepository = UniversidadesRepository();
+
+class PaginaAvaliacoes {
+  const PaginaAvaliacoes({required this.pagina, required this.distribuicao});
+
+  final PaginatedResult<Avaliacao> pagina;
+
+  /// Quantas avaliações de cada nota (1 a 5), de todas as páginas.
+  final Map<int, int> distribuicao;
+}
