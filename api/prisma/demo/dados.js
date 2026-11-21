@@ -892,9 +892,31 @@ Para quem precisa de ajuda com a mensalidade, a instituição aceita o ProUni, o
       {
         nome: 'Bolsa Mérito UniVale',
         sigla: 'Mérito',
-        descricao: 'Desconto de 50% na mensalidade durante todo o curso para os dez primeiros colocados no vestibular de cada curso.',
-        requisitos: 'Classificação entre os dez primeiros do curso no vestibular e frequência mínima de 75% em cada semestre.',
-        comoFunciona: 'A bolsa é aplicada na matrícula e renovada a cada semestre enquanto o aluno mantiver média 7 e a frequência mínima.',
+        descricao: `Desconto de 50% na mensalidade durante todo o curso para os dez primeiros colocados no vestibular de cada curso.
+
+## Critérios
+
+- Ficar entre os **dez primeiros colocados** do curso no vestibular da UniVale.
+- Manter **média 7** nas disciplinas.
+- Ter **frequência mínima de 75%** em cada semestre.
+
+## Percentual
+
+- **50% de desconto** na mensalidade, durante todo o curso.
+- A bolsa é renovada a cada semestre enquanto os critérios forem mantidos.
+
+## Prazo
+
+- Inscrições do vestibular de verão: de 3 de novembro a 4 de dezembro de 2026, pelo site da instituição.
+- Prova do vestibular: 6 de dezembro de 2026, no Campus Centro.
+
+## Como se inscrever
+
+1. Faça a inscrição no vestibular de verão pelo site da UniVale.
+2. Faça a prova na data marcada.
+3. Se ficar entre os dez primeiros do seu curso, a bolsa é aplicada na matrícula, sem pedido separado.`,
+        requisitos: null,
+        comoFunciona: null,
         eventos: [
           { titulo: 'Inscrições do vestibular de verão', descricao: 'Pelo site da instituição', dataInicio: '2026-11-03', dataFim: '2026-12-04' },
           { titulo: 'Prova do vestibular', descricao: 'Campus Centro', dataInicio: '2026-12-06' },
@@ -1037,9 +1059,29 @@ Para incentivar a presença feminina na engenharia, a faculdade mantém a **Bols
       {
         nome: 'Bolsa Engenheiras do Futuro',
         sigla: null,
-        descricao: 'Bolsa de 40% para estudantes mulheres egressas de escola pública nos cursos de engenharia.',
-        requisitos: 'Ter cursado todo o ensino médio em escola pública e ser aprovada no vestibular da FEITU.',
-        comoFunciona: 'A candidata indica o interesse na inscrição do vestibular e entrega o histórico escolar na matrícula.',
+        descricao: `Bolsa de 40% para estudantes mulheres egressas de escola pública nos cursos de engenharia.
+
+## Critérios
+
+- Ser **estudante mulher**.
+- Ter cursado **todo o ensino médio em escola pública**.
+- Ser aprovada no vestibular da FEITU em um dos cursos de engenharia.
+
+## Percentual
+
+- **40% de desconto** na mensalidade.
+
+## Prazo
+
+- Inscrição junto com o vestibular do primeiro semestre de 2027, de 10 de novembro de 2026 a 29 de janeiro de 2027.
+
+## Como se inscrever
+
+1. Faça a inscrição no vestibular da FEITU e indique o interesse na bolsa no formulário.
+2. Faça a prova ou use a nota do Enem, conforme o edital do vestibular.
+3. Se for aprovada, entregue o histórico escolar do ensino médio na matrícula.`,
+        requisitos: null,
+        comoFunciona: null,
         eventos: [{ titulo: 'Inscrição junto com o vestibular', descricao: 'Primeiro semestre de 2027', dataInicio: '2026-11-10', dataFim: '2027-01-29' }],
       },
     ],
