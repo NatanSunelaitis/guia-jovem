@@ -8,6 +8,12 @@
  * nacionais e estaduais reais. Todo dado factual daqui (datas, vagas, notas,
  * endereços, telefones, CNPJs e links) é ILUSTRATIVO e precisa ser conferido
  * antes de qualquer uso fora da demonstração.
+ *
+ * As descrições longas (cursos, "Sobre" das universidades, programas e bolsas)
+ * usam a formatação simples que o app exibe: parágrafos, subtítulos (##),
+ * listas (- e 1.), negrito (**), itálico (_) e links ([texto](endereço)).
+ * Os textos dos programas reais só repetem as regras já registradas aqui e
+ * terminam mandando conferir o edital no site oficial.
  */
 
 const CONTAS = {
@@ -16,6 +22,436 @@ const CONTAS = {
     { chave: 'beatriz', nome: 'Beatriz Almeida', email: 'beatriz@demo.guiajovem.com.br' },
     { chave: 'lucas', nome: 'Lucas Pereira', email: 'lucas@demo.guiajovem.com.br' },
   ],
+};
+
+// Descrição de cada curso: conteúdo geral da área, em linguagem simples para
+// quem está no ensino médio, sem números de mercado ou salário. Pedagogia tem
+// duas versões (presencial na UESP e a distância na UniTatuí): com descrições
+// diferentes, a página do curso mostra cada uma dentro do card da universidade.
+const CURSOS = {
+  enfermagem: `## O que você estuda
+
+Enfermagem forma o profissional que cuida da saúde das pessoas em todas as fases da vida, da prevenção ao tratamento. A primeira parte do curso traz a base comum da área da saúde; depois vêm as disciplinas do cuidado, com muitas aulas práticas.
+
+- **Ciências da saúde:** anatomia, fisiologia, microbiologia e farmacologia.
+- **Cuidado de enfermagem:** procedimentos, curativos, sinais vitais e administração de medicamentos.
+- **Saúde coletiva:** vacinação, prevenção de doenças e atendimento nas unidades de saúde.
+- **Gestão:** organização das equipes e dos serviços de saúde.
+- **Estágios supervisionados** em hospitais, unidades básicas de saúde e outros serviços.
+
+## Onde pode trabalhar
+
+- Hospitais e clínicas, em enfermarias, centros cirúrgicos e unidades de terapia intensiva.
+- Unidades básicas de saúde e programas de saúde da família.
+- Atendimento domiciliar e cuidado de idosos.
+- Empresas, na área de saúde do trabalhador, e escolas.
+- Ensino e pesquisa, depois de uma pós-graduação.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de cuidar de pessoas, mantém a calma em situações de pressão e trabalha bem em equipe. O dia a dia pede atenção aos detalhes, responsabilidade e disposição para turnos variados.`,
+
+  administracao: `## O que você estuda
+
+Administração ensina a planejar, organizar e acompanhar o funcionamento de empresas e outras organizações, sejam elas pequenas, grandes, públicas ou do terceiro setor.
+
+- **Gestão de pessoas:** recrutamento, liderança e trabalho em equipe.
+- **Finanças e contabilidade:** custos, orçamento e análise de resultados.
+- **Marketing:** como entender o cliente e divulgar produtos e serviços.
+- **Produção e logística:** processos, estoques e qualidade.
+- **Direito, economia e estatística** aplicados aos negócios.
+- **Empreendedorismo:** como criar e fazer crescer um negócio próprio.
+
+## Onde pode trabalhar
+
+- Empresas de qualquer setor, nas áreas administrativa, financeira, comercial ou de recursos humanos.
+- Bancos e cooperativas.
+- Órgãos públicos, por meio de concurso.
+- Consultoria para outras empresas.
+- No próprio negócio.
+
+## Perfil de quem escolhe o curso
+
+É uma boa escolha para quem gosta de organizar, resolver problemas e lidar com pessoas. Ajuda ter facilidade para se comunicar, tomar decisões e trabalhar com números do dia a dia.`,
+
+  psicologia: `## O que você estuda
+
+Psicologia estuda o comportamento humano e os processos mentais, como emoções, pensamento, memória e relações entre as pessoas. O curso combina teoria, pesquisa e prática supervisionada.
+
+- **Bases da psicologia:** desenvolvimento humano, personalidade e processos de aprendizagem.
+- **Biologia do comportamento:** neurociências e funcionamento do sistema nervoso.
+- **Abordagens teóricas:** as diferentes formas de entender e acompanhar uma pessoa.
+- **Avaliação psicológica:** entrevistas, testes e observação.
+- **Psicologia social e institucional:** grupos, famílias, escolas e organizações.
+- **Estágios supervisionados** em clínica-escola, serviços de saúde, escolas e empresas.
+
+## Onde pode trabalhar
+
+- Consultório e clínicas, no atendimento de crianças, jovens e adultos.
+- Hospitais e serviços públicos de saúde e de assistência social.
+- Escolas, no apoio ao aprendizado e à convivência.
+- Empresas, em seleção, treinamento e qualidade de vida no trabalho.
+- Projetos sociais, esporte e pesquisa.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem tem interesse genuíno pelas pessoas, sabe ouvir sem julgar e gosta de ler e refletir. O curso pede bastante leitura e maturidade para lidar com histórias e emoções difíceis.`,
+
+  computacao: `## O que você estuda
+
+Ciência da Computação estuda como os computadores funcionam e como criar programas e sistemas que resolvem problemas. É um curso com base forte em matemática e lógica, além de muita programação.
+
+- **Programação:** várias linguagens, estruturas de dados e algoritmos.
+- **Matemática:** cálculo, álgebra, lógica e matemática discreta.
+- **Sistemas:** arquitetura de computadores, sistemas operacionais e redes.
+- **Banco de dados e engenharia de software:** como planejar, construir e testar sistemas.
+- **Temas avançados:** inteligência artificial, segurança da informação e computação gráfica.
+- **Projetos** individuais e em grupo ao longo do curso.
+
+## Onde pode trabalhar
+
+- Empresas de tecnologia e de software, como desenvolvedor ou analista.
+- Equipes de tecnologia de bancos, indústrias, comércio e órgãos públicos.
+- Áreas de dados, segurança da informação e infraestrutura.
+- Pesquisa e ensino, depois de uma pós-graduação.
+- Empresas próprias e projetos independentes.
+
+## Perfil de quem escolhe o curso
+
+É indicado para quem gosta de lógica, de entender como as coisas funcionam por dentro e de resolver problemas com paciência. Curiosidade e vontade de aprender sempre ajudam, porque a tecnologia muda rápido.`,
+
+  producao: `## O que você estuda
+
+Engenharia de Produção une a base de engenharia com a gestão. O engenheiro de produção planeja e melhora processos para que uma empresa produza com qualidade, segurança e menos desperdício.
+
+- **Base de engenharia:** cálculo, física, química e desenho técnico.
+- **Processos produtivos:** como fábricas e serviços se organizam.
+- **Qualidade e melhoria contínua:** métodos para reduzir erros e perdas.
+- **Logística e cadeia de suprimentos:** compras, estoques e transporte.
+- **Economia, custos e projetos:** como decidir onde investir.
+- **Ergonomia e segurança do trabalho.**
+
+## Onde pode trabalhar
+
+- Indústrias de todos os tipos, no planejamento e no controle da produção.
+- Empresas de logística, comércio e serviços.
+- Áreas de qualidade, projetos e melhoria de processos.
+- Consultoria e gestão de operações.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de matemática, mas também de pessoas e de organização. É para quem fica incomodado com desperdício e gosta de pensar em formas melhores de fazer as coisas.`,
+
+  pedagogia: `## O que você estuda
+
+Pedagogia forma o professor da educação infantil e dos anos iniciais do ensino fundamental, além do profissional que organiza e acompanha o trabalho das escolas.
+
+- **Fundamentos da educação:** história, filosofia, sociologia e psicologia da educação.
+- **Didática:** como planejar aulas e avaliar o aprendizado.
+- **Alfabetização e ensino** de língua portuguesa, matemática, ciências, história e geografia para crianças.
+- **Educação inclusiva** e atendimento às diferenças.
+- **Gestão escolar:** coordenação pedagógica e organização da escola.
+- **Estágios** em escolas, acompanhando turmas e professores.
+
+## Onde pode trabalhar
+
+- Escolas públicas e particulares, como professor da educação infantil e dos anos iniciais.
+- Coordenação pedagógica e direção de escolas.
+- Educação de jovens e adultos.
+- Empresas, em treinamento e desenvolvimento de pessoas.
+- ONGs, bibliotecas, museus e projetos sociais.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de ensinar, tem paciência com crianças e acredita que a educação muda vidas. Criatividade, boa comunicação e vontade de estar sempre aprendendo fazem diferença.`,
+
+  pedagogiaEad: `## O que você estuda
+
+Nesta universidade, Pedagogia é oferecida **a distância**: a maior parte das aulas é on-line, com materiais, atividades e encontros pelo ambiente virtual, e você organiza o próprio horário de estudo. O curso forma o professor da educação infantil e dos anos iniciais do ensino fundamental.
+
+- **Fundamentos da educação:** história, filosofia, sociologia e psicologia da educação.
+- **Didática e alfabetização:** como planejar aulas e ensinar crianças a ler, escrever e calcular.
+- **Educação inclusiva** e tecnologias na educação.
+- **Gestão escolar:** coordenação pedagógica e organização da escola.
+- **Atividades presenciais e estágios** em escolas, conforme o calendário do curso.
+
+## Onde pode trabalhar
+
+- Escolas públicas e particulares, como professor da educação infantil e dos anos iniciais.
+- Coordenação pedagógica e direção de escolas.
+- Educação de jovens e adultos e educação a distância.
+- Empresas, em treinamento de pessoas, e projetos sociais.
+
+## Perfil de quem escolhe o curso
+
+Além do gosto por ensinar, o curso a distância pede **disciplina e organização**: é preciso reservar horários fixos de estudo e manter o ritmo sem a rotina da sala de aula. Combina com quem trabalha durante o dia ou mora longe da universidade.`,
+
+  biologia: `## O que você estuda
+
+Ciências Biológicas estuda a vida em todas as formas, das células aos ecossistemas. Nesta universidade o curso é uma **licenciatura**, que forma o professor de Ciências e de Biologia, sem deixar de lado a pesquisa e as aulas de campo.
+
+- **Biologia celular, genética e evolução.**
+- **Zoologia e botânica:** animais e plantas, sua diversidade e classificação.
+- **Ecologia e meio ambiente:** relações entre os seres vivos e conservação.
+- **Corpo humano:** anatomia, fisiologia e saúde.
+- **Didática e prática de ensino** de Ciências e Biologia.
+- **Aulas de laboratório, saídas de campo e estágios** em escolas.
+
+## Onde pode trabalhar
+
+- Escolas, como professor de Ciências no ensino fundamental e de Biologia no ensino médio.
+- Cursinhos e projetos de educação ambiental.
+- Museus, zoológicos, jardins botânicos e parques.
+- Pesquisa em universidades e institutos, depois de uma pós-graduação.
+
+## Perfil de quem escolhe o curso
+
+É para quem tem curiosidade sobre a natureza, gosta de observar e de investigar e quer compartilhar o que aprende. Gostar de explicar e de conviver com adolescentes ajuda muito na licenciatura.`,
+
+  geografia: `## O que você estuda
+
+Geografia estuda a relação entre a sociedade e o espaço: como as pessoas ocupam o território, usam os recursos naturais e transformam as paisagens. Este curso é uma **licenciatura**, voltada à formação do professor.
+
+- **Geografia física:** clima, relevo, solos, rios e vegetação.
+- **Geografia humana:** população, cidades, campo, economia e política.
+- **Cartografia:** leitura e produção de mapas, inclusive com ferramentas digitais.
+- **Questões ambientais** e regionais do Brasil e do mundo.
+- **Didática e prática de ensino** de Geografia.
+- **Trabalhos de campo e estágios** em escolas.
+
+## Onde pode trabalhar
+
+- Escolas, como professor de Geografia no ensino fundamental e médio.
+- Cursinhos e produção de material didático.
+- Projetos de educação ambiental e de planejamento urbano, em equipes de várias áreas.
+- Pesquisa, depois de uma pós-graduação.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de entender o mundo, acompanha notícias, se interessa por mapas e viagens e quer discutir esses temas em sala de aula.`,
+
+  ads: `## O que você estuda
+
+Análise e Desenvolvimento de Sistemas é um curso **tecnólogo**, mais curto e prático, que forma o profissional que cria, testa e mantém sistemas e aplicativos.
+
+- **Lógica e programação** em diferentes linguagens.
+- **Desenvolvimento web e mobile:** sites, sistemas e aplicativos.
+- **Banco de dados:** como guardar e consultar informações.
+- **Engenharia de software:** levantamento de requisitos, testes e trabalho em equipe.
+- **Redes, segurança e sistemas operacionais** em nível básico.
+- **Projetos práticos** desde os primeiros semestres.
+
+## Onde pode trabalhar
+
+- Empresas de software e de tecnologia, como programador ou analista de sistemas.
+- Equipes de tecnologia de indústrias, comércio, bancos e órgãos públicos.
+- Suporte e testes de sistemas.
+- Projetos próprios e trabalho como autônomo.
+
+## Perfil de quem escolhe o curso
+
+É indicado para quem gosta de computador, de lógica e de ver o resultado do trabalho funcionando. Por ser mais curto e muitas vezes noturno, combina com quem quer entrar logo no mercado ou já trabalha durante o dia.`,
+
+  rh: `## O que você estuda
+
+Gestão de Recursos Humanos é um curso **tecnólogo** que forma o profissional responsável por cuidar das pessoas dentro das organizações, do processo de contratação ao desenvolvimento da carreira.
+
+- **Recrutamento e seleção:** como encontrar e escolher os profissionais certos.
+- **Treinamento e desenvolvimento** de equipes.
+- **Rotinas de departamento pessoal:** folha de pagamento, benefícios e legislação trabalhista.
+- **Cargos, salários e avaliação de desempenho.**
+- **Comunicação, liderança e clima organizacional.**
+- **Saúde e qualidade de vida no trabalho.**
+
+## Onde pode trabalhar
+
+- Departamentos de recursos humanos de empresas de qualquer setor.
+- Agências de recrutamento e de emprego.
+- Consultorias de gestão de pessoas.
+- Hospitais, escolas, órgãos públicos e ONGs.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de conversar, tem empatia, sabe guardar informações com discrição e gosta de ajudar as pessoas a crescerem no trabalho.`,
+
+  logistica: `## O que você estuda
+
+Logística é um curso **tecnólogo** que ensina a planejar o caminho dos produtos, da compra da matéria-prima até a entrega ao cliente, com o menor custo e no prazo certo.
+
+- **Gestão de estoques e armazenagem.**
+- **Transporte e distribuição:** rotas, modais e frota.
+- **Compras e cadeia de suprimentos.**
+- **Custos logísticos** e indicadores de desempenho.
+- **Comércio exterior** e documentação de cargas.
+- **Tecnologia** aplicada ao controle de mercadorias.
+
+## Onde pode trabalhar
+
+- Indústrias, nos setores de compras, produção e expedição.
+- Centros de distribuição, transportadoras e operadores logísticos.
+- Comércio varejista e atacadista, inclusive lojas on-line.
+- Empresas de importação e exportação.
+
+## Perfil de quem escolhe o curso
+
+É uma boa escolha para quem é organizado, gosta de planejar e de resolver imprevistos rapidamente. Facilidade com números e com planilhas ajuda bastante.`,
+
+  civil: `## O que você estuda
+
+Engenharia Civil forma o profissional que projeta, constrói e mantém edificações e obras de infraestrutura, como casas, prédios, pontes, estradas e redes de água e esgoto.
+
+- **Base de engenharia:** cálculo, física, química e desenho técnico.
+- **Estruturas:** concreto, aço e madeira, e como calcular o que sustenta uma obra.
+- **Materiais de construção** e técnicas construtivas.
+- **Solos e fundações.**
+- **Hidráulica e saneamento.**
+- **Transportes, topografia e gestão de obras.**
+
+## Onde pode trabalhar
+
+- Construtoras e incorporadoras, em projetos e no canteiro de obras.
+- Escritórios de projeto e de cálculo estrutural.
+- Órgãos públicos de obras, transporte e saneamento.
+- Empresas de manutenção, perícia e avaliação de imóveis.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de matemática e física, tem boa noção de espaço e quer ver o próprio trabalho virar algo concreto. O curso pede dedicação aos cálculos e senso de responsabilidade com a segurança das pessoas.`,
+
+  mecanica: `## O que você estuda
+
+Engenharia Mecânica estuda máquinas, motores, equipamentos e sistemas que envolvem movimento, energia e calor. O engenheiro mecânico projeta, fabrica e cuida da manutenção desses sistemas.
+
+- **Base de engenharia:** cálculo, física, química e desenho técnico.
+- **Mecânica dos sólidos e resistência dos materiais.**
+- **Termodinâmica e mecânica dos fluidos:** calor, energia e escoamento.
+- **Processos de fabricação:** usinagem, soldagem e conformação.
+- **Projeto de máquinas** com programas de desenho por computador.
+- **Automação, manutenção e laboratórios.**
+
+## Onde pode trabalhar
+
+- Indústrias automotivas, metalúrgicas, de máquinas e de equipamentos.
+- Empresas de energia, climatização e refrigeração.
+- Áreas de manutenção industrial e de projetos.
+- Consultoria e assistência técnica.
+
+## Perfil de quem escolhe o curso
+
+É indicado para quem gosta de desmontar coisas para entender como funcionam, tem afinidade com matemática e física e gosta de resolver problemas práticos.`,
+
+  eletrica: `## O que você estuda
+
+Engenharia Elétrica estuda a geração, a transmissão e o uso da energia elétrica, além dos circuitos e dos sistemas eletrônicos que estão em quase tudo ao nosso redor.
+
+- **Base de engenharia:** cálculo, física e programação.
+- **Circuitos elétricos e eletrônica.**
+- **Máquinas elétricas:** motores, geradores e transformadores.
+- **Sistemas de energia:** geração, transmissão, distribuição e instalações elétricas.
+- **Controle e automação** de processos.
+- **Energias renováveis** e eficiência energética.
+
+## Onde pode trabalhar
+
+- Empresas de geração e distribuição de energia.
+- Indústrias, em automação, manutenção e projetos elétricos.
+- Empresas de telecomunicações e de equipamentos eletrônicos.
+- Projetos de instalações em construções e de energia solar.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem tem facilidade com matemática e física, gosta de eletrônica e tecnologia e tem paciência para testes e medições cuidadosas.`,
+
+  nutricao: `## O que você estuda
+
+Nutrição estuda os alimentos e a forma como eles afetam a saúde das pessoas. O nutricionista orienta a alimentação de indivíduos e de grupos, da prevenção de doenças ao cuidado de quem está em tratamento.
+
+- **Ciências da saúde:** anatomia, fisiologia, bioquímica e microbiologia.
+- **Composição dos alimentos** e técnica dietética.
+- **Avaliação nutricional:** como acompanhar o estado de saúde pela alimentação.
+- **Nutrição clínica** em diferentes doenças e fases da vida.
+- **Alimentação coletiva:** cozinhas industriais, restaurantes e merenda escolar.
+- **Nutrição esportiva e saúde pública.**
+
+## Onde pode trabalhar
+
+- Hospitais, clínicas e consultórios.
+- Restaurantes, cozinhas industriais e serviços de alimentação.
+- Escolas, na alimentação escolar.
+- Academias e clubes esportivos.
+- Indústria de alimentos e unidades de saúde.
+
+## Perfil de quem escolhe o curso
+
+É indicado para quem se interessa por saúde e por comida, gosta de ciências e de conversar com as pessoas para entender a rotina delas.`,
+
+  educacaoFisica: `## O que você estuda
+
+Educação Física estuda o movimento humano, o esporte, o jogo e a atividade física como parte da saúde e da educação. Este curso é uma **licenciatura**, voltada ao professor de Educação Física nas escolas.
+
+- **Ciências do corpo:** anatomia, fisiologia e cinesiologia.
+- **Esportes, danças, lutas, jogos e ginástica.**
+- **Desenvolvimento motor** de crianças e adolescentes.
+- **Educação física escolar e inclusiva.**
+- **Didática e prática de ensino.**
+- **Estágios** em escolas da educação básica.
+
+## Onde pode trabalhar
+
+- Escolas públicas e particulares, como professor de Educação Física.
+- Projetos esportivos e sociais com crianças e jovens.
+- Clubes e escolinhas de esporte, em atividades educativas.
+- Recreação e lazer.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de esporte e de atividade física, tem energia para trabalhar com turmas e acredita no movimento como parte da formação das pessoas.`,
+
+  contabeis: `## O que você estuda
+
+Ciências Contábeis forma o profissional que registra, analisa e explica a situação financeira de empresas e de pessoas, ajudando nas decisões e no cumprimento das obrigações fiscais.
+
+- **Contabilidade geral, de custos e gerencial.**
+- **Legislação tributária e trabalhista.**
+- **Análise de demonstrações financeiras.**
+- **Auditoria e perícia contábil.**
+- **Matemática financeira e estatística.**
+- **Sistemas de informação** usados na contabilidade.
+
+## Onde pode trabalhar
+
+- Escritórios de contabilidade.
+- Departamentos financeiros e contábeis de empresas.
+- Auditoria e consultoria.
+- Órgãos públicos, por meio de concurso.
+- No próprio escritório.
+
+## Perfil de quem escolhe o curso
+
+É uma boa escolha para quem é organizado, atento aos detalhes e gosta de números. Também pede ética e cuidado com prazos, porque o trabalho envolve informações importantes das empresas.`,
+
+  turismo: `## O que você estuda
+
+Turismo forma o profissional que planeja e organiza viagens, eventos e experiências, e que ajuda cidades e regiões a receberem bem os visitantes, cuidando da cultura e do meio ambiente.
+
+- **Planejamento turístico** de cidades e regiões.
+- **Agenciamento e operação** de viagens.
+- **Hotelaria, gastronomia e eventos.**
+- **Patrimônio cultural e natural.**
+- **Marketing e empreendedorismo** no turismo.
+- **Línguas estrangeiras** e atendimento ao público.
+
+## Onde pode trabalhar
+
+- Agências de viagem e operadoras de turismo.
+- Hotéis, pousadas, parques e empresas de eventos.
+- Secretarias e órgãos públicos de turismo e cultura.
+- Projetos de turismo rural, cultural e de natureza.
+- No próprio negócio.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de viajar, de conhecer culturas e de lidar com pessoas. Criatividade, organização e boa comunicação fazem diferença.`,
 };
 
 // Programas globais (administrador). As siglas casam com os ícones e as
@@ -165,10 +601,10 @@ const UNIVERSIDADES = [
       },
     ],
     cursos: [
-      { nome: 'Enfermagem', areaCurso: 'Saúde', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '4', ofertas: [{ campus: 0, turno: 'Integral', vagas: 60 }] },
-      { nome: 'Administração', areaCurso: 'Negócios', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', ofertas: [{ campus: 0, turno: 'Noturno', vagas: 100 }, { campus: 1, turno: 'Matutino', vagas: 50 }] },
-      { nome: 'Psicologia', areaCurso: 'Saúde', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '5', ofertas: [{ campus: 1, turno: 'Integral', vagas: 80 }] },
-      { nome: 'Ciência da Computação', areaCurso: 'Tecnologia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', ofertas: [{ campus: 1, turno: 'Noturno', vagas: 60 }] },
+      { nome: 'Enfermagem', areaCurso: 'Saúde', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '4', descricao: CURSOS.enfermagem, ofertas: [{ campus: 0, turno: 'Integral', vagas: 60 }] },
+      { nome: 'Administração', areaCurso: 'Negócios', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.administracao, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 100 }, { campus: 1, turno: 'Matutino', vagas: 50 }] },
+      { nome: 'Psicologia', areaCurso: 'Saúde', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '5', descricao: CURSOS.psicologia, ofertas: [{ campus: 1, turno: 'Integral', vagas: 80 }] },
+      { nome: 'Ciência da Computação', areaCurso: 'Tecnologia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.computacao, ofertas: [{ campus: 1, turno: 'Noturno', vagas: 60 }] },
     ],
     programas: { ENEM: null, VESTIBULAR: 'Vestibular de verão com prova on-line', FIES: 'Até 100% da mensalidade', 'Fies Social': null, ProUni: 'Bolsas integrais e parciais em todos os cursos', 'Escola da Família': 'Conveniada ao programa' },
     bolsas: [
@@ -214,10 +650,10 @@ const UNIVERSIDADES = [
       },
     ],
     cursos: [
-      { nome: 'Engenharia de Produção', areaCurso: 'Engenharia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '5', ofertas: [{ campus: 0, turno: 'Integral', vagas: 40 }] },
-      { nome: 'Pedagogia', areaCurso: 'Humanas', grau: 'Licenciatura', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', ofertas: [{ campus: 1, turno: 'Noturno', vagas: 45 }] },
-      { nome: 'Ciências Biológicas', areaCurso: 'Saúde', grau: 'Licenciatura', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '5', ofertas: [{ campus: 0, turno: 'Integral', vagas: 30 }] },
-      { nome: 'Geografia', areaCurso: 'Humanas', grau: 'Licenciatura', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', ofertas: [{ campus: 1, turno: 'Noturno', vagas: 40 }] },
+      { nome: 'Engenharia de Produção', areaCurso: 'Engenharia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '5', descricao: CURSOS.producao, ofertas: [{ campus: 0, turno: 'Integral', vagas: 40 }] },
+      { nome: 'Pedagogia', areaCurso: 'Humanas', grau: 'Licenciatura', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.pedagogia, ofertas: [{ campus: 1, turno: 'Noturno', vagas: 45 }] },
+      { nome: 'Ciências Biológicas', areaCurso: 'Saúde', grau: 'Licenciatura', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '5', descricao: CURSOS.biologia, ofertas: [{ campus: 0, turno: 'Integral', vagas: 30 }] },
+      { nome: 'Geografia', areaCurso: 'Humanas', grau: 'Licenciatura', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.geografia, ofertas: [{ campus: 1, turno: 'Noturno', vagas: 40 }] },
     ],
     programas: { ENEM: null, SiSU: 'Todas as vagas de ampla concorrência e cotas', Provão: '15% das vagas de cada curso' },
     bolsas: [],
@@ -244,9 +680,9 @@ const UNIVERSIDADES = [
       },
     ],
     cursos: [
-      { nome: 'Análise e Desenvolvimento de Sistemas', areaCurso: 'Tecnologia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 5, notaMec: '4', ofertas: [{ campus: 0, turno: 'Noturno', vagas: 80 }] },
-      { nome: 'Gestão de Recursos Humanos', areaCurso: 'Negócios', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 4, notaMec: '3', ofertas: [{ campus: 0, turno: 'Noturno', vagas: 60 }] },
-      { nome: 'Logística', areaCurso: 'Negócios', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 4, notaMec: '4', ofertas: [{ campus: 0, turno: 'Noturno', vagas: 60 }] },
+      { nome: 'Análise e Desenvolvimento de Sistemas', areaCurso: 'Tecnologia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 5, notaMec: '4', descricao: CURSOS.ads, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 80 }] },
+      { nome: 'Gestão de Recursos Humanos', areaCurso: 'Negócios', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 4, notaMec: '3', descricao: CURSOS.rh, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 60 }] },
+      { nome: 'Logística', areaCurso: 'Negócios', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 4, notaMec: '4', descricao: CURSOS.logistica, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 60 }] },
     ],
     programas: { ENEM: 'Nota do Enem no lugar da prova', VESTIBULAR: null, ProUni: null, FIES: null },
     bolsas: [],
@@ -273,9 +709,9 @@ const UNIVERSIDADES = [
       },
     ],
     cursos: [
-      { nome: 'Engenharia Civil', areaCurso: 'Engenharia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '4', ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
-      { nome: 'Engenharia Mecânica', areaCurso: 'Engenharia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '4', ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
-      { nome: 'Engenharia Elétrica', areaCurso: 'Engenharia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '3', ofertas: [{ campus: 0, turno: 'Integral', vagas: 40 }] },
+      { nome: 'Engenharia Civil', areaCurso: 'Engenharia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '4', descricao: CURSOS.civil, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
+      { nome: 'Engenharia Mecânica', areaCurso: 'Engenharia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '4', descricao: CURSOS.mecanica, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
+      { nome: 'Engenharia Elétrica', areaCurso: 'Engenharia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '3', descricao: CURSOS.eletrica, ofertas: [{ campus: 0, turno: 'Integral', vagas: 40 }] },
     ],
     programas: { ENEM: null, VESTIBULAR: null, FIES: 'Até 80% da mensalidade', ProUni: null },
     bolsas: [
@@ -311,9 +747,9 @@ const UNIVERSIDADES = [
       },
     ],
     cursos: [
-      { nome: 'Nutrição', areaCurso: 'Saúde', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
-      { nome: 'Pedagogia', areaCurso: 'Humanas', grau: 'Licenciatura', modalidade: 'EAD', duracaoSemestres: 8, notaMec: '4', ofertas: [{ campus: 0, turno: 'Noturno', vagas: 120 }] },
-      { nome: 'Educação Física', areaCurso: 'Saúde', grau: 'Licenciatura', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '3', ofertas: [{ campus: 0, turno: 'Matutino', vagas: 60 }] },
+      { nome: 'Nutrição', areaCurso: 'Saúde', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.nutricao, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
+      { nome: 'Pedagogia', areaCurso: 'Humanas', grau: 'Licenciatura', modalidade: 'EAD', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.pedagogiaEad, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 120 }] },
+      { nome: 'Educação Física', areaCurso: 'Saúde', grau: 'Licenciatura', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '3', descricao: CURSOS.educacaoFisica, ofertas: [{ campus: 0, turno: 'Matutino', vagas: 60 }] },
     ],
     programas: { ENEM: null, VESTIBULAR: null, ProUni: null, FIES: null, 'Escola da Família': null },
     bolsas: [],
@@ -340,8 +776,8 @@ const UNIVERSIDADES = [
       },
     ],
     cursos: [
-      { nome: 'Ciências Contábeis', areaCurso: 'Negócios', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
-      { nome: 'Turismo', areaCurso: 'Humanas', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: '3', ofertas: [{ campus: 0, turno: 'Noturno', vagas: 40 }] },
+      { nome: 'Ciências Contábeis', areaCurso: 'Negócios', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.contabeis, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
+      { nome: 'Turismo', areaCurso: 'Humanas', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: '3', descricao: CURSOS.turismo, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 40 }] },
     ],
     programas: { ENEM: '30% das vagas pela nota do Enem', VESTIBULAR: 'Prova em dezembro' },
     bolsas: [],
@@ -403,4 +839,4 @@ const AVALIACOES = [
   { aluno: 'lucas', universidade: 'unitatui', diasAtras: 5, nota: 3, comentario: 'Curso de Nutrição bom, mas faltam horários de estágio para quem trabalha.' },
 ];
 
-module.exports = { CONTAS, PROGRAMAS, UNIVERSIDADES, UNIVERSIDADE_PENDENTE, UNIVERSIDADE_REPROVADA, AVALIACOES };
+module.exports = { CONTAS, CURSOS, PROGRAMAS, UNIVERSIDADES, UNIVERSIDADE_PENDENTE, UNIVERSIDADE_REPROVADA, AVALIACOES };
