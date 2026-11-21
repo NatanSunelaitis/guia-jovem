@@ -13,6 +13,7 @@ const schemas = require('./campus.schema');
 const router = Router();
 
 router.get('/:id', validate(schemas.idParamSchema), controller.obter);
+router.get('/:id/cursos', validate(schemas.cursosQuerySchema), controller.listarCursos);
 
 // RF21: a universidade dona (pendente, aprovada ou reprovada corrigindo o
 // cadastro) ou o administrador altera e exclui o campus.

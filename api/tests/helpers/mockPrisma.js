@@ -13,7 +13,7 @@ const prisma = {
   universidade: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update', 'updateMany', 'groupBy']),
   campus: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update', 'updateMany']),
   curso: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'update']),
-  campusCurso: createModel(['count', 'findUnique', 'create', 'update', 'delete']),
+  campusCurso: createModel(['count', 'findUnique', 'findMany', 'create', 'update', 'delete']),
   programaEvento: createModel(['findUnique', 'create', 'update', 'delete']),
   programa: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'groupBy', 'create', 'update']),
   universidadePrograma: createModel(['createMany', 'count', 'findMany', 'deleteMany']),

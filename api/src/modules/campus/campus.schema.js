@@ -81,4 +81,15 @@ const atualizarCampusSchema = {
     .refine((dados) => Object.keys(dados).length > 0, { message: 'Informe ao menos um campo para atualizar' }),
 };
 
-module.exports = { idParamSchema, criarCampusSchema, atualizarCampusSchema };
+// GET /campus/:id/cursos: paginada, com busca por nome e filtro por área.
+const cursosQuerySchema = {
+  params: idParamSchema.params,
+  query: z.object({
+    q: z.string().trim().min(1).optional(),
+    areaCurso: z.string().trim().min(1).optional(),
+    page: z.string().optional(),
+    pageSize: z.string().optional(),
+  }),
+};
+
+module.exports = { idParamSchema, cursosQuerySchema, criarCampusSchema, atualizarCampusSchema };

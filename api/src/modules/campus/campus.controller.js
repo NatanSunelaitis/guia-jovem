@@ -11,6 +11,14 @@ async function obter(req, res, next) {
   }
 }
 
+async function listarCursos(req, res, next) {
+  try {
+    res.json(await service.listarCursos(prisma, req.params.id, req.query));
+  } catch (erro) {
+    next(erro);
+  }
+}
+
 async function listarGestao(req, res, next) {
   try {
     res.json({ data: await gestao.listar(prisma, req.params.id), meta: {} });
@@ -44,4 +52,4 @@ async function excluir(req, res, next) {
   }
 }
 
-module.exports = { obter, listarGestao, criar, atualizar, excluir };
+module.exports = { obter, listarCursos, listarGestao, criar, atualizar, excluir };

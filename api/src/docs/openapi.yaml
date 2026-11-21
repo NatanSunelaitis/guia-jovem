@@ -1301,6 +1301,40 @@ paths:
         '403': { $ref: '#/components/responses/Proibido' }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
 
+  /campus/{id}/cursos:
+    get:
+      tags: [Campus]
+      summary: Cursos oferecidos no campus (T04), paginados
+      description: Cursos ativos por nome. q busca no nome (sem diferenciar maiúsculas nem acentos); areaCurso filtra pela área. O detalhe do campus traz totalCursos e areasCursos para montar o filtro.
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+        - { in: query, name: q, schema: { type: string } }
+        - { in: query, name: areaCurso, schema: { type: string } }
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20, maximum: 100 } }
+      responses:
+        '200':
+          description: Página de cursos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: integer }
+                        nome: { type: string }
+                        areaCurso: { type: string, nullable: true }
+                        grau: { type: string, nullable: true }
+                        modalidade: { type: string, nullable: true }
+                        turno: { type: string, nullable: true }
+                        vagas: { type: integer, nullable: true }
+                  meta: { $ref: '#/components/schemas/Paginacao' }
+        '404': { $ref: '#/components/responses/NaoEncontrado' }
+
   /campus/{id}:
     get:
       tags: [Universidades]
