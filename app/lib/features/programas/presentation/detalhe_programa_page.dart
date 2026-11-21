@@ -12,10 +12,12 @@ import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
 import '../../../shared/utils/fotos.dart';
 import '../../../shared/utils/programa_estilo.dart';
+import '../../../shared/utils/texto_formatado.dart';
 import '../../../shared/widgets/gj_button.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
 import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
+import '../../../shared/widgets/gj_texto_formatado.dart';
 import '../../../shared/widgets/gj_timeline.dart';
 import '../data/programas_repository.dart';
 import '../domain/programa.dart';
@@ -109,6 +111,29 @@ String tituloCronograma(List<ProgramaEvento> eventos) {
   return 'Cronograma ${anos.first} a ${anos.last}';
 }
 
+/// Abertura do programa: o primeiro parágrafo da descrição, em texto puro,
+/// mostrado no topo da página.
+String? aberturaDoPrograma(String descricao) => primeiroParagrafo(interpretarTextoFormatado(descricao));
+
+/// Seções da descrição (cada subtítulo `##` vira um card), sem o primeiro
+/// parágrafo, que já aparece no topo. Seções que ficam vazias saem.
+List<SecaoFormatada> secoesDoPrograma(String descricao) {
+  final blocos = [...interpretarTextoFormatado(descricao)];
+  final primeiro = blocos.indexWhere((b) => b is ParagrafoFormatado);
+  if (primeiro != -1) blocos.removeAt(primeiro);
+  return separarSecoes(blocos);
+}
+
+String _dataCurta(DateTime data) => '${data.day.toString().padLeft(2, '0')} ${_meses[data.month - 1]} ${data.year}';
+
+/// Descrição do evento na linha do tempo, com a data de fim quando há período.
+String? descricaoDoEvento(ProgramaEvento evento) {
+  final fim = evento.dataFim;
+  final ate = fim != null && fim.isAfter(evento.dataInicio) ? 'Até ${_dataCurta(fim)}' : null;
+  final partes = [if (evento.descricao != null && evento.descricao!.isNotEmpty) evento.descricao!, if (ate != null) ate];
+  return partes.isEmpty ? null : partes.join(' · ');
+}
+
 class _Conteudo extends StatelessWidget {
   const _Conteudo({required this.programa});
 
@@ -127,6 +152,8 @@ class _Conteudo extends StatelessWidget {
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.sizeOf(context).width < 600;
     final passos = _proximosPassos[_dona != null ? 'INSTITUCIONAL' : programa.tipo] ?? _proximosPassos['ENTRADA']!;
+    final secoes = secoesDoPrograma(programa.descricao);
+    final comObservacao = programa.universidades.any((u) => u.observacao != null);
 
     return GJPageContainer(
       child: Column(
@@ -136,6 +163,10 @@ class _Conteudo extends StatelessWidget {
         Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (secoes.isNotEmpty) ...[
+                _secoesDescricao(secoes, isMobile),
+                const SizedBox(height: GJSpace.s8),
+              ],
               if (programa.comoFunciona != null || programa.requisitos != null) ...[
               _secaoDuasColunas(
                 isMobile,
@@ -145,7 +176,7 @@ class _Conteudo extends StatelessWidget {
                         titulo: 'Como Funciona',
                         corFundo: GJColors.surfaceLow,
                         corTexto: GJColors.textPrimary,
-                        child: Text(programa.comoFunciona!, style: GJTypography.body()),
+                        child: GJTextoFormatado(programa.comoFunciona),
                       ),
                 direita: programa.requisitos == null
                     ? null
@@ -153,10 +184,7 @@ class _Conteudo extends StatelessWidget {
                         titulo: 'Elegibilidade',
                         corFundo: _cor,
                         corTexto: GJColors.primaryOn,
-                        child: Text(
-                          programa.requisitos!,
-                          style: GJTypography.body().copyWith(color: GJColors.primaryOn.withOpacity(0.92)),
-                        ),
+                        child: GJTextoFormatado(programa.requisitos, cor: GJColors.primaryOn),
                       ),
               ),
               const SizedBox(height: GJSpace.s8),
@@ -181,7 +209,7 @@ class _Conteudo extends StatelessWidget {
                                 dia: evento.dataInicio.day.toString().padLeft(2, '0'),
                                 ano: '${evento.dataInicio.year}',
                                 titulo: evento.titulo,
-                                descricao: evento.descricao,
+                                descricao: descricaoDoEvento(evento),
                                 concluido: evento.dataInicio.isBefore(DateTime.now()),
                               ),
                           ],
@@ -215,7 +243,7 @@ class _Conteudo extends StatelessWidget {
                     for (final universidade in programa.universidades)
                       SizedBox(
                         width: isMobile ? (MediaQuery.sizeOf(context).width - GJSpace.s8) / 2 : 180,
-                        child: _cardUniversidade(context, universidade),
+                        child: _cardUniversidade(context, universidade, comObservacao: comObservacao),
                       ),
                   ],
                 ),
@@ -241,8 +269,10 @@ class _Conteudo extends StatelessWidget {
         const SizedBox(height: GJSpace.s4),
         Text(programa.nome, style: GJTypography.display(size: isMobile ? 32 : 48).copyWith(color: _cor)),
         const SizedBox(height: GJSpace.s4),
-        Text(programa.descricao, style: GJTypography.bodyLg()),
-        const SizedBox(height: GJSpace.s4),
+        if (aberturaDoPrograma(programa.descricao) case final abertura?) ...[
+          Text(abertura, style: GJTypography.bodyLg()),
+          const SizedBox(height: GJSpace.s4),
+        ],
         Wrap(
           spacing: GJSpace.s3,
           runSpacing: GJSpace.s2,
@@ -373,7 +403,34 @@ class _Conteudo extends StatelessWidget {
     );
   }
 
-  Widget _cardUniversidade(BuildContext context, UniversidadeQueAceita universidade) {
+  /// Seções da descrição em cards, em duas colunas no desktop (alternando,
+  /// para equilibrar as alturas) e uma no celular.
+  Widget _secoesDescricao(List<SecaoFormatada> secoes, bool isMobile) {
+    Widget card(SecaoFormatada secao) => Padding(
+          padding: const EdgeInsets.only(bottom: GJSpace.s6),
+          child: _cartao(
+            titulo: secao.titulo ?? (_dona != null ? 'Sobre a bolsa' : 'Sobre o programa'),
+            corFundo: GJColors.surfaceLowest,
+            corTexto: GJColors.textPrimary,
+            elevado: true,
+            child: GJTextoFormatado.blocos(secao.blocos),
+          ),
+        );
+
+    if (isMobile || secoes.length == 1) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [for (final secao in secoes) card(secao)]);
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: Column(children: [for (final (i, secao) in secoes.indexed) if (i.isEven) card(secao)])),
+        const SizedBox(width: GJSpace.s8),
+        Expanded(child: Column(children: [for (final (i, secao) in secoes.indexed) if (i.isOdd) card(secao)])),
+      ],
+    );
+  }
+
+  Widget _cardUniversidade(BuildContext context, UniversidadeQueAceita universidade, {bool comObservacao = false}) {
     return GestureDetector(
       onTap: () => context.go('/universidades/${universidade.id}'),
       child: Container(
@@ -414,6 +471,22 @@ class _Conteudo extends StatelessWidget {
                 ),
               ),
             ),
+            // Observação da universidade sobre o programa (cadastro em
+            // "Programas aceitos"); o espaço é o mesmo em todos os cards.
+            if (comObservacao)
+              SizedBox(
+                height: GJSpace.s12,
+                child: Tooltip(
+                  message: universidade.observacao ?? '',
+                  child: Text(
+                    universidade.observacao ?? '',
+                    style: GJTypography.caption(),
+                    textAlign: TextAlign.center,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
           ],
         ),
       ),

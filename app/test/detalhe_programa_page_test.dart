@@ -158,6 +158,70 @@ void main() {
     expect(tituloCronograma([evento(2026), evento(2028), evento(2027)]), 'Cronograma 2026 a 2028');
   });
 
+  testWidgets('descrição em seções: abertura no topo, um card por seção e nada dos símbolos', (tester) async {
+    tester.view.physicalSize = const Size(1366, 3000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    mockApi({
+      '/programas/9': envelope({
+        'id': 9,
+        'nome': 'Programa Universidade para Todos',
+        'sigla': 'ProUni',
+        'tipo': 'BOLSA',
+        'descricao': '## O que é\n\nPrograma do governo federal com **bolsas**.\n\n'
+            '## Quem pode participar\n\n- Quem fez o Enem\n\n'
+            '## Passo a passo\n\n1. Faça o Enem\n2. Inscreva-se\n\n'
+            'Confira o edital no [site oficial](https://acessounico.mec.gov.br/prouni).',
+        'requisitos': null,
+        'comoFunciona': null,
+        'linkOficial': 'https://acessounico.mec.gov.br/prouni',
+        'imagemUrl': null,
+        'universidadeId': null,
+        'eventos': [
+          {'id': 1, 'titulo': 'Inscrições', 'descricao': 'Primeiro semestre', 'dataInicio': '2027-01-26', 'dataFim': '2027-01-29'},
+        ],
+        'universidades': [
+          {'id': 3, 'nomeFantasia': 'UniVale Sorocaba', 'logoUrl': null, 'observacao': 'Bolsas integrais e parciais em todos os cursos'},
+          {'id': 4, 'nomeFantasia': 'FEITU', 'logoUrl': null, 'observacao': null},
+        ],
+      }),
+    });
+
+    await pump(tester, 9);
+
+    // Abertura (primeiro parágrafo) no topo, em texto puro.
+    expect(find.text('Programa do governo federal com bolsas.'), findsOneWidget);
+    // A seção "O que é" ficou só com a abertura, então não vira card.
+    expect(find.text('O que é'), findsNothing);
+    expect(find.text('Quem pode participar'), findsOneWidget);
+    expect(find.text('Passo a passo'), findsOneWidget);
+    expect(find.text('1.'), findsOneWidget);
+    expect(find.text('site oficial', findRichText: true), findsNothing);
+    expect(find.text('Confira o edital no site oficial.', findRichText: true), findsOneWidget);
+    expect(find.textContaining('##', findRichText: true), findsNothing);
+    expect(find.textContaining('**', findRichText: true), findsNothing);
+    // Sem "como funciona" e "requisitos", os dois cards antigos não aparecem.
+    expect(find.text('Como Funciona'), findsNothing);
+    expect(find.text('Elegibilidade'), findsNothing);
+    // Observação da universidade e o período do evento.
+    expect(find.text('Bolsas integrais e parciais em todos os cursos'), findsOneWidget);
+    expect(find.text('Primeiro semestre · Até 29 jan 2027'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('abertura e seções do programa', () {
+    expect(aberturaDoPrograma('Só um parágrafo.'), 'Só um parágrafo.');
+    expect(secoesDoPrograma('Só um parágrafo.'), isEmpty);
+    final secoes = secoesDoPrograma('Abertura.\n\nMais um parágrafo.\n\n## Documentos\n\n- RG');
+    expect(secoes.map((s) => s.titulo), [null, 'Documentos']);
+  });
+
+  test('descrição do evento com o fim do período', () {
+    final evento = ProgramaEvento(id: 1, titulo: 'T', dataInicio: DateTime(2027, 5, 10), dataFim: DateTime(2027, 5, 21));
+    expect(descricaoDoEvento(evento), 'Até 21 mai 2027');
+    expect(descricaoDoEvento(ProgramaEvento(id: 2, titulo: 'T', descricao: 'D', dataInicio: DateTime(2027, 5, 10))), 'D');
+  });
+
   testWidgets('mostra estado de erro quando o programa não existe', (tester) async {
     mockApiError('/programas/999', code: 'NOT_FOUND', status: 404);
 
