@@ -2850,10 +2850,10 @@ components:
       type: object
       description: Programas aceitos pela universidade e as bolsas institucionais dela (institucional true)
       properties:
-        ENTRADA: { type: array, items: { $ref: '#/components/schemas/ProgramaAceito' } }
-        FINANCIAMENTO: { type: array, items: { $ref: '#/components/schemas/ProgramaAceito' } }
-        BOLSA: { type: array, items: { $ref: '#/components/schemas/ProgramaAceito' } }
-    ProgramaAceito:
+        ENTRADA: { type: array, items: { $ref: '#/components/schemas/ProgramaDaOferta' } }
+        FINANCIAMENTO: { type: array, items: { $ref: '#/components/schemas/ProgramaDaOferta' } }
+        BOLSA: { type: array, items: { $ref: '#/components/schemas/ProgramaDaOferta' } }
+    ProgramaDaOferta:
       type: object
       properties:
         id: { type: integer }
