@@ -42,7 +42,12 @@ function findDetalhePublicado(prisma, id) {
   return prisma.universidade.findFirst({
     where: { id, status: 'A' },
     include: {
-      campus: { include: { endereco: true } },
+      // A exclusão de campus é lógica: o excluído não aparece na página.
+      campus: {
+        where: { ativo: true },
+        orderBy: [{ principal: 'desc' }, { nome: 'asc' }],
+        include: { endereco: true },
+      },
       universidadeProgramas: { include: { programa: true } },
       // Bolsas institucionais (relação "Mantém", RF11): só aparecem aqui.
       programas: { where: { ativo: true }, orderBy: { criadoEm: 'asc' } },
