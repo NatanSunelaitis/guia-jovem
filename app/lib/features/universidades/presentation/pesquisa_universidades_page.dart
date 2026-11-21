@@ -8,7 +8,7 @@ import '../../../core/network/paginated_result.dart';
 import '../../../core/theme/gj_colors.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
-import '../../../core/utils/link_launcher.dart';
+import '../../../core/utils/salvar_arquivo.dart';
 import '../../../core/network/api_client.dart';
 import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/layouts/public_layout.dart';
@@ -55,6 +55,9 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
   int? _cursoId;
   double _notaMinima = 0;
   bool _filtrosAvancadosAbertos = false;
+
+  /// Formato do relatório em geração (csv ou pdf); nulo quando parado.
+  String? _gerandoRelatorio;
 
   // Pesquisa salva aberta por `/universidades?pesquisaSalva=<id>` (perfil T19).
   String? _nomePesquisaSalva;
@@ -215,12 +218,25 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
     _buscar();
   }
 
-  Uri _urlRelatorio(String formato) {
-    final query = _filtros.toQuery()..remove('page');
-    query['formato'] = formato;
-    return Uri.parse('${apiClient.baseUrl}/relatorios/pesquisa').replace(
-      queryParameters: {for (final entrada in query.entries) entrada.key: entrada.value.toString()},
-    );
+  /// RF02: baixa o relatório da pesquisa atual pela API e entrega o arquivo
+  /// pela própria página, com carregamento, aviso de sucesso e de erro.
+  Future<void> _gerarRelatorio(String formato) async {
+    if (_gerandoRelatorio != null) return;
+    final mensageiro = ScaffoldMessenger.of(context);
+    setState(() => _gerandoRelatorio = formato);
+    try {
+      final query = _filtros.toQuery()..remove('page');
+      query['formato'] = formato;
+      final arquivo = await apiClient.baixar('/relatorios/pesquisa', query: query, nomePadrao: 'relatorio-pesquisa.$formato');
+      await salvarArquivo(arquivo);
+      mensageiro.aviso('Relatório em ${formato.toUpperCase()} gerado: ${arquivo.nome}.');
+    } on ApiException catch (erro) {
+      mensageiro.avisoDeErro('Não foi possível gerar o relatório. ${erro.message}');
+    } catch (_) {
+      mensageiro.avisoDeErro('O navegador não conseguiu salvar o relatório. Tente de novo.');
+    } finally {
+      if (mounted) setState(() => _gerandoRelatorio = null);
+    }
   }
 
   @override
@@ -421,13 +437,20 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
     return PopupMenuButton<String>(
       tooltip: '',
       offset: const Offset(0, 48),
-      onSelected: (formato) => abrirLinkExterno(_urlRelatorio(formato).toString()),
+      enabled: _gerandoRelatorio == null,
+      onSelected: _gerarRelatorio,
       itemBuilder: (context) => const [
         PopupMenuItem(value: 'csv', child: Row(children: [Icon(Symbols.table_view, size: 20), SizedBox(width: GJSpace.s3), Text('Exportar CSV')])),
         PopupMenuItem(value: 'pdf', child: Row(children: [Icon(Symbols.picture_as_pdf, size: 20), SizedBox(width: GJSpace.s3), Text('Exportar PDF')])),
       ],
       child: IgnorePointer(
-        child: GJButton(label: 'Gerar relatório', icon: Symbols.description, variant: GJButtonVariant.secondary, onPressed: () {}),
+        child: GJButton(
+          label: 'Gerar relatório',
+          icon: Symbols.description,
+          variant: GJButtonVariant.secondary,
+          loading: _gerandoRelatorio != null,
+          onPressed: () {},
+        ),
       ),
     );
   }
