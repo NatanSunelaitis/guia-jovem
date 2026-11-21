@@ -4,11 +4,13 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/gj_colors.dart';
+import '../../../core/theme/gj_radius.dart';
+import '../../../core/theme/gj_shadows.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/layouts/public_layout.dart';
-import '../../../shared/widgets/gj_card.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
+import '../../../shared/widgets/gj_lista_paginada.dart';
 import '../../../shared/layouts/gj_page_container.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../data/campus_repository.dart';
@@ -92,32 +94,18 @@ class _DetalheCampusPageState extends State<DetalheCampusPage> {
                   const SizedBox(height: GJSpace.s8),
                   Text('Lista de cursos oferecidos neste campus', style: GJTypography.h2()),
                   const SizedBox(height: GJSpace.s4),
-                  if (campus.cursos.isEmpty)
+                  if (campus.totalCursos == 0)
                     const GJEmptyState(titulo: 'Nenhum curso cadastrado', icone: Symbols.menu_book)
                   else
-                    Wrap(
-                      spacing: GJSpace.s4,
-                      runSpacing: GJSpace.s4,
-                      children: [
-                        for (final curso in campus.cursos)
-                          SizedBox(
-                            width: 280,
-                            child: GJCard(
-                              onTap: () => context.go('/cursos/${curso.id}'),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(curso.nome, style: GJTypography.h4()),
-                                  const SizedBox(height: GJSpace.s1),
-                                  if (curso.turno != null)
-                                    Text('Turno: ${curso.turno}', style: GJTypography.bodySm()),
-                                  if (curso.vagas != null)
-                                    Text(contagem(curso.vagas!, 'vaga', 'vagas'), style: GJTypography.bodySm(color: GJColors.textSecondary)),
-                                ],
-                              ),
-                            ),
-                          ),
-                      ],
+                    GJListaPaginada<CampusCursoDetalhe>(
+                      carregar: ({required pagina, busca, filtro}) =>
+                          campusRepository.cursos(campus.id, pagina: pagina, busca: busca, area: filtro),
+                      dicaBusca: 'Buscar curso pelo nome',
+                      rotuloFiltro: 'Área',
+                      opcoesFiltro: campus.areasCursos,
+                      descreverTotal: (total) => contagem(total, 'curso encontrado', 'cursos encontrados'),
+                      textoVazio: 'Nenhum curso encontrado com esses filtros',
+                      construirItens: (context, cursos) => _ListaCursos(cursos: cursos),
                     ),
                 ],
               ),
@@ -136,6 +124,72 @@ class _DetalheCampusPageState extends State<DetalheCampusPage> {
         const SizedBox(width: GJSpace.s1),
         Text(texto, style: GJTypography.bodySm()),
       ],
+    );
+  }
+}
+
+/// Cursos do campus em linhas de altura igual: nome, área, grau e
+/// modalidade, turno e vagas. Cada linha leva à página do curso.
+class _ListaCursos extends StatelessWidget {
+  const _ListaCursos({required this.cursos});
+
+  final List<CampusCursoDetalhe> cursos;
+
+  @override
+  Widget build(BuildContext context) {
+    final celular = MediaQuery.sizeOf(context).width < 600;
+    return Container(
+      decoration: BoxDecoration(color: GJColors.surfaceLowest, borderRadius: GJRadius.borderLg, border: GJShadows.borderSubtle),
+      child: Column(
+        children: [
+          for (final (indice, curso) in cursos.indexed)
+            InkWell(
+              key: Key('curso-campus-${curso.id}'),
+              onTap: () => context.go('/cursos/${curso.id}'),
+              child: Container(
+                height: celular ? GJSpace.s24 : GJSpace.s16 + GJSpace.s2,
+                padding: const EdgeInsets.symmetric(horizontal: GJSpace.s5),
+                decoration: BoxDecoration(
+                  border: indice == 0 ? null : const Border(top: BorderSide(color: GJColors.surfaceHigh)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(curso.nome, style: GJTypography.label(color: GJColors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                          Text(
+                            [curso.areaCurso, curso.grau, curso.modalidade].whereType<String>().join(' · '),
+                            style: GJTypography.bodySm(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (celular)
+                            Text(
+                              [curso.turno, if (curso.vagas != null) contagem(curso.vagas!, 'vaga', 'vagas')].whereType<String>().join(' · '),
+                              style: GJTypography.bodySm(),
+                              maxLines: 1,
+                            ),
+                        ],
+                      ),
+                    ),
+                    if (!celular) ...[
+                      Expanded(flex: 2, child: Text(curso.turno ?? '-', style: GJTypography.bodySm())),
+                      Expanded(
+                        flex: 2,
+                        child: Text(curso.vagas == null ? '-' : contagem(curso.vagas!, 'vaga', 'vagas'), style: GJTypography.bodySm()),
+                      ),
+                    ],
+                    const Icon(Symbols.chevron_right, color: GJColors.textSecondary),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

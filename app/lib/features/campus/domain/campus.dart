@@ -6,6 +6,7 @@ class CampusCursoDetalhe {
     required this.nome,
     this.areaCurso,
     this.grau,
+    this.modalidade,
     this.turno,
     this.vagas,
   });
@@ -15,6 +16,7 @@ class CampusCursoDetalhe {
         nome: json['nome'] as String,
         areaCurso: json['areaCurso'] as String?,
         grau: json['grau'] as String?,
+        modalidade: json['modalidade'] as String?,
         turno: json['turno'] as String?,
         vagas: json['vagas'] as int?,
       );
@@ -23,6 +25,7 @@ class CampusCursoDetalhe {
   final String nome;
   final String? areaCurso;
   final String? grau;
+  final String? modalidade;
   final String? turno;
   final int? vagas;
 }
@@ -47,7 +50,8 @@ class CampusDetalhe {
     required this.principal,
     required this.universidade,
     required this.endereco,
-    required this.cursos,
+    this.totalCursos = 0,
+    this.areasCursos = const [],
   });
 
   factory CampusDetalhe.fromJson(Map<String, dynamic> json) => CampusDetalhe(
@@ -59,9 +63,8 @@ class CampusDetalhe {
         principal: json['principal'] as bool? ?? false,
         universidade: UniversidadeResumidaRef.fromJson(json['universidade'] as Map<String, dynamic>),
         endereco: EnderecoResumo.fromJson(json['endereco'] as Map<String, dynamic>),
-        cursos: (json['cursos'] as List<dynamic>? ?? [])
-            .map((item) => CampusCursoDetalhe.fromJson(item as Map<String, dynamic>))
-            .toList(),
+        totalCursos: json['totalCursos'] as int? ?? 0,
+        areasCursos: (json['areasCursos'] as List<dynamic>? ?? const []).cast<String>(),
       );
 
   final int id;
@@ -72,5 +75,9 @@ class CampusDetalhe {
   final bool principal;
   final UniversidadeResumidaRef universidade;
   final EnderecoResumo endereco;
-  final List<CampusCursoDetalhe> cursos;
+
+  /// Os cursos vêm paginados de /campus/:id/cursos; aqui, o total e as
+  /// áreas, para o filtro.
+  final int totalCursos;
+  final List<String> areasCursos;
 }
