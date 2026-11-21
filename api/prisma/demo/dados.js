@@ -661,7 +661,7 @@ Cada instituição tem as próprias regras. Confira sempre o edital no site ofic
 
 Programa do MEC que financia a graduação em instituições privadas participantes, com pagamento depois da formatura.
 
-É um empréstimo para pagar a faculdade: o valor financiado não precisa ser pago durante o curso, e o pagamento começa depois que você se forma.
+É um financiamento para pagar a faculdade: a devolução do valor financiado começa depois que você se forma, em parcelas. As condições de cada contrato estão no edital.
 
 ## Quem pode participar
 
