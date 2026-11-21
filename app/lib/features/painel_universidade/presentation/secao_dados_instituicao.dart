@@ -7,6 +7,7 @@ import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/widgets/gj_button.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
+import '../../../shared/widgets/gj_texto_formatado.dart';
 import '../../admin/domain/universidade_admin.dart';
 import '../../admin/presentation/widgets/formulario.dart';
 import '../../admin/presentation/widgets/formulario_universidade.dart';
@@ -134,10 +135,11 @@ class _SecaoDadosInstituicaoState extends State<SecaoDadosInstituicao> {
           conteudo: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SelectableText(
-                cadastro.descricao == null || cadastro.descricao!.isEmpty ? 'Sem descrição.' : cadastro.descricao!,
-                style: GJTypography.body(),
-              ),
+              // "Sobre" formatado, como aparece na página pública.
+              if (cadastro.descricao == null || cadastro.descricao!.trim().isEmpty)
+                Text('Sem descrição.', style: GJTypography.body())
+              else
+                GJTextoFormatado(cadastro.descricao),
               const SizedBox(height: GJSpace.s4),
               Wrap(
                 spacing: GJSpace.s6,

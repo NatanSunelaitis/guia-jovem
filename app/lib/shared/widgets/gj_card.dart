@@ -9,6 +9,7 @@ import '../../core/theme/gj_typography.dart';
 import 'gj_button.dart';
 import 'gj_remote_or_asset_image.dart';
 import '../utils/sigla_instituicao.dart';
+import '../utils/texto_formatado.dart';
 
 enum GJCardVariant { base, elevated }
 
@@ -134,7 +135,13 @@ class GJCard extends StatefulWidget {
                   const SizedBox(height: GJSpace.s3),
                   Text(nome, style: GJTypography.h4(), maxLines: _linhasTitulo, overflow: TextOverflow.ellipsis),
                   const SizedBox(height: GJSpace.s1),
-                  Text(descricao, style: GJTypography.bodySm(), maxLines: 3, overflow: TextOverflow.ellipsis),
+                  // Resumo em texto puro: a descrição do programa é formatada.
+                  Text(
+                    resumoTextoFormatado(descricao, limite: 240),
+                    style: GJTypography.bodySm(),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),

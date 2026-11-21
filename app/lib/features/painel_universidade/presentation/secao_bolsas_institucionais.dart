@@ -3,6 +3,7 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/theme/gj_typography.dart';
+import '../../../shared/utils/texto_formatado.dart';
 import '../../../shared/widgets/gj_data_table.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
 import '../../admin/presentation/widgets/confirmacao_dialogs.dart';
@@ -83,7 +84,7 @@ class _SecaoBolsasInstitucionaisState extends State<SecaoBolsasInstitucionais> {
         for (final bolsa in bolsas)
           [
             Text(bolsa.nome, style: GJTypography.body(), overflow: TextOverflow.ellipsis),
-            Text(bolsa.descricao, style: GJTypography.bodySm(), maxLines: 2, overflow: TextOverflow.ellipsis),
+            Text(resumoTextoFormatado(bolsa.descricao, limite: 160), style: GJTypography.bodySm(), maxLines: 2, overflow: TextOverflow.ellipsis),
             Text(bolsa.linkOficial ?? '-', style: GJTypography.bodySm(), overflow: TextOverflow.ellipsis),
             if (edita)
               Row(
