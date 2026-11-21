@@ -1,6 +1,7 @@
 const AppError = require('../../shared/errors/AppError');
 const { buildMeta, parsePagination } = require('../../shared/utils/pagination');
 const repo = require('./cursos.repository');
+const { agruparProgramasPorTipo } = require('../universidades/universidades.service');
 
 const DESTAQUES_PADRAO = 8;
 
@@ -69,7 +70,52 @@ async function listarDestaques(prisma, { limite = DESTAQUES_PADRAO, q, areaCurso
     .map(([nome, totalOfertas]) => ({ nome, areaCurso: areaPorNome.get(nome), totalOfertas }));
 }
 
+function paraCampus(campusCurso) {
+  return {
+    id: campusCurso.campus.id,
+    nome: campusCurso.campus.nome,
+    cidade: campusCurso.campus.endereco.cidade,
+    estado: campusCurso.campus.endereco.estado,
+    turno: campusCurso.turno,
+    vagas: campusCurso.vagas,
+  };
+}
+
+/** Universidade da oferta, com a cidade do campus principal (card do T06). */
+function paraUniversidade(universidade) {
+  const principal = universidade.campus?.[0] ?? null;
+  return {
+    id: universidade.id,
+    nomeFantasia: universidade.nomeFantasia,
+    logoUrl: universidade.logoUrl,
+    natureza: universidade.natureza ?? null,
+    cidade: principal?.endereco.cidade ?? null,
+    estado: principal?.endereco.estado ?? null,
+  };
+}
+
+/**
+ * Uma oferta do curso (cada curso pertence a uma universidade): dados do
+ * curso, campi ativos com turno e vagas e os programas que a universidade
+ * aceita, agrupados por tipo, com as bolsas institucionais dela.
+ */
+function paraOferta(curso) {
+  return {
+    cursoId: curso.id,
+    areaCurso: curso.areaCurso,
+    grau: curso.grau,
+    modalidade: curso.modalidade,
+    duracaoSemestres: curso.duracaoSemestres,
+    notaMec: curso.notaMec,
+    descricao: curso.descricao,
+    universidade: paraUniversidade(curso.universidade),
+    campus: curso.campusCursos.map(paraCampus),
+    programas: agruparProgramasPorTipo(curso.universidade.universidadeProgramas ?? [], curso.universidade.programas ?? []),
+  };
+}
+
 function paraDetalhe(curso) {
+  const oferta = paraOferta(curso);
   return {
     id: curso.id,
     nome: curso.nome,
@@ -79,15 +125,9 @@ function paraDetalhe(curso) {
     grau: curso.grau,
     duracaoSemestres: curso.duracaoSemestres,
     descricao: curso.descricao,
-    universidade: curso.universidade,
-    campus: curso.campusCursos.map((cc) => ({
-      id: cc.campus.id,
-      nome: cc.campus.nome,
-      cidade: cc.campus.endereco.cidade,
-      estado: cc.campus.endereco.estado,
-      turno: cc.turno,
-      vagas: cc.vagas,
-    })),
+    universidade: oferta.universidade,
+    campus: oferta.campus,
+    programas: oferta.programas,
   };
 }
 
@@ -115,16 +155,7 @@ async function obterPorNome(prisma, nome, req) {
     nome,
     // Área do primeiro cadastro: o app usa para escolher a foto do curso.
     areaCurso: cursos[0].areaCurso ?? null,
-    universidades: cursos.map((curso) => ({
-      cursoId: curso.id,
-      universidade: curso.universidade,
-      campus: curso.campusCursos.map((cc) => ({
-        id: cc.campus.id,
-        nome: cc.campus.nome,
-        cidade: cc.campus.endereco.cidade,
-        estado: cc.campus.endereco.estado,
-      })),
-    })),
+    universidades: cursos.map(paraOferta),
   };
 }
 

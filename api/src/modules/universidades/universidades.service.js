@@ -284,4 +284,6 @@ module.exports = {
   // Reaproveitados por relatorios.service.js (RF02): "mesmos filtros de /universidades".
   buildWhere,
   buildOrderBy,
+  // Reaproveitado por cursos.service.js: programas aceitos em cada oferta do curso (T06).
+  agruparProgramasPorTipo,
 };
