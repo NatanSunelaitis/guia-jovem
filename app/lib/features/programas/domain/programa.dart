@@ -47,14 +47,20 @@ class ProgramaEvento {
 }
 
 class UniversidadeQueAceita {
-  UniversidadeQueAceita({required this.id, required this.nomeFantasia, this.logoUrl, this.observacao});
+  UniversidadeQueAceita({required this.id, required this.nomeFantasia, this.logoUrl, this.observacao, this.cidade, this.estado});
 
   factory UniversidadeQueAceita.fromJson(Map<String, dynamic> json) => UniversidadeQueAceita(
         id: json['id'] as int,
         nomeFantasia: json['nomeFantasia'] as String,
         logoUrl: json['logoUrl'] as String?,
         observacao: json['observacao'] as String?,
+        cidade: json['cidade'] as String?,
+        estado: json['estado'] as String?,
       );
+
+  /// Cidade do campus principal.
+  final String? cidade;
+  final String? estado;
 
   final int id;
   final String nomeFantasia;
@@ -77,6 +83,7 @@ class ProgramaDetalhe {
     this.universidade,
     required this.eventos,
     required this.universidades,
+    this.totalUniversidades = 0,
   });
 
   factory ProgramaDetalhe.fromJson(Map<String, dynamic> json) => ProgramaDetalhe(
@@ -99,7 +106,11 @@ class ProgramaDetalhe {
         universidades: (json['universidades'] as List<dynamic>? ?? [])
             .map((item) => UniversidadeQueAceita.fromJson(item as Map<String, dynamic>))
             .toList(),
+        totalUniversidades: json['totalUniversidades'] as int? ?? (json['universidades'] as List<dynamic>? ?? const []).length,
       );
+
+  /// Quantas universidades aceitam o programa; [universidades] é só a prévia.
+  final int totalUniversidades;
 
   final int id;
   final String nome;

@@ -14,7 +14,10 @@ import '../../../shared/utils/fotos.dart';
 import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/utils/texto_formatado.dart';
 import '../../../shared/widgets/gj_button.dart';
+import '../../../shared/utils/plural.dart';
+import '../../../shared/widgets/gj_aligned_grid.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
+import '../../../shared/widgets/gj_lista_paginada.dart';
 import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_texto_formatado.dart';
@@ -153,7 +156,6 @@ class _Conteudo extends StatelessWidget {
     final isMobile = MediaQuery.sizeOf(context).width < 600;
     final passos = _proximosPassos[_dona != null ? 'INSTITUCIONAL' : programa.tipo] ?? _proximosPassos['ENTRADA']!;
     final secoes = secoesDoPrograma(programa.descricao);
-    final comObservacao = programa.universidades.any((u) => u.observacao != null);
 
     return GJPageContainer(
       child: Column(
@@ -230,22 +232,25 @@ class _Conteudo extends StatelessWidget {
               const SizedBox(height: GJSpace.s4),
               if (_dona != null)
                 SizedBox(
-                  width: isMobile ? (MediaQuery.sizeOf(context).width - GJSpace.s8) / 2 : 180,
+                  width: isMobile ? (MediaQuery.sizeOf(context).width - GJSpace.s8) / 2 : 220,
                   child: _cardUniversidade(context, _dona!),
                 )
-              else if (programa.universidades.isEmpty)
+              else if (programa.totalUniversidades == 0)
                 const GJEmptyState(titulo: 'Nenhuma universidade cadastrada ainda para este programa')
               else
-                Wrap(
-                  spacing: GJSpace.s4,
-                  runSpacing: GJSpace.s4,
-                  children: [
-                    for (final universidade in programa.universidades)
-                      SizedBox(
-                        width: isMobile ? (MediaQuery.sizeOf(context).width - GJSpace.s8) / 2 : 180,
-                        child: _cardUniversidade(context, universidade, comObservacao: comObservacao),
-                      ),
-                  ],
+                // Paginada pela API (8 por página), com busca por nome ou cidade.
+                GJListaPaginada<UniversidadeQueAceita>(
+                  carregar: ({required pagina, busca, filtro}) =>
+                      programasRepository.universidades(programa.id, pagina: pagina, busca: busca),
+                  dicaBusca: 'Buscar universidade por nome ou cidade',
+                  descreverTotal: (total) => contagem(total, 'universidade aceita este programa', 'universidades aceitam este programa'),
+                  textoVazio: 'Nenhuma universidade encontrada com essa busca',
+                  construirItens: (context, universidades) => GJAlignedGrid(
+                    itemWidth: isMobile ? 150 : 220,
+                    spacing: GJSpace.s4,
+                    runSpacing: GJSpace.s4,
+                    children: [for (final universidade in universidades) _cardUniversidade(context, universidade)],
+                  ),
                 ),
               const SizedBox(height: GJSpace.s8),
               _cta(context),
@@ -430,64 +435,81 @@ class _Conteudo extends StatelessWidget {
     );
   }
 
-  Widget _cardUniversidade(BuildContext context, UniversidadeQueAceita universidade, {bool comObservacao = false}) {
-    return GestureDetector(
-      onTap: () => context.go('/universidades/${universidade.id}'),
-      child: Container(
-        padding: const EdgeInsets.all(GJSpace.s4),
-        decoration: BoxDecoration(color: GJColors.surfaceLow, borderRadius: GJRadius.borderLg),
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              height: 72,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(color: GJColors.surfaceLowest, borderRadius: GJRadius.borderMd),
-              child: universidade.logoUrl != null
-                  ? Padding(
-                      padding: const EdgeInsets.all(GJSpace.s2),
-                      child: GJRemoteOrAssetImage(url: universidade.logoUrl!, fit: BoxFit.contain),
-                    )
-                  : Text(
-                      siglaDaInstituicao(universidade.nomeFantasia),
-                      style: GJTypography.label().copyWith(color: GJColors.primary, fontWeight: FontWeight.w800),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-            ),
-            const SizedBox(height: GJSpace.s3),
-            // Altura de até três linhas para todos os cards: o nome inteiro
-            // cabe e os cards ficam do mesmo tamanho.
-            SizedBox(
-              height: GJSpace.s16,
-              child: Center(
-                child: Text(
-                  universidade.nomeFantasia,
-                  style: GJTypography.label().copyWith(color: GJColors.textPrimary),
-                  textAlign: TextAlign.center,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
+  /// Card de altura uniforme: logo, nome em até duas linhas, cidade e a
+  /// observação da universidade sobre o programa num espaço fixo (vazio
+  /// quando não há), para a grade não ficar desalinhada.
+  Widget _cardUniversidade(BuildContext context, UniversidadeQueAceita universidade) {
+    final observacao = universidade.observacao;
+    return Material(
+      color: GJColors.surfaceLow,
+      borderRadius: GJRadius.borderLg,
+      child: InkWell(
+        key: Key('universidade-programa-${universidade.id}'),
+        borderRadius: GJRadius.borderLg,
+        onTap: () => context.go('/universidades/${universidade.id}'),
+        child: Padding(
+          padding: const EdgeInsets.all(GJSpace.s4),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                height: GJSpace.s16,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: GJColors.surfaceLowest, borderRadius: GJRadius.borderMd),
+                child: universidade.logoUrl != null
+                    ? Padding(
+                        padding: const EdgeInsets.all(GJSpace.s2),
+                        child: GJRemoteOrAssetImage(url: universidade.logoUrl!, fit: BoxFit.contain),
+                      )
+                    : Text(
+                        siglaDaInstituicao(universidade.nomeFantasia),
+                        style: GJTypography.label().copyWith(color: GJColors.primary, fontWeight: FontWeight.w800),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
               ),
-            ),
-            // Observação da universidade sobre o programa (cadastro em
-            // "Programas aceitos"); o espaço é o mesmo em todos os cards.
-            if (comObservacao)
+              const SizedBox(height: GJSpace.s3),
               SizedBox(
-                height: GJSpace.s12,
-                child: Tooltip(
-                  message: universidade.observacao ?? '',
+                height: GJSpace.s12 - GJSpace.s1,
+                child: Center(
                   child: Text(
-                    universidade.observacao ?? '',
-                    style: GJTypography.caption(),
+                    universidade.nomeFantasia,
+                    style: GJTypography.label().copyWith(color: GJColors.textPrimary),
                     textAlign: TextAlign.center,
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
-          ],
+              SizedBox(
+                height: GJSpace.s5,
+                child: Text(
+                  universidade.cidade == null ? '' : '${universidade.cidade}/${universidade.estado}',
+                  style: GJTypography.caption(),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: GJSpace.s1),
+              SizedBox(
+                height: GJSpace.s8 + GJSpace.s1,
+                child: observacao == null
+                    ? null
+                    : Tooltip(
+                        message: observacao,
+                        child: Text(
+                          observacao,
+                          style: GJTypography.caption(color: GJColors.primaryDark),
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -35,6 +35,12 @@ class ProgramasRepository {
     return (json['data'] as List<dynamic>).map((item) => ProgramaResumo.fromJson(item as Map<String, dynamic>)).toList();
   }
 
+  /// Universidades que aceitam o programa, paginadas, com busca por nome ou cidade.
+  Future<PaginatedResult<UniversidadeQueAceita>> universidades(int id, {int pagina = 1, int porPagina = 8, String? busca}) async {
+    final json = await _client.get('/programas/$id/universidades', query: {'page': pagina, 'pageSize': porPagina, 'q': busca});
+    return PaginatedResult.fromJson(json, UniversidadeQueAceita.fromJson);
+  }
+
   Future<ProgramaDetalhe> detalhe(int id) async {
     final json = await _client.get('/programas/$id');
     return ProgramaDetalhe.fromJson(json['data'] as Map<String, dynamic>);

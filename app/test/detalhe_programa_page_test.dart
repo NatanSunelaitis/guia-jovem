@@ -184,7 +184,12 @@ void main() {
           {'id': 3, 'nomeFantasia': 'UniVale Sorocaba', 'logoUrl': null, 'observacao': 'Bolsas integrais e parciais em todos os cursos'},
           {'id': 4, 'nomeFantasia': 'FEITU', 'logoUrl': null, 'observacao': null},
         ],
+        'totalUniversidades': 2,
       }),
+      '/programas/9/universidades': envelope([
+        {'id': 3, 'nomeFantasia': 'UniVale Sorocaba', 'logoUrl': null, 'cidade': 'Sorocaba', 'estado': 'SP', 'observacao': 'Bolsas integrais e parciais em todos os cursos'},
+        {'id': 4, 'nomeFantasia': 'FEITU', 'logoUrl': null, 'cidade': 'Itu', 'estado': 'SP', 'observacao': null},
+      ], {'page': 1, 'pageSize': 8, 'total': 2, 'totalPages': 1}),
     });
 
     await pump(tester, 9);
@@ -220,6 +225,53 @@ void main() {
     final evento = ProgramaEvento(id: 1, titulo: 'T', dataInicio: DateTime(2027, 5, 10), dataFim: DateTime(2027, 5, 21));
     expect(descricaoDoEvento(evento), 'Até 21 mai 2027');
     expect(descricaoDoEvento(ProgramaEvento(id: 2, titulo: 'T', descricao: 'D', dataInicio: DateTime(2027, 5, 10))), 'D');
+  });
+
+  testWidgets('60 universidades: 8 por página, cards de altura igual, busca por nome ou cidade', (tester) async {
+    tester.view.physicalSize = const Size(1366, 3200);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    mockApi({
+      '/programas/7/universidades': envelope([
+        for (var i = 1; i <= 8; i++)
+          {
+            'id': i,
+            'nomeFantasia': i == 2 ? 'Centro Universitário de Nome Muito Comprido da Região Metropolitana $i' : 'Universidade $i',
+            'logoUrl': null,
+            'cidade': 'Sorocaba',
+            'estado': 'SP',
+            'observacao': i.isOdd ? 'Observação $i' : null,
+          },
+      ], {'page': 1, 'pageSize': 8, 'total': 60, 'totalPages': 8}),
+      '/programas/7': envelope({
+        'id': 7,
+        'nome': 'Programa Universidade para Todos',
+        'sigla': 'ProUni',
+        'tipo': 'BOLSA',
+        'descricao': 'Bolsas.',
+        'linkOficial': null,
+        'imagemUrl': null,
+        'universidadeId': null,
+        'eventos': <dynamic>[],
+        'universidades': <dynamic>[],
+        'totalUniversidades': 60,
+      }),
+    });
+
+    await pump(tester, 7);
+
+    expect(find.text('60 universidades aceitam este programa'), findsOneWidget);
+    expect(find.text('Página 1 de 8'), findsOneWidget);
+    expect(requisicoesApi.last.url.queryParameters, containsPair('pageSize', '8'));
+    final alturas = {for (var i = 1; i <= 8; i++) tester.getSize(find.byKey(Key('universidade-programa-$i'))).height};
+    expect(alturas, hasLength(1));
+    expect(find.text('Observação 1'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.enterText(find.byType(TextField).first, 'itu');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pumpAndSettle();
+    expect(requisicoesApi.last.url.queryParameters, containsPair('q', 'itu'));
   });
 
   testWidgets('mostra estado de erro quando o programa não existe', (tester) async {
