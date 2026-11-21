@@ -158,6 +158,8 @@ async function obterDetalhe(prisma, id, req) {
     descricao: universidade.descricao,
     logoUrl: universidade.logoUrl,
     natureza: universidade.natureza,
+    // Contato da instituição informado no cadastro (Figura 28).
+    telefonePrincipal: universidade.telefonePrincipal ?? null,
     linkPagina: universidade.linkPagina,
     linkSimulados: universidade.linkSimulados,
     mediaAvaliacao: universidade.mediaAvaliacao,

@@ -2768,9 +2768,10 @@ components:
         id: { type: integer }
         nomeFantasia: { type: string }
         razaoSocial: { type: string }
-        descricao: { type: string, nullable: true }
+        descricao: { type: string, nullable: true, description: 'Sobre: texto com formatação simples (Markdown), até 10.000 caracteres' }
         logoUrl: { type: string, nullable: true }
         natureza: { type: string, enum: [P, V] }
+        telefonePrincipal: { type: string, nullable: true }
         linkPagina: { type: string, nullable: true }
         linkSimulados: { type: string, nullable: true }
         mediaAvaliacao: { type: number, nullable: true }

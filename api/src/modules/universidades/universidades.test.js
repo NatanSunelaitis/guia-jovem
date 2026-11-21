@@ -133,6 +133,23 @@ describe('GET /api/v1/universidades/:id', () => {
     });
   });
 
+  it('traz o telefone principal e a observação de cada programa aceito, e deixa de fora campus excluído', async () => {
+    prisma.universidade.findFirst.mockResolvedValue(
+      universidadeFake({
+        telefonePrincipal: '(15) 3201-4500',
+        universidadeProgramas: [
+          { programa: { id: 1, nome: 'ENEM', sigla: 'ENEM', tipo: 'ENTRADA' }, observacao: 'Nota do Enem no lugar da prova' },
+        ],
+      }),
+    );
+
+    const resposta = await request(app).get('/api/v1/universidades/1');
+
+    expect(resposta.body.data.telefonePrincipal).toBe('(15) 3201-4500');
+    expect(resposta.body.data.programas.ENTRADA[0].observacao).toBe('Nota do Enem no lugar da prova');
+    expect(prisma.universidade.findFirst.mock.calls[0][0].include.campus.where).toEqual({ ativo: true });
+  });
+
   it('responde 404 quando a universidade não existe ou não está aprovada', async () => {
     prisma.universidade.findFirst.mockResolvedValue(null);
 
