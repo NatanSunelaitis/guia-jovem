@@ -33,7 +33,9 @@ const app = express();
 // origem; a de conteúdo segue o padrão, que a página /docs atende.
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.disable('x-powered-by');
-app.use(cors({ origin: origensPermitidas(env) }));
+// Content-Disposition exposto: o app baixa o relatório (RF02) por requisição
+// e lê o nome do arquivo, o que o CORS esconde por padrão.
+app.use(cors({ origin: origensPermitidas(env), exposedHeaders: ['Content-Disposition'] }));
 app.use(express.json());
 app.use(auditMiddleware);
 app.use(metricsMiddleware);
