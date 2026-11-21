@@ -179,6 +179,33 @@ void main() {
     expect(find.text('FVT'), findsOneWidget);
   });
 
+  testWidgets('volume: 20 universidades em 8 por página, com busca, e o resumo conta todas', (tester) async {
+    mockApi({
+      '/cursos/nome/Direito': envelope({
+        'nome': 'Direito',
+        'areaCurso': 'Direito',
+        'universidades': [
+          for (var i = 1; i <= 20; i++)
+            _oferta(cursoId: 100 + i, universidadeId: i, nomeFantasia: i == 13 ? 'Faculdade de Itapetininga' : 'Universidade ${i.toString().padLeft(2, '0')}', descricao: 'Igual.'),
+        ],
+      }),
+    });
+
+    await abrir(tester, const DetalheCursoPage.porNome(nome: 'Direito'));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('20 universidades em 1 cidade'), findsOneWidget);
+    expect(find.text('Página 1 de 3'), findsOneWidget);
+    expect(find.text('Universidade 01'), findsOneWidget);
+    expect(find.text('Universidade 09'), findsNothing);
+
+    await tester.enterText(find.widgetWithText(TextField, 'Buscar universidade ou cidade'), 'itapetininga');
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump();
+    expect(find.text('Faculdade de Itapetininga'), findsOneWidget);
+    expect(find.text('1 universidade'), findsOneWidget);
+  });
+
   group('resumo do curso', () {
     OfertaCurso oferta({int? duracao, String? descricao, String cidade = 'Sorocaba'}) => OfertaCurso.fromJson({
           ..._oferta(descricao: descricao),

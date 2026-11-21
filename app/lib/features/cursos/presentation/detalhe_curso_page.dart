@@ -16,6 +16,7 @@ import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/utils/sigla_instituicao.dart';
 import '../../../shared/utils/texto_formatado.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
+import '../../../shared/widgets/gj_lista_paginada.dart';
 import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tag.dart';
@@ -81,6 +82,9 @@ class _DetalheCursoPageState extends State<DetalheCursoPage> {
   }
 }
 
+/// Cards de universidade por página quando o curso tem muitas ofertas.
+const _porPagina = 8;
+
 class _Conteudo extends StatelessWidget {
   const _Conteudo({required this.nome, required this.areaCurso, required this.ofertas, required this.porNome});
 
@@ -143,12 +147,40 @@ class _Conteudo extends StatelessWidget {
             const SizedBox(height: GJSpace.s4),
             if (ofertas.isEmpty)
               const GJEmptyState(titulo: 'Nenhuma universidade oferece este curso no momento')
-            else
+            else if (ofertas.length <= _porPagina)
               for (final oferta in ofertas)
                 Padding(
                   padding: const EdgeInsets.only(bottom: GJSpace.s4),
                   child: _CardOferta(oferta: oferta, mostrarDescricao: comum == null),
+                )
+            else
+              // Muitas universidades: 8 cards por página, com busca. O resumo
+              // do topo continua considerando todas as ofertas.
+              GJListaPaginada<OfertaCurso>(
+                carregar: ({required pagina, busca, filtro}) => paginarLocal(
+                  ofertas,
+                  pagina: pagina,
+                  porPagina: _porPagina,
+                  busca: busca,
+                  filtro: filtro,
+                  texto: (oferta) => [oferta.universidade.nomeFantasia, oferta.universidade.cidade, for (final c in oferta.campus) c.cidade].join(' '),
+                  categoria: (oferta) => oferta.modalidade,
                 ),
+                dicaBusca: 'Buscar universidade ou cidade',
+                rotuloFiltro: 'Modalidade',
+                opcoesFiltro: {for (final o in ofertas) if (o.modalidade != null) o.modalidade!}.toList()..sort(),
+                descreverTotal: (total) => contagem(total, 'universidade', 'universidades'),
+                textoVazio: 'Nenhuma universidade encontrada com essa busca',
+                construirItens: (context, pagina) => Column(
+                  children: [
+                    for (final oferta in pagina)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: GJSpace.s4),
+                        child: _CardOferta(oferta: oferta, mostrarDescricao: comum == null),
+                      ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
