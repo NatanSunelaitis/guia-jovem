@@ -1,5 +1,7 @@
 const { z } = require('zod');
 
+const { textoFormatadoOpcional } = require('../../shared/validation/textoFormatado');
+
 const idParamSchema = {
   params: z.object({ id: z.coerce.number().int().positive('id inválido') }),
 };
@@ -47,7 +49,7 @@ const camposCurso = {
   modalidade: textoOpcional(20),
   grau: textoOpcional(20),
   duracaoSemestres: z.number().int().min(1).max(20).nullable().optional(),
-  descricao: textoOpcional(5000),
+  descricao: textoFormatadoOpcional(),
 };
 
 const adminListQuerySchema = {

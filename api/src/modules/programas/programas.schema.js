@@ -1,5 +1,7 @@
 const { z } = require('zod');
 
+const { textoFormatadoObrigatorio, textoFormatadoOpcional } = require('../../shared/validation/textoFormatado');
+
 const idParamSchema = {
   params: z.object({ id: z.coerce.number().int().positive('id inválido') }),
 };
@@ -56,9 +58,10 @@ const camposPrograma = {
   nome: z.string({ required_error: 'Informe o nome do programa' }).trim().min(1, 'Informe o nome do programa').max(100),
   sigla: textoOpcional(20),
   tipo,
-  descricao: z.string({ required_error: 'Informe a descrição' }).trim().min(1, 'Informe a descrição').max(5000),
-  requisitos: textoOpcional(5000),
-  comoFunciona: textoOpcional(5000),
+  // Descrição, requisitos e como funciona aceitam formatação (textoFormatado.js).
+  descricao: textoFormatadoObrigatorio('Informe a descrição'),
+  requisitos: textoFormatadoOpcional(),
+  comoFunciona: textoFormatadoOpcional(),
   linkOficial: urlOpcional,
   imagemUrl: urlOpcional,
 };
