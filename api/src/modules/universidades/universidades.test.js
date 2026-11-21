@@ -203,6 +203,23 @@ describe('GET /api/v1/universidades/:id/cursos', () => {
 });
 
 describe('GET /api/v1/universidades/:id/avaliacoes', () => {
+  it('devolve a distribuição por nota de todas as avaliações, não só da página', async () => {
+    prisma.universidade.findFirst.mockResolvedValue({ id: 1 });
+    prisma.avaliacao.findMany.mockResolvedValue([]);
+    prisma.avaliacao.count.mockResolvedValue(40);
+    prisma.avaliacao.groupBy.mockResolvedValue([
+      { nota: 5, _count: { _all: 8 } },
+      { nota: 1, _count: { _all: 8 } },
+      { nota: 3, _count: { _all: 24 } },
+    ]);
+
+    const resposta = await request(app).get('/api/v1/universidades/1/avaliacoes?page=2&pageSize=5');
+
+    expect(resposta.body.meta).toEqual({ page: 2, pageSize: 5, total: 40, totalPages: 8, distribuicao: { 1: 8, 2: 0, 3: 24, 4: 0, 5: 8 } });
+    expect(prisma.avaliacao.groupBy).toHaveBeenCalledWith({ by: ['nota'], where: { universidadeId: 1 }, _count: { _all: true } });
+  });
+
+
   it('lista avaliações paginadas mostrando só o primeiro nome (200)', async () => {
     prisma.universidade.findFirst.mockResolvedValue({ id: 1 });
     prisma.avaliacao.findMany.mockResolvedValue([

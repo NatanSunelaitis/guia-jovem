@@ -257,9 +257,10 @@ async function listarAvaliacoes(prisma, universidadeId, query, { qualquerStatus 
 
   const { page, pageSize, skip, take } = parsePagination(query);
 
-  const [avaliacoes, total] = await Promise.all([
+  const [avaliacoes, total, distribuicao] = await Promise.all([
     repo.avaliacoes(prisma, universidadeId, { skip, take }),
     repo.countAvaliacoes(prisma, universidadeId),
+    repo.distribuicaoAvaliacoes(prisma, universidadeId),
   ]);
 
   return {
@@ -271,7 +272,8 @@ async function listarAvaliacoes(prisma, universidadeId, query, { qualquerStatus 
       // RNF07: e-mail nunca aparece; só o primeiro nome, e some no anônimo.
       autor: avaliacao.usuario ? primeiroNome(avaliacao.usuario.nome) : null,
     })),
-    meta: buildMeta({ page, pageSize, total }),
+    // A distribuição por nota considera todas as avaliações, não só a página.
+    meta: { ...buildMeta({ page, pageSize, total }), distribuicao },
   };
 }
 

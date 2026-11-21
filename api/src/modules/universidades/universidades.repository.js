@@ -91,6 +91,14 @@ function countAvaliacoes(prisma, universidadeId) {
   return prisma.avaliacao.count({ where: { universidadeId } });
 }
 
+/** Quantas avaliações de cada nota (1 a 5), de todas as páginas. */
+async function distribuicaoAvaliacoes(prisma, universidadeId) {
+  const grupos = await prisma.avaliacao.groupBy({ by: ['nota'], where: { universidadeId }, _count: { _all: true } });
+  const distribuicao = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  for (const grupo of grupos ?? []) distribuicao[grupo.nota] = grupo._count._all;
+  return distribuicao;
+}
+
 module.exports = {
   // Reaproveitados por favoritos.repository.js: o card da faculdade salva é o mesmo da pesquisa.
   RESUMO_CAMPUS_PRINCIPAL,
@@ -104,6 +112,7 @@ module.exports = {
   cursosDaUniversidade,
   avaliacoes,
   countAvaliacoes,
+  distribuicaoAvaliacoes,
 };
 
 // Administração (RF23, RF18): sem o filtro de status=A das rotas públicas.

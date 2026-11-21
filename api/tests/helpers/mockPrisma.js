@@ -20,7 +20,7 @@ const prisma = {
   endereco: createModel(['create', 'update']),
   notificacao: createModel(['create', 'createMany', 'findUnique', 'findMany', 'count', 'update', 'updateMany']),
   sugestao: createModel(['create', 'findUnique', 'findMany', 'count', 'updateMany']),
-  avaliacao: createModel(['findUnique', 'findMany', 'count', 'create', 'update', 'delete', 'aggregate']),
+  avaliacao: createModel(['findUnique', 'findMany', 'count', 'create', 'update', 'delete', 'aggregate', 'groupBy']),
   universidadeSalva: createModel(['findUnique', 'findMany', 'count', 'create', 'deleteMany']),
   pesquisaSalva: createModel(['findUnique', 'findFirst', 'findMany', 'count', 'create', 'delete']),
   logAuditoria: createModel(['create']),
