@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/network/api_exception.dart';
 import '../../../../core/theme/gj_colors.dart';
-import '../../../../core/theme/gj_radius.dart';
 import '../../../../core/theme/gj_spacing.dart';
 import '../../../../core/theme/gj_typography.dart';
 import '../../../../shared/widgets/gj_button.dart';
 import '../../../../shared/widgets/gj_drawer.dart';
+import '../../../../shared/widgets/gj_editor_texto_formatado.dart';
 import '../../../../shared/widgets/gj_input.dart';
 
 /// Abre um formulário no painel lateral (GJDrawer, seção 3.10). O
@@ -83,7 +83,8 @@ class CampoTexto extends StatelessWidget {
   }
 }
 
-/// Texto longo (descrição, requisitos, como funciona).
+/// Texto longo com formatação simples (descrição, requisitos, como
+/// funciona, "Sobre"): barra de formatação, pré-visualização e contador.
 class CampoTextoLongo extends StatelessWidget {
   const CampoTextoLongo({super.key, required this.rotulo, required this.controller, this.erro, this.campoKey});
 
@@ -94,29 +95,7 @@ class CampoTextoLongo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: GJSpace.s4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(rotulo, style: GJTypography.label()),
-          const SizedBox(height: GJSpace.s2),
-          TextField(
-            key: campoKey,
-            controller: controller,
-            style: GJTypography.body(),
-            minLines: 3,
-            maxLines: 6,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: GJColors.surfaceLow,
-              border: OutlineInputBorder(borderRadius: GJRadius.borderMd, borderSide: BorderSide.none),
-              errorText: erro,
-            ),
-          ),
-        ],
-      ),
-    );
+    return GJEditorTextoFormatado(rotulo: rotulo, controller: controller, erro: erro, campoKey: campoKey);
   }
 }
 

@@ -370,7 +370,13 @@ void main() {
 
       await tester.enterText(campo('Nome'), 'Bolsa Mérito');
       await tester.enterText(find.byKey(const Key('programa-descricao')), 'Desconto por desempenho.');
+      // O formulário ficou mais alto com o campo de texto formatado, e o
+      // campo focado puxa a rolagem para ele: tira o foco, rola até o botão
+      // e espera a rolagem assentar antes de tocar.
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Criar programa'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Criar programa'));
       await tester.pumpAndSettle();
 
