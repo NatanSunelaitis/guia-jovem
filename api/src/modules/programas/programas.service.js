@@ -96,27 +96,37 @@ async function obterDetalhe(prisma, id, req) {
       dataInicio: evento.dataInicio,
       dataFim: evento.dataFim,
     })),
-    universidades: programa.universidades.map((up) => ({
-      id: up.universidade.id,
-      nomeFantasia: up.universidade.nomeFantasia,
-      logoUrl: up.universidade.logoUrl,
-      observacao: up.observacao,
-    })),
+    // Prévia (as primeiras por nome) e o total; a lista inteira é paginada
+    // em GET /programas/:id/universidades.
+    universidades: programa.universidades.map(paraUniversidadeQueAceita),
+    totalUniversidades: programa._count?.universidades ?? programa.universidades.length,
   };
 }
 
-async function listarUniversidades(prisma, id) {
-  const programa = await repo.findDetalhePublicado(prisma, id);
+function paraUniversidadeQueAceita(up) {
+  const endereco = up.universidade.campus?.[0]?.endereco ?? null;
+  return {
+    id: up.universidade.id,
+    nomeFantasia: up.universidade.nomeFantasia,
+    logoUrl: up.universidade.logoUrl,
+    cidade: endereco?.cidade ?? null,
+    estado: endereco?.estado ?? null,
+    observacao: up.observacao,
+  };
+}
+
+async function listarUniversidades(prisma, id, query = {}) {
+  const programa = await repo.existePublicado(prisma, id);
   if (!programa) {
     throw AppError.notFound('Programa não encontrado');
   }
 
-  return programa.universidades.map((up) => ({
-    id: up.universidade.id,
-    nomeFantasia: up.universidade.nomeFantasia,
-    logoUrl: up.universidade.logoUrl,
-    observacao: up.observacao,
-  }));
+  const { page, pageSize, skip, take } = parsePagination(query);
+  const [relacoes, total] = await Promise.all([
+    repo.universidadesQueAceitam(prisma, id, { q: query.q, skip, take }),
+    repo.contarUniversidadesQueAceitam(prisma, id, query.q),
+  ]);
+  return { data: relacoes.map(paraUniversidadeQueAceita), meta: buildMeta({ page, pageSize, total }) };
 }
 
 module.exports = { listar, listarDestaques, obterDetalhe, listarUniversidades };

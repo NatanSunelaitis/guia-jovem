@@ -31,8 +31,7 @@ async function obter(req, res, next) {
 
 async function universidades(req, res, next) {
   try {
-    const dados = await service.listarUniversidades(prisma, req.params.id);
-    res.json({ data: dados, meta: {} });
+    res.json(await service.listarUniversidades(prisma, req.params.id, req.query));
   } catch (erro) {
     next(erro);
   }

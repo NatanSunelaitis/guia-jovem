@@ -22,6 +22,16 @@ const listQuerySchema = {
   }),
 };
 
+// GET /programas/:id/universidades: paginada, com busca por nome ou cidade.
+const universidadesQuerySchema = {
+  params: z.object({ id: z.coerce.number().int().positive('id inválido') }),
+  query: z.object({
+    q: z.string().trim().min(1).optional(),
+    page: z.string().optional(),
+    pageSize: z.string().optional(),
+  }),
+};
+
 const destaquesQuerySchema = {
   query: z.object({
     limite: z.coerce.number().int().positive().max(50).optional(),
@@ -138,6 +148,7 @@ module.exports = {
   atualizarBolsaSchema,
   excluirBolsaSchema,
   idParamSchema,
+  universidadesQuerySchema,
   listQuerySchema,
   destaquesQuerySchema,
   adminListQuerySchema,

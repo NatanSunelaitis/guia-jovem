@@ -23,6 +23,6 @@ router.post('/:id/eventos', ...soAdmin, validate(schemas.criarEventoSchema), con
 router.get('/', validate(schemas.listQuerySchema), controller.listar);
 router.get('/destaques', validate(schemas.destaquesQuerySchema), controller.destaques);
 router.get('/:id', validate(schemas.idParamSchema), controller.obter);
-router.get('/:id/universidades', validate(schemas.idParamSchema), controller.universidades);
+router.get('/:id/universidades', validate(schemas.universidadesQuerySchema), controller.universidades);
 
 module.exports = router;

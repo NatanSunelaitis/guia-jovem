@@ -167,12 +167,70 @@ describe('GET /api/v1/programas/:id', () => {
 });
 
 describe('GET /api/v1/programas/:id/universidades', () => {
-  it('retorna as universidades relacionadas (200)', async () => {
-    prisma.programa.findFirst.mockResolvedValue(programaFake());
+  function relacao(id, nome, cidade = 'Sorocaba') {
+    return {
+      observacao: id === 1 ? 'Todas as vagas' : null,
+      universidade: { id, nomeFantasia: nome, logoUrl: null, campus: [{ endereco: { cidade, estado: 'SP' } }] },
+    };
+  }
 
-    const resposta = await request(app).get('/api/v1/programas/1/universidades');
+  it('pagina as universidades que aceitam, com cidade e observação (200)', async () => {
+    prisma.programa.findFirst.mockResolvedValue({ id: 1 });
+    prisma.universidadePrograma.findMany.mockResolvedValue([relacao(1, 'Fatec Sorocaba'), relacao(2, 'UESP', 'Itapetininga')]);
+    prisma.universidadePrograma.count.mockResolvedValue(60);
+
+    const resposta = await request(app).get('/api/v1/programas/1/universidades?page=2&pageSize=8');
 
     expect(resposta.status).toBe(200);
-    expect(resposta.body.data[0].nomeFantasia).toBe('Fatec Sorocaba');
+    expect(resposta.body.data[0]).toEqual({
+      id: 1,
+      nomeFantasia: 'Fatec Sorocaba',
+      logoUrl: null,
+      cidade: 'Sorocaba',
+      estado: 'SP',
+      observacao: 'Todas as vagas',
+    });
+    expect(resposta.body.meta).toEqual({ page: 2, pageSize: 8, total: 60, totalPages: 8 });
+    const chamada = prisma.universidadePrograma.findMany.mock.calls[0][0];
+    expect(chamada.skip).toBe(8);
+    expect(chamada.take).toBe(8);
+    expect(chamada.orderBy).toEqual({ universidade: { nomeFantasia: 'asc' } });
+    expect(chamada.where).toEqual({ programaId: 1, universidade: { status: 'A' } });
+  });
+
+  it('busca por nome ou cidade de campus ativo', async () => {
+    prisma.programa.findFirst.mockResolvedValue({ id: 1 });
+    prisma.universidadePrograma.findMany.mockResolvedValue([]);
+    prisma.universidadePrograma.count.mockResolvedValue(0);
+
+    await request(app).get('/api/v1/programas/1/universidades?q=sorocaba');
+
+    const where = prisma.universidadePrograma.findMany.mock.calls[0][0].where;
+    expect(where.universidade.OR).toEqual([
+      { nomeFantasia: { contains: 'sorocaba' } },
+      { razaoSocial: { contains: 'sorocaba' } },
+      { campus: { some: { ativo: true, endereco: { cidade: { contains: 'sorocaba' } } } } },
+    ]);
+    expect(prisma.universidadePrograma.count.mock.calls[0][0].where).toEqual(where);
+  });
+
+  it('programa inexistente responde 404', async () => {
+    prisma.programa.findFirst.mockResolvedValue(null);
+
+    const resposta = await request(app).get('/api/v1/programas/99/universidades');
+
+    expect(resposta.status).toBe(404);
+  });
+});
+
+describe('detalhe do programa com muitas universidades', () => {
+  it('traz só a prévia e o total', async () => {
+    prisma.programa.findFirst.mockResolvedValue(programaFake({ _count: { universidades: 60 } }));
+
+    const resposta = await request(app).get('/api/v1/programas/1');
+
+    expect(resposta.body.data.totalUniversidades).toBe(60);
+    const include = prisma.programa.findFirst.mock.calls[0][0].include;
+    expect(include.universidades.take).toBe(8);
   });
 });
