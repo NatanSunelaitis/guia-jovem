@@ -86,15 +86,26 @@ function criarRoteiro({ chamar, prisma, log, admin, base }) {
     conferir(aceitam.length >= 1, 'nenhuma universidade aceita o FIES');
   });
 
-  ponto('Relatório da pesquisa em CSV e em PDF (RF02)', async () => {
-    const csv = await chamar('GET', '/relatorios/pesquisa?formato=csv&cidade=Sorocaba');
-    status(csv, 200);
-    conferir(csv.tipo.startsWith('text/csv'), `CSV com tipo ${csv.tipo}`);
-    conferir(csv.corpo.includes('Sorocaba'), 'CSV sem a universidade pesquisada');
-    const pdf = await chamar('GET', '/relatorios/pesquisa?formato=pdf', { cru: true });
-    status(pdf, 200);
-    conferir(pdf.tipo === 'application/pdf', `PDF com tipo ${pdf.tipo}`);
-    conferir(pdf.corpo.subarray(0, 4).toString() === '%PDF', 'o arquivo não começa com %PDF');
+  ponto('Relatório da pesquisa em CSV e em PDF, baixado como o app baixa (RF02)', async () => {
+    // O app (em outra origem) baixa o arquivo por requisição: precisa da
+    // liberação do CORS e do nome do arquivo exposto, senão o download falha.
+    const APP = 'http://localhost:8080';
+    const login = status(await chamar('POST', '/auth/login', { corpo: { email: admin.email, senha: admin.senha } }), 200).data;
+    for (const [quem, token] of [['visitante', undefined], ['usuário logado', login.accessToken]]) {
+      const csv = await chamar('GET', '/relatorios/pesquisa?formato=csv&cidade=Sorocaba', { origem: APP, token, cru: true });
+      status(csv, 200);
+      conferir(csv.tipo.startsWith('text/csv'), `CSV (${quem}) com tipo ${csv.tipo}`);
+      conferir(csv.corpo.length > 0 && csv.corpo.toString('utf8').includes('Sorocaba'), `o CSV (${quem}) não chegou com a universidade pesquisada`);
+      conferir(csv.cabecalhos.get('access-control-allow-origin') === APP, `o CORS não liberou o CSV para o app (${quem})`);
+      conferir(/content-disposition/i.test(csv.cabecalhos.get('access-control-expose-headers') || ''), 'o nome do arquivo não está exposto para o app');
+      conferir(/relatorio-pesquisa\.csv/.test(csv.cabecalhos.get('content-disposition') || ''), 'o CSV veio sem nome de arquivo');
+
+      const pdf = await chamar('GET', '/relatorios/pesquisa?formato=pdf', { origem: APP, token, cru: true });
+      status(pdf, 200);
+      conferir(pdf.tipo === 'application/pdf', `PDF (${quem}) com tipo ${pdf.tipo}`);
+      conferir(pdf.corpo.length > 1000 && pdf.corpo.subarray(0, 4).toString() === '%PDF', `o PDF (${quem}) não chegou inteiro`);
+      conferir(pdf.cabecalhos.get('access-control-allow-origin') === APP, `o CORS não liberou o PDF para o app (${quem})`);
+    }
   });
 
   // -------------------------------------------------------------------- Aluno

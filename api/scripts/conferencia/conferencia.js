@@ -101,12 +101,14 @@ async function esperarApi(processo) {
 
 /** Cliente HTTP mínimo: devolve status, corpo JSON (ou texto) e cabeçalhos. */
 function criarCliente() {
-  return async function chamar(metodo, caminho, { token, corpo, cru = false } = {}) {
+  return async function chamar(metodo, caminho, { token, corpo, cru = false, origem } = {}) {
     const resposta = await fetch(`${BASE}${caminho}`, {
       method: metodo,
       headers: {
         ...(corpo !== undefined ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        // Origem do app (outra porta): a requisição passa pelo CORS como no navegador.
+        ...(origem ? { Origin: origem } : {}),
       },
       body: corpo !== undefined ? JSON.stringify(corpo) : undefined,
     });
