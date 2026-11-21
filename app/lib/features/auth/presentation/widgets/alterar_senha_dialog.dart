@@ -10,6 +10,7 @@ import '../../../../shared/widgets/gj_button.dart';
 import '../../../../shared/widgets/gj_input.dart';
 import '../../data/auth_repository.dart';
 import '../../data/session_controller.dart';
+import '../../../../shared/widgets/gj_aviso.dart';
 
 /// T21 Alterar Senha (modal, Figura 35), comum aos três perfis (perfil do
 /// aluno, painel da universidade e do administrador). As mensagens de erro
@@ -23,9 +24,7 @@ Future<bool> mostrarDialogoAlterarSenha(BuildContext context) async {
   if (alterou != true) return false;
 
   if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Senha alterada. Entre novamente com a nova senha.')),
-    );
+    ScaffoldMessenger.of(context).aviso('Senha alterada. Entre novamente com a nova senha.');
   }
   await sessionController.logout();
   return true;

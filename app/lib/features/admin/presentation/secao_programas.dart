@@ -17,6 +17,7 @@ import '../domain/cadastros.dart';
 import 'widgets/confirmacao_dialogs.dart';
 import 'widgets/formulario.dart';
 import '../../../shared/widgets/gj_remote_or_asset_image.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 String rotuloTipoPrograma(TipoPrograma tipo) => switch (tipo) {
       TipoPrograma.entrada => 'Programa de Entrada',
@@ -113,14 +114,14 @@ class _SecaoProgramasState extends State<SecaoProgramas> {
     try {
       await cadastrosRepository.excluirPrograma(programa.id);
       if (!mounted) return;
-      mensageiro.showSnackBar(const SnackBar(content: Text('Programa excluído.')));
+      mensageiro.aviso('Programa excluído.');
       await _carregar();
     } on ApiException catch (erro) {
       if (!mounted) return;
       if (erro.code == 'PROGRAMA_ACEITO') {
         await mostrarAcaoBloqueada(context, erro.message);
       } else {
-        mensageiro.showSnackBar(SnackBar(content: Text(erro.message)));
+        mensageiro.aviso(erro.message, tipo: GJAvisoTipo.erro);
       }
     }
   }
@@ -308,9 +309,7 @@ class _FormularioProgramaState extends State<FormularioPrograma> {
           _preencher(criado);
           _salvando = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Programa criado. Agora você pode cadastrar as datas importantes.')),
-        );
+        ScaffoldMessenger.of(context).aviso('Programa criado. Agora você pode cadastrar as datas importantes.');
         return;
       }
       final salvo = await cadastrosRepository.atualizarPrograma(_id!, dados);
@@ -353,7 +352,7 @@ class _FormularioProgramaState extends State<FormularioPrograma> {
       await cadastrosRepository.excluirEvento(evento.id);
       if (mounted) setState(() => _eventos = [for (final e in _eventos) if (e.id != evento.id) e]);
     } on ApiException catch (erro) {
-      mensageiro.showSnackBar(SnackBar(content: Text(erro.message)));
+      mensageiro.aviso(erro.message, tipo: GJAvisoTipo.erro);
     }
   }
 

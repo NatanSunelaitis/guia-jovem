@@ -20,6 +20,7 @@ import '../domain/universidade_admin.dart';
 import 'widgets/confirmacao_dialogs.dart';
 import 'widgets/formulario.dart';
 import 'widgets/formulario_universidade.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 /// T24.3 Universidades (RF23): abas por status (pendentes primeiro, com o
 /// contador), busca por nome e acesso ao cadastro de cada uma.
@@ -236,10 +237,10 @@ class _CadastroUniversidadeAdminState extends State<CadastroUniversidadeAdmin> {
       final atualizado = await acao();
       if (!mounted) return;
       setState(() => _cadastro = atualizado);
-      mensageiro.showSnackBar(SnackBar(content: Text(sucesso)));
+      mensageiro.aviso(sucesso);
     } on ApiException catch (erro) {
       if (!mounted) return;
-      mensageiro.showSnackBar(SnackBar(content: Text(erro.message)));
+      mensageiro.aviso(erro.message, tipo: GJAvisoTipo.erro);
       // Outro administrador pode ter decidido antes: mostra o status atual.
       if (erro.code == 'STATUS_INVALIDO') await _carregar();
     } finally {
@@ -309,7 +310,7 @@ class _CadastroUniversidadeAdminState extends State<CadastroUniversidadeAdmin> {
     if (salvo == null) return;
     if (!mounted) return;
     setState(() => _cadastro = salvo);
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dados da universidade atualizados.')));
+    ScaffoldMessenger.of(context).aviso('Dados da universidade atualizados.');
   }
 
   List<Widget> _acoes(UniversidadeCadastro cadastro) {

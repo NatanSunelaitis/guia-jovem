@@ -24,6 +24,7 @@ import 'secao_cursos_universidade.dart';
 import 'secao_dados_instituicao.dart';
 import 'secao_programas_aceitos.dart';
 import 'widgets/faixa_situacao.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 /// Seções do painel da universidade (T23), uma URL por seção
 /// (`/painel-universidade/<caminho>`), como no painel do administrador.
@@ -113,9 +114,9 @@ class _PainelUniversidadePageState extends State<PainelUniversidadePage> {
       final cadastro = await painelUniversidadeRepository.reenviar(_cadastro!.id);
       if (!mounted) return;
       setState(() => _cadastro = cadastro);
-      mensageiro.showSnackBar(const SnackBar(content: Text('Cadastro reenviado para análise.')));
+      mensageiro.aviso('Cadastro reenviado para análise.');
     } on ApiException catch (erro) {
-      if (mounted) mensageiro.showSnackBar(SnackBar(content: Text(mensagemDaApi(erro))));
+      if (mounted) mensageiro.aviso(mensagemDaApi(erro), tipo: GJAvisoTipo.erro);
     } finally {
       if (mounted) setState(() => _reenviando = false);
     }

@@ -14,6 +14,7 @@ import '../../admin/presentation/widgets/formulario_universidade.dart';
 import '../data/painel_universidade_repository.dart';
 import '../domain/painel_universidade.dart';
 import 'widgets/faixa_situacao.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 /// T23.1 Dados da instituição (RF18): identidade, contato, descrição e
 /// links, editados no mesmo formulário do administrador (PATCH
@@ -41,7 +42,7 @@ class _SecaoDadosInstituicaoState extends State<SecaoDadosInstituicao> {
     );
     if (salvo == null) return;
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dados da instituição atualizados.')));
+    ScaffoldMessenger.of(context).aviso('Dados da instituição atualizados.');
     widget.onAlterado(salvo);
   }
 

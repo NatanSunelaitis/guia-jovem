@@ -13,6 +13,7 @@ import '../../../../shared/widgets/gj_tag.dart';
 import '../../../favoritos/data/favoritos_repository.dart';
 import '../../../universidades/domain/universidade.dart';
 import 'secao_carregavel.dart';
+import '../../../../shared/widgets/gj_aviso.dart';
 
 /// T19 Faculdades salvas (Figura 25, RF24): cards com acesso ao detalhe e
 /// opção de remover.
@@ -34,9 +35,9 @@ class _FaculdadesSalvasSecaoState extends State<FaculdadesSalvasSecao> {
       await favoritosRepository.removerUniversidade(universidade.id);
       if (!mounted) return;
       setState(() => lista.remove(universidade));
-      mensageiro.showSnackBar(const SnackBar(content: Text('Faculdade removida das salvas.')));
+      mensageiro.aviso('Faculdade removida das salvas.');
     } on ApiException catch (erro) {
-      mensageiro.showSnackBar(SnackBar(content: Text(erro.message)));
+      mensageiro.aviso(erro.message, tipo: GJAvisoTipo.erro);
     } finally {
       if (mounted) setState(() => _removendo.remove(universidade.id));
     }

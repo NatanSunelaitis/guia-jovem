@@ -14,6 +14,7 @@ import '../../perfil/presentation/widgets/secao_carregavel.dart';
 import '../data/painel_universidade_repository.dart';
 import '../domain/painel_universidade.dart';
 import 'widgets/faixa_situacao.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 const _grupos = [
   (TipoPrograma.entrada, 'Programas de entrada'),
@@ -82,7 +83,7 @@ class _SecaoProgramasAceitosState extends State<SecaoProgramasAceitos> {
         _aplicar(programas);
         _future = Future.value(programas);
       });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Programas aceitos atualizados.')));
+      ScaffoldMessenger.of(context).aviso('Programas aceitos atualizados.');
     } on ApiException catch (erro) {
       if (mounted) setState(() => _erro = mensagemDaApi(erro));
     } finally {

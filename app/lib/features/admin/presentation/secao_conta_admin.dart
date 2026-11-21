@@ -9,6 +9,7 @@ import '../../../shared/widgets/gj_input.dart';
 import '../../auth/data/session_controller.dart';
 import '../../auth/presentation/widgets/alterar_senha_dialog.dart';
 import '../../auth/presentation/widgets/excluir_conta_dialog.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 /// Conta do administrador (RF09, Quadro 13): editar o nome, alterar senha
 /// (T21) e sair com confirmação (RF06), como a seção Conta do painel da
@@ -54,7 +55,7 @@ class _SecaoContaAdminState extends State<SecaoContaAdmin> {
       await sessionController.atualizarNome(nome);
       if (!mounted) return;
       setState(() => _editando = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nome atualizado.')));
+      ScaffoldMessenger.of(context).aviso('Nome atualizado.');
     } on ApiException catch (erro) {
       if (!mounted) return;
       final doCampo = erro.details

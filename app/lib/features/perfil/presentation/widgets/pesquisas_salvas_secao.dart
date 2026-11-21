@@ -14,6 +14,7 @@ import '../../../../shared/widgets/gj_tag.dart';
 import '../../../favoritos/data/favoritos_repository.dart';
 import '../../../favoritos/domain/pesquisa_salva.dart';
 import 'secao_carregavel.dart';
+import '../../../../shared/widgets/gj_aviso.dart';
 
 /// Pesquisas salvas (Quadro 7): nome, data e filtros; "Executar" reabre a
 /// pesquisa com os filtros gravados e excluir pede confirmação.
@@ -49,9 +50,9 @@ class _PesquisasSalvasSecaoState extends State<PesquisasSalvasSecao> {
       await favoritosRepository.excluirPesquisa(pesquisa.id);
       if (!mounted) return;
       setState(() => lista.remove(pesquisa));
-      mensageiro.showSnackBar(const SnackBar(content: Text('Pesquisa excluída.')));
+      mensageiro.aviso('Pesquisa excluída.');
     } on ApiException catch (erro) {
-      mensageiro.showSnackBar(SnackBar(content: Text(erro.message)));
+      mensageiro.aviso(erro.message, tipo: GJAvisoTipo.erro);
     } finally {
       if (mounted) setState(() => _excluindo.remove(pesquisa.id));
     }

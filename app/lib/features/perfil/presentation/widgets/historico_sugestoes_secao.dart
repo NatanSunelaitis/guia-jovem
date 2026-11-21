@@ -10,6 +10,7 @@ import '../../../sugestoes/domain/sugestao.dart';
 import '../../../sugestoes/presentation/nova_sugestao_dialog.dart';
 import '../../../sugestoes/presentation/widgets/sugestao_card.dart';
 import 'secao_carregavel.dart';
+import '../../../../shared/widgets/gj_aviso.dart';
 
 /// T18 Histórico de sugestões (Figura 25): título, data, destino, status
 /// colorido e a resposta com a data da avaliação. "Nova sugestão" abre T20.
@@ -34,9 +35,7 @@ class _HistoricoSugestoesSecaoState extends State<HistoricoSugestoesSecao> {
     final enviada = await mostrarDialogoNovaSugestao(context);
     if (enviada == null || !mounted) return;
 
-    mensageiro.showSnackBar(
-      SnackBar(content: Text('Sugestão enviada para ${enviada.destino}. Você será avisado quando houver resposta.')),
-    );
+    mensageiro.aviso('Sugestão enviada para ${enviada.destino}. Você será avisado quando houver resposta.');
     _recarregar();
   }
 

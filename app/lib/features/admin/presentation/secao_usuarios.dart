@@ -20,6 +20,7 @@ import '../domain/usuario_admin.dart';
 import 'widgets/confirmacao_dialogs.dart';
 import 'widgets/formulario.dart';
 import 'widgets/formulario_usuario.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 /// T24.2 Usuários (RF09, Quadro 14): busca, filtros por perfil e situação,
 /// e ativar ou inativar contas. A única conta de administrador ativa não
@@ -114,7 +115,7 @@ class _SecaoUsuariosState extends State<SecaoUsuarios> {
       final atualizado = await adminRepository.alterarSituacao(usuario.id, ativo: ativar);
       if (!mounted) return;
       setState(() => _itens = [for (final item in _itens) item.id == atualizado.id ? atualizado : item]);
-      mensageiro.showSnackBar(SnackBar(content: Text(ativar ? 'Conta ativada.' : 'Conta inativada.')));
+      mensageiro.aviso(ativar ? 'Conta ativada.' : 'Conta inativada.');
     } on ApiException catch (erro) {
       if (!mounted) return;
       // Libera o botão antes do aviso: o diálogo fica aberto até o "Entendi".
@@ -122,7 +123,7 @@ class _SecaoUsuariosState extends State<SecaoUsuarios> {
       if (erro.code == 'ULTIMO_ADMINISTRADOR') {
         await mostrarAcaoBloqueada(context, erro.message);
       } else {
-        mensageiro.showSnackBar(SnackBar(content: Text(erro.message)));
+        mensageiro.aviso(erro.message, tipo: GJAvisoTipo.erro);
       }
     } finally {
       if (mounted) setState(() => _alterando.remove(usuario.id));
@@ -140,9 +141,7 @@ class _SecaoUsuariosState extends State<SecaoUsuarios> {
     );
     if (salvo == null) return;
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(usuario == null ? 'Usuário criado.' : 'Usuário atualizado.')),
-    );
+    ScaffoldMessenger.of(context).aviso(usuario == null ? 'Usuário criado.' : 'Usuário atualizado.');
     if (usuario == null) {
       await _carregar();
     } else {

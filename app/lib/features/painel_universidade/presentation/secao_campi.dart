@@ -15,6 +15,7 @@ import '../data/painel_universidade_repository.dart';
 import '../domain/painel_universidade.dart';
 import 'widgets/faixa_situacao.dart';
 import '../../../shared/utils/mascaras.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 /// T23.3 Campi (RF21, RF22): tabela com nome, cidade, telefone, principal e
 /// ações; o formulário completo de campus e endereço abre no painel lateral.
@@ -50,7 +51,7 @@ class _SecaoCampiState extends State<SecaoCampi> {
     );
     if (salvo == null) return;
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(campus == null ? 'Campus criado.' : 'Campus atualizado.')));
+    ScaffoldMessenger.of(context).aviso(campus == null ? 'Campus criado.' : 'Campus atualizado.');
     _recarregar();
     widget.onAlterado?.call();
   }
@@ -69,7 +70,7 @@ class _SecaoCampiState extends State<SecaoCampi> {
     try {
       await painelUniversidadeRepository.excluirCampus(campus.id);
       if (!mounted) return;
-      mensageiro.showSnackBar(const SnackBar(content: Text('Campus excluído.')));
+      mensageiro.aviso('Campus excluído.');
       _recarregar();
     } on ApiException catch (erro) {
       if (!mounted) return;

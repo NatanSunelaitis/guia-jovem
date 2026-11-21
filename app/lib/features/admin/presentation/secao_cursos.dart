@@ -15,6 +15,7 @@ import '../domain/cadastros.dart';
 import '../domain/universidade_admin.dart';
 import 'widgets/confirmacao_dialogs.dart';
 import 'widgets/formulario.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 const _graus = ['Bacharelado', 'Licenciatura', 'Tecnólogo'];
 const _modalidades = ['Presencial', 'EAD', 'Semipresencial'];
@@ -88,7 +89,7 @@ class _SecaoCursosState extends State<SecaoCursos> {
     );
     if (salvo == null) return;
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(curso == null ? 'Curso criado.' : 'Curso atualizado.')));
+    ScaffoldMessenger.of(context).aviso(curso == null ? 'Curso criado.' : 'Curso atualizado.');
     await _carregar();
   }
 
@@ -106,14 +107,14 @@ class _SecaoCursosState extends State<SecaoCursos> {
     try {
       await cadastrosRepository.excluirCurso(curso.id);
       if (!mounted) return;
-      mensageiro.showSnackBar(const SnackBar(content: Text('Curso excluído.')));
+      mensageiro.aviso('Curso excluído.');
       await _carregar();
     } on ApiException catch (erro) {
       if (!mounted) return;
       if (erro.code == 'CURSO_OFERTADO') {
         await mostrarAcaoBloqueada(context, erro.message);
       } else {
-        mensageiro.showSnackBar(SnackBar(content: Text(erro.message)));
+        mensageiro.aviso(erro.message, tipo: GJAvisoTipo.erro);
       }
     }
   }

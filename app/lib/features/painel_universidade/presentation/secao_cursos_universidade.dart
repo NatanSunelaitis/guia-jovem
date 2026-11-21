@@ -18,6 +18,7 @@ import '../data/painel_universidade_repository.dart';
 import '../domain/painel_universidade.dart';
 import 'widgets/faixa_situacao.dart';
 import '../../../shared/utils/plural.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 /// T23.2 Cursos (RF19, RF20): os cursos da universidade com as ofertas por
 /// campus, turno e vagas. O formulário do curso é o mesmo do administrador
@@ -66,9 +67,7 @@ class _SecaoCursosUniversidadeState extends State<SecaoCursosUniversidade> {
     );
     if (salvo == null) return;
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(curso == null ? 'Curso criado. Agora cadastre as ofertas por campus.' : 'Curso atualizado.'),
-    ));
+    ScaffoldMessenger.of(context).aviso(curso == null ? 'Curso criado. Agora cadastre as ofertas por campus.' : 'Curso atualizado.');
     _recarregar();
   }
 
@@ -95,7 +94,7 @@ class _SecaoCursosUniversidadeState extends State<SecaoCursosUniversidade> {
     try {
       await painelUniversidadeRepository.excluirCurso(curso.id);
       if (!mounted) return;
-      mensageiro.showSnackBar(const SnackBar(content: Text('Curso excluído.')));
+      mensageiro.aviso('Curso excluído.');
       _recarregar();
     } on ApiException catch (erro) {
       if (!mounted) return;
@@ -258,9 +257,7 @@ class _GerenciarOfertasState extends State<GerenciarOfertas> {
       }
       await _atualizarLista();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_editando == null ? 'Oferta cadastrada.' : 'Oferta atualizada.')),
-      );
+      ScaffoldMessenger.of(context).aviso(_editando == null ? 'Oferta cadastrada.' : 'Oferta atualizada.');
       _limpar();
     } on ApiException catch (erro) {
       if (mounted) setState(() => _erro = mensagemDaApi(erro));

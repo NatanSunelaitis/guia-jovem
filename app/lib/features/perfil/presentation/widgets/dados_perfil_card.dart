@@ -12,6 +12,7 @@ import '../../../auth/data/session_controller.dart';
 import '../../../auth/domain/usuario_sessao.dart';
 import '../../../auth/presentation/widgets/alterar_senha_dialog.dart';
 import '../../../auth/presentation/widgets/excluir_conta_dialog.dart';
+import '../../../../shared/widgets/gj_aviso.dart';
 
 /// T16 (Figura 25): foto ou iniciais, nome, e-mail e as ações da conta
 /// (editar dados, alterar senha, sair e excluir conta). Só o nome é
@@ -62,7 +63,7 @@ class _DadosPerfilCardState extends State<DadosPerfilCard> {
       await sessionController.atualizarNome(nome);
       if (!mounted) return;
       setState(() => _editando = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dados atualizados.')));
+      ScaffoldMessenger.of(context).aviso('Dados atualizados.');
     } on ApiException catch (erro) {
       if (!mounted) return;
       final doCampo = erro.details

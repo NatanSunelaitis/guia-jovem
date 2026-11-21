@@ -18,6 +18,7 @@ import '../../auth/domain/usuario_sessao.dart';
 import '../data/sugestoes_repository.dart';
 import '../domain/sugestao.dart';
 import 'widgets/sugestao_card.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 /// `/sugestoes/:id`: detalhe da sugestão para o autor e para o destinatário
 /// (aberto pela notificação, RF14). O destinatário avalia aqui enquanto ela
@@ -219,13 +220,13 @@ class _AvaliarSugestaoFormState extends State<AvaliarSugestaoForm> {
     final mensageiro = ScaffoldMessenger.of(context);
     try {
       final avaliada = await sugestoesRepository.avaliar(widget.sugestao.id, status: _decisao!, resposta: resposta);
-      mensageiro.showSnackBar(const SnackBar(content: Text('Avaliação enviada. O autor foi notificado.')));
+      mensageiro.aviso('Avaliação enviada. O autor foi notificado.');
       widget.onAvaliada(avaliada);
     } on ApiException catch (erro) {
       if (!mounted) return;
       if (erro.code == 'SUGESTAO_JA_AVALIADA') {
         // Outra pessoa avaliou antes: mostra a avaliação que valeu.
-        mensageiro.showSnackBar(SnackBar(content: Text(erro.message)));
+        mensageiro.aviso(erro.message, tipo: GJAvisoTipo.erro);
         try {
           widget.onAvaliada(await sugestoesRepository.detalhe(widget.sugestao.id));
           return;

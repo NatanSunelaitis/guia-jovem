@@ -12,6 +12,7 @@ import '../../perfil/presentation/widgets/secao_carregavel.dart';
 import '../data/painel_universidade_repository.dart';
 import '../domain/painel_universidade.dart';
 import 'widgets/faixa_situacao.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 /// T23.5 Bolsas da instituição (RF11): bolsas próprias da universidade,
 /// visíveis só na página dela (com a tag "Bolsa institucional"). As bolsas
@@ -43,7 +44,7 @@ class _SecaoBolsasInstitucionaisState extends State<SecaoBolsasInstitucionais> {
     );
     if (salvo != true) return;
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(bolsa == null ? 'Bolsa criada.' : 'Bolsa atualizada.')));
+    ScaffoldMessenger.of(context).aviso(bolsa == null ? 'Bolsa criada.' : 'Bolsa atualizada.');
     _recarregar();
   }
 
@@ -61,7 +62,7 @@ class _SecaoBolsasInstitucionaisState extends State<SecaoBolsasInstitucionais> {
     try {
       await painelUniversidadeRepository.excluirBolsa(widget.universidadeId, bolsa.id);
       if (!mounted) return;
-      mensageiro.showSnackBar(const SnackBar(content: Text('Bolsa excluída.')));
+      mensageiro.aviso('Bolsa excluída.');
       _recarregar();
     } on ApiException catch (erro) {
       if (!mounted) return;
