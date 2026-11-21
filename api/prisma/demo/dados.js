@@ -571,6 +571,7 @@ const PROGRAMAS = [
 
 // Instituições aprovadas. Endereços com ruas reais das cidades e números,
 // CEPs, telefones e CNPJs ilustrativos; sites e e-mails em example.com.
+// O "Sobre" é fictício, coerente com o porte e a cidade de cada uma.
 const UNIVERSIDADES = [
   {
     chave: 'univale',
@@ -580,7 +581,20 @@ const UNIVERSIDADES = [
     natureza: 'V',
     email: 'univale@example.com',
     responsavel: 'Mariana Torres',
-    descricao: 'Centro universitário com cursos de graduação nas áreas de saúde, negócios e tecnologia, com dois campi em Sorocaba e programa próprio de bolsas por mérito.',
+    descricao: `Centro universitário com cursos de graduação nas áreas de saúde, negócios e tecnologia, com dois campi em Sorocaba e programa próprio de bolsas por mérito.
+
+O **Campus Centro**, perto do comércio e dos terminais de ônibus da cidade, concentra os cursos de saúde e as turmas da noite. O **Campus Campolim**, em uma região de crescimento da zona sul, reúne os cursos de tecnologia, Psicologia e as turmas da manhã de Administração.
+
+A proposta da UniVale é unir teoria e prática desde o primeiro ano, com professores que também atuam no mercado e projetos feitos em parceria com empresas e serviços de saúde de Sorocaba.
+
+Para quem precisa de ajuda com a mensalidade, a instituição aceita o ProUni, o Fies e o Programa Escola da Família, além de oferecer a **Bolsa Mérito UniVale** aos melhores colocados no vestibular.
+
+## Diferenciais
+
+- **Infraestrutura:** laboratórios de saúde com simuladores, laboratórios de informática e biblioteca nos dois campi.
+- **Apoio ao estudante:** núcleo de atendimento psicopedagógico, monitorias e plantão de dúvidas nas disciplinas básicas.
+- **Estágios:** central de estágios com vagas em hospitais, clínicas e empresas da região.
+- **Clínica-escola de Psicologia** com atendimento à comunidade.`,
     telefonePrincipal: '(15) 3201-4500',
     linkPagina: 'https://www.example.com/univale',
     linkSimulados: 'https://www.example.com/univale/simulados',
@@ -629,7 +643,20 @@ const UNIVERSIDADES = [
     natureza: 'P',
     email: 'uesp@example.com',
     responsavel: 'Carlos Henrique Prado',
-    descricao: 'Universidade pública estadual com campi em Sorocaba e Itapetininga. Ingresso pelo SiSU e pelo Provão Paulista, sem mensalidade.',
+    descricao: `Universidade pública estadual com campi em Sorocaba e Itapetininga. Ingresso pelo SiSU e pelo Provão Paulista, sem mensalidade.
+
+Criada para levar o ensino superior público ao sudoeste do estado, a UESP oferece bacharelados em engenharia e licenciaturas que formam professores para as escolas da região.
+
+O **Campus Sorocaba**, às margens da rodovia, reúne os laboratórios de engenharia e de biologia. O **Campus Itapetininga** concentra as licenciaturas noturnas, pensadas para quem trabalha durante o dia.
+
+Além do ensino, a universidade mantém grupos de pesquisa e projetos de extensão abertos à comunidade, em que os estudantes participam desde os primeiros semestres.
+
+## Diferenciais
+
+- **Infraestrutura:** laboratórios de engenharia e de ciências biológicas, biblioteca e área verde para aulas de campo.
+- **Apoio ao estudante:** programas de permanência estudantil, restaurante universitário e moradia para estudantes de outras cidades.
+- **Estágios:** parcerias com indústrias da região e com escolas públicas para os estágios das licenciaturas.
+- **Iniciação científica** com orientação de professores pesquisadores.`,
     telefonePrincipal: '(15) 3229-8000',
     linkPagina: 'https://www.example.com/uesp',
     linkSimulados: 'https://www.example.com/uesp/simulados',
@@ -666,7 +693,19 @@ const UNIVERSIDADES = [
     natureza: 'V',
     email: 'fvt@example.com',
     responsavel: 'Renata Gouveia',
-    descricao: 'Faculdade de cursos tecnológicos de dois a três anos, com aulas à noite e foco em empregabilidade na indústria da região.',
+    descricao: `Faculdade de cursos tecnológicos de dois a três anos, com aulas à noite e foco em empregabilidade na indústria da região.
+
+A FVT funciona em uma unidade no centro de Votorantim, a poucos minutos de Sorocaba, e foi pensada para quem trabalha durante o dia e quer uma formação superior mais curta e prática.
+
+Os cursos de tecnologia, gestão de pessoas e logística foram desenhados com a participação de empresas da região, e boa parte das aulas acontece em laboratórios e em projetos com problemas reais.
+
+A faculdade aceita a nota do Enem no lugar da prova do vestibular e participa do ProUni e do Fies.
+
+## Diferenciais
+
+- **Infraestrutura:** laboratórios de informática com acesso fora do horário de aula e salas preparadas para trabalhos em grupo.
+- **Apoio ao estudante:** aulas de nivelamento em matemática e português no primeiro semestre e atendimento da coordenação à noite.
+- **Estágios:** banco de vagas com empresas de Votorantim e Sorocaba e feira de carreiras uma vez por semestre.`,
     telefonePrincipal: '(15) 3243-7100',
     linkPagina: 'https://www.example.com/fvt',
     linkSimulados: 'https://www.example.com/fvt/simulados',
@@ -695,7 +734,20 @@ const UNIVERSIDADES = [
     natureza: 'V',
     email: 'feitu@example.com',
     responsavel: 'Paulo Sérgio Rinaldi',
-    descricao: 'Faculdade de engenharia com laboratórios abertos à comunidade e parceria com empresas do polo industrial de Itu e Salto.',
+    descricao: `Faculdade de engenharia com laboratórios abertos à comunidade e parceria com empresas do polo industrial de Itu e Salto.
+
+Instalada no centro histórico de Itu, a FEITU é uma faculdade de porte médio dedicada só à engenharia, com turmas menores e contato próximo com os professores.
+
+As aulas práticas acontecem em laboratórios de materiais, de máquinas e de instalações elétricas, que também recebem estudantes do ensino médio da região em visitas e oficinas.
+
+Para incentivar a presença feminina na engenharia, a faculdade mantém a **Bolsa Engenheiras do Futuro**, voltada a estudantes mulheres egressas de escola pública.
+
+## Diferenciais
+
+- **Infraestrutura:** laboratórios de materiais de construção, de máquinas térmicas e de eletrotécnica.
+- **Apoio ao estudante:** monitoria em cálculo e física e grupos de estudo organizados pelos próprios alunos.
+- **Estágios:** parcerias com empresas do polo industrial de Itu e Salto, com visitas técnicas desde o primeiro ano.
+- **Equipes de competição** em projetos de engenharia.`,
     telefonePrincipal: '(11) 4022-3300',
     linkPagina: 'https://www.example.com/feitu',
     linkSimulados: 'https://www.example.com/feitu/simulados',
@@ -733,7 +785,19 @@ const UNIVERSIDADES = [
     natureza: 'V',
     email: 'unitatui@example.com',
     responsavel: 'Fernanda Lopes',
-    descricao: 'Centro universitário com tradição em licenciaturas e cursos da área de saúde, a uma hora de Sorocaba.',
+    descricao: `Centro universitário com tradição em licenciaturas e cursos da área de saúde, a uma hora de Sorocaba.
+
+A UniTatuí atende estudantes de Tatuí e das cidades vizinhas e é conhecida pela formação de professores. O curso de Pedagogia é oferecido a distância, com encontros presenciais no campus, para quem não consegue frequentar aulas todos os dias.
+
+Os cursos de Nutrição e Educação Física aproveitam a estrutura de laboratórios e de esporte do campus e mantêm projetos de atendimento à comunidade, como orientação alimentar e atividades físicas para crianças e idosos.
+
+A instituição aceita o ProUni, o Fies e o Programa Escola da Família, que ajudam boa parte dos estudantes a pagar a mensalidade.
+
+## Diferenciais
+
+- **Infraestrutura:** laboratório de técnica dietética, ginásio poliesportivo e polo de apoio aos alunos a distância.
+- **Apoio ao estudante:** tutoria para os cursos a distância e atendimento financeiro para orientar sobre bolsas e financiamento.
+- **Estágios:** convênios com escolas da região e com a rede municipal de saúde de Tatuí.`,
     telefonePrincipal: '(15) 3251-9000',
     linkPagina: 'https://www.example.com/unitatui',
     linkSimulados: 'https://www.example.com/unitatui/simulados',
@@ -762,7 +826,19 @@ const UNIVERSIDADES = [
     natureza: 'P',
     email: 'fams@example.com',
     responsavel: 'Rogério Antunes',
-    descricao: 'Faculdade pública municipal, sem mensalidade, com ingresso por vestibular próprio e pela nota do Enem.',
+    descricao: `Faculdade pública municipal, sem mensalidade, com ingresso por vestibular próprio e pela nota do Enem.
+
+Mantida por uma fundação do município, a FAMS é uma faculdade pequena, com duas graduações noturnas e turmas que permitem acompanhar cada estudante de perto.
+
+O curso de Turismo aproveita os atrativos naturais e históricos de Salto e da região em aulas de campo, e o curso de Ciências Contábeis mantém um núcleo que orienta pequenos empreendedores da cidade.
+
+Parte das vagas é preenchida pela nota do Enem, e o restante pelo vestibular próprio, com prova em dezembro.
+
+## Diferenciais
+
+- **Infraestrutura:** laboratório de informática com programas de contabilidade e biblioteca com acervo da área de turismo.
+- **Apoio ao estudante:** acompanhamento da coordenação desde o primeiro semestre e aulas de reforço em matemática.
+- **Estágios:** parcerias com escritórios de contabilidade, hotéis e a secretaria de turismo do município.`,
     telefonePrincipal: '(11) 4602-5500',
     linkPagina: 'https://www.example.com/fams',
     linkSimulados: 'https://www.example.com/fams/simulados',
