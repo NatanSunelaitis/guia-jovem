@@ -38,6 +38,31 @@ void main() {
     expect(find.text('Exame Nacional do Ensino Médio'), findsOneWidget);
   });
 
+  testWidgets('o card mostra o resumo da descrição em texto puro, sem os símbolos da formatação', (tester) async {
+    mockApi({
+      '/programas': envelope(
+        [
+          {
+            'id': 7,
+            'nome': 'Programa Universidade para Todos',
+            'sigla': 'ProUni',
+            'tipo': 'BOLSA',
+            'descricao': '## O que é\n\nBolsas **integrais** e _parciais_.\n\n- Item da lista\n\n[site](https://www.example.com)',
+            'imagemUrl': null,
+            'universidadeId': null,
+          },
+        ],
+        {'page': 1, 'pageSize': 20, 'total': 1, 'totalPages': 1},
+      ),
+    });
+
+    await pump(tester);
+
+    expect(find.text('Bolsas integrais e parciais. Item da lista site'), findsOneWidget);
+    expect(find.textContaining('**'), findsNothing);
+    expect(find.textContaining('##'), findsNothing);
+  });
+
   testWidgets('mostra estado vazio quando não há programas', (tester) async {
     mockApi({
       '/programas': envelope(<dynamic>[], {'page': 1, 'pageSize': 20, 'total': 0, 'totalPages': 1}),
