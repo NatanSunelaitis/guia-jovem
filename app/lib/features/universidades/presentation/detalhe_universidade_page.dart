@@ -17,6 +17,7 @@ import '../../../shared/widgets/gj_input.dart';
 import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tag.dart';
+import '../../../shared/widgets/gj_texto_formatado.dart';
 import '../../auth/presentation/exigir_aluno.dart';
 import '../../favoritos/data/favoritos_repository.dart';
 import '../data/universidades_repository.dart';
@@ -159,6 +160,8 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                         children: [
                           _blocoSobre(universidade),
                           const SizedBox(height: GJSpace.s8),
+                          _blocoContato(universidade),
+                          const SizedBox(height: GJSpace.s8),
                           _blocoCampus(universidade),
                           _blocoCursos(),
                           const SizedBox(height: GJSpace.s8),
@@ -185,7 +188,16 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                             ),
                           ),
                           const SizedBox(width: GJSpace.s8),
-                          Expanded(child: _blocoAvaliacoes(universidade)),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _blocoContato(universidade),
+                                const SizedBox(height: GJSpace.s8),
+                                _blocoAvaliacoes(universidade),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                 ),
@@ -231,7 +243,16 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: Text(universidade.nomeFantasia, style: GJTypography.h1(size: isMobile ? 26 : 32))),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(universidade.nomeFantasia, style: GJTypography.h1(size: isMobile ? 26 : 32)),
+                          if (universidade.razaoSocial != universidade.nomeFantasia)
+                            Text(universidade.razaoSocial, style: GJTypography.bodySm()),
+                        ],
+                      ),
+                    ),
                     IconButton(
                       tooltip: _salvo ? 'Remover das salvas' : 'Salvar faculdade',
                       onPressed: _salvando ? null : _alternarSalvo,
@@ -312,13 +333,92 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
   }
 
   Widget _blocoSobre(UniversidadeDetalhe universidade) {
-    if (universidade.descricao == null) return const SizedBox.shrink();
+    if (universidade.descricao == null || universidade.descricao!.trim().isEmpty) return const SizedBox.shrink();
 
     return _cartao(
       titulo: 'Sobre',
-      child: Text(universidade.descricao!, style: GJTypography.body()),
+      child: GJTextoFormatado(universidade.descricao),
     );
   }
+
+  /// Contato: telefone da instituição, site e o campus principal (endereço,
+  /// telefones e e-mail, que vêm da lista de campi).
+  Widget _blocoContato(UniversidadeDetalhe universidade) {
+    return FutureBuilder<List<UniversidadeCampusItem>>(
+      future: _futureCampus,
+      builder: (context, snapshot) {
+        final campi = snapshot.data ?? const <UniversidadeCampusItem>[];
+        final principal = campi.where((c) => c.principal).firstOrNull ?? campi.firstOrNull;
+        final endereco = principal?.endereco ?? universidade.enderecoPrincipal;
+
+        final linhas = <(IconData, String, String, String?)>[
+          if (universidade.telefonePrincipal != null)
+            (Symbols.call, 'Telefone', universidade.telefonePrincipal!, null),
+          if (principal?.telefoneFixo != null && principal!.telefoneFixo != universidade.telefonePrincipal)
+            (Symbols.call, 'Telefone do ${principal.nome}', principal.telefoneFixo!, null),
+          if (principal?.telefoneCelular != null) (Symbols.smartphone, 'Celular', principal!.telefoneCelular!, null),
+          if (principal?.emailCampus != null)
+            (Symbols.mail, 'E-mail', principal!.emailCampus!, 'mailto:${principal.emailCampus}'),
+          if (universidade.linkPagina != null)
+            (Symbols.language, 'Site oficial', universidade.linkPagina!, universidade.linkPagina),
+          if (endereco != null)
+            (
+              Symbols.location_on,
+              principal != null ? 'Endereço do ${principal.nome}' : 'Endereço',
+              [
+                '${endereco.logradouro}, ${endereco.numero}${endereco.complemento != null ? ', ${endereco.complemento}' : ''}',
+                endereco.bairro,
+                '${endereco.cidade}/${endereco.estado}',
+                if (endereco.cep != null) 'CEP ${_cep(endereco.cep!)}',
+              ].join(' · '),
+              null,
+            ),
+        ];
+        if (linhas.isEmpty) return const SizedBox.shrink();
+
+        return _cartao(
+          titulo: 'Contato',
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (final (icone, rotulo, valor, link) in linhas)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: GJSpace.s3),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(icone, size: 20, color: GJColors.primary),
+                      const SizedBox(width: GJSpace.s3),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(rotulo, style: GJTypography.caption()),
+                            if (link != null)
+                              InkWell(
+                                onTap: () => abrirLinkExterno(link),
+                                child: Text(
+                                  valor,
+                                  style: GJTypography.label(color: GJColors.primary)
+                                      .copyWith(decoration: TextDecoration.underline, decorationColor: GJColors.primary),
+                                ),
+                              )
+                            else
+                              SelectableText(valor, style: GJTypography.label(color: GJColors.textPrimary)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  String _cep(String cep) => cep.length == 8 ? '${cep.substring(0, 5)}-${cep.substring(5)}' : cep;
 
   Widget _blocoCampus(UniversidadeDetalhe universidade) {
     if (universidade.campus.isEmpty) return const SizedBox.shrink();
@@ -432,7 +532,11 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                               children: [
                                 Text(oferta.curso.nome, style: GJTypography.label().copyWith(color: GJColors.textPrimary)),
                                 Text(
-                                  [oferta.campus.nome, if (oferta.curso.turno != null) oferta.curso.turno!].join(' · '),
+                                  [
+                                    oferta.campus.nome,
+                                    if (oferta.curso.turno != null) oferta.curso.turno!,
+                                    if (oferta.curso.vagas != null) contagem(oferta.curso.vagas!, 'vaga', 'vagas'),
+                                  ].join(' · '),
                                   style: GJTypography.bodySm(),
                                 ),
                               ],
@@ -485,19 +589,29 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                     style: GJTypography.caption().copyWith(fontWeight: FontWeight.w600, letterSpacing: 1),
                   ),
                   const SizedBox(height: GJSpace.s2),
+                  // Programas sem observação ficam lado a lado; os que têm
+                  // observação da universidade vêm um por linha, com o texto.
                   Wrap(
                     spacing: GJSpace.s2,
                     runSpacing: GJSpace.s2,
                     children: [
                       for (final programa in grupo.value)
-                        GestureDetector(
-                          onTap: () => context.go('/programas/${programa.id}'),
-                          child: programa.institucional
-                              ? GJTag(label: programa.nome, tone: tonePrograma('BOLSA'))
-                              : GJTag(label: programa.sigla ?? programa.nome, tone: tonePrograma(grupo.key)),
-                        ),
+                        if (programa.observacao == null) _tagPrograma(programa, grupo.key),
                     ],
                   ),
+                  for (final programa in grupo.value)
+                    if (programa.observacao != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: GJSpace.s2),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _tagPrograma(programa, grupo.key),
+                            const SizedBox(width: GJSpace.s3),
+                            Expanded(child: Text(programa.observacao!, style: GJTypography.bodySm())),
+                          ],
+                        ),
+                      ),
                 ],
               ),
             ),
@@ -639,6 +753,13 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
       ),
     );
   }
+
+  Widget _tagPrograma(ProgramaTag programa, String grupo) => GestureDetector(
+        onTap: () => context.go('/programas/${programa.id}'),
+        child: programa.institucional
+            ? GJTag(label: programa.nome, tone: tonePrograma('BOLSA'))
+            : GJTag(label: programa.sigla ?? programa.nome, tone: tonePrograma(grupo)),
+      );
 
   Widget _cartao({required String titulo, required Widget child}) {
     return Container(

@@ -148,6 +148,60 @@ void main() {
 
     expect(find.text('Cursos oferecidos'), findsOneWidget);
     expect(find.text('Enfermagem'), findsOneWidget);
-    expect(find.text('Campus Centro · Integral'), findsOneWidget);
+    expect(find.text('Campus Centro · Integral · 60 vagas'), findsOneWidget);
+  });
+
+  testWidgets('Sobre formatado, razão social, contato e observação dos programas aceitos', (tester) async {
+    tester.view.physicalSize = const Size(1366, 2400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    mockApi({
+      '/universidades/1/avaliacoes': envelope(<dynamic>[], {'page': 1, 'pageSize': 20, 'total': 0, 'totalPages': 1}),
+      '/universidades/1/campus': envelope([
+        {
+          'id': 4,
+          'nome': 'Campus Centro',
+          'principal': true,
+          'telefoneFixo': '(15) 3201-4600',
+          'emailCampus': 'centro@example.com',
+          'endereco': {'logradouro': 'Rua XV de Novembro', 'numero': '1250', 'bairro': 'Centro', 'cidade': 'Sorocaba', 'estado': 'SP', 'cep': '18010081'},
+          'cursos': <dynamic>[],
+        },
+      ]),
+      '/universidades/1': envelope({
+        'id': 1,
+        'nomeFantasia': 'UniVale Sorocaba',
+        'razaoSocial': 'Centro Universitário Vale do Sorocaba',
+        'descricao': 'Centro universitário em **Sorocaba**.\n\n## Diferenciais\n\n- Laboratórios\n- Estágios',
+        'natureza': 'V',
+        'telefonePrincipal': '(15) 3201-4500',
+        'linkPagina': 'https://www.example.com/univale',
+        'totalAvaliacoes': 0,
+        'campus': <dynamic>[],
+        'programas': {
+          'ENTRADA': [
+            {'id': 1, 'nome': 'Exame Nacional do Ensino Médio', 'sigla': 'ENEM', 'observacao': null},
+            {'id': 4, 'nome': 'Vestibular', 'sigla': 'VESTIBULAR', 'observacao': 'Vestibular de verão com prova on-line'},
+          ],
+          'FINANCIAMENTO': <dynamic>[],
+          'BOLSA': <dynamic>[],
+        },
+      }),
+    });
+
+    await pump(tester);
+
+    expect(find.text('Centro Universitário Vale do Sorocaba'), findsOneWidget);
+    expect(find.text('Diferenciais', findRichText: true), findsOneWidget);
+    expect(find.text('Laboratórios', findRichText: true), findsOneWidget);
+    expect(find.textContaining('**'), findsNothing);
+    expect(find.text('Contato'), findsWidgets);
+    expect(find.text('(15) 3201-4500'), findsOneWidget);
+    expect(find.text('(15) 3201-4600'), findsOneWidget);
+    expect(find.text('centro@example.com'), findsOneWidget);
+    expect(find.text('Rua XV de Novembro, 1250 · Centro · Sorocaba/SP · CEP 18010-081'), findsOneWidget);
+    expect(find.text('Vestibular de verão com prova on-line'), findsOneWidget);
+    expect(find.text('ENEM'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

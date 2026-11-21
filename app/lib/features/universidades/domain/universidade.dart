@@ -137,6 +137,7 @@ class UniversidadeDetalhe {
     this.descricao,
     this.logoUrl,
     required this.natureza,
+    this.telefonePrincipal,
     this.linkPagina,
     this.linkSimulados,
     this.mediaAvaliacao,
@@ -158,6 +159,7 @@ class UniversidadeDetalhe {
       descricao: json['descricao'] as String?,
       logoUrl: json['logoUrl'] as String?,
       natureza: json['natureza'] as String,
+      telefonePrincipal: json['telefonePrincipal'] as String?,
       linkPagina: json['linkPagina'] as String?,
       linkSimulados: json['linkSimulados'] as String?,
       mediaAvaliacao: _parseDecimal(json['mediaAvaliacao']),
@@ -187,6 +189,9 @@ class UniversidadeDetalhe {
   final String? descricao;
   final String? logoUrl;
   final String natureza;
+
+  /// Telefone da instituição informado no cadastro.
+  final String? telefonePrincipal;
   final String? linkPagina;
   final String? linkSimulados;
   final double? mediaAvaliacao;
