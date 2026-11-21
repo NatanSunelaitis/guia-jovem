@@ -116,17 +116,17 @@ void main() {
       expect(find.text('Login para /universidades/1'), findsOneWidget);
     });
 
-    testWidgets('perfil Universidade recebe aviso e nada é gravado', (tester) async {
+    testWidgets('perfil Universidade não vê salvar nem avaliar', (tester) async {
       sessionController.redefinirParaTestes(usuario: _universidade);
       mockApi({'/universidades/1/avaliacoes': _avaliacoesVazias});
       mockAuthApiRotas({'GET /universidades/1': RespostaFalsa(envelope(_detalhe()))});
 
       await pumpDetalhe(tester);
-      await tester.tap(find.byTooltip('Salvar faculdade'));
-      await tester.pump();
 
-      expect(find.text('Disponível apenas para contas de aluno.'), findsOneWidget);
-      expect(requisicoesAuthApi.where((r) => r.method != 'GET'), isEmpty);
+      expect(find.byTooltip('Salvar faculdade'), findsNothing);
+      expect(find.text('Avaliar'), findsNothing);
+      expect(find.text('Avaliar universidade'), findsNothing);
+      expect(find.text('Disponível apenas para contas de aluno.'), findsNothing);
     });
   });
 
@@ -178,6 +178,22 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Login para /universidades?sort=nome'), findsOneWidget);
+    });
+
+    testWidgets('administrador não vê salvar faculdade nem salvar pesquisa', (tester) async {
+      sessionController.redefinirParaTestes(
+        usuario: UsuarioSessao(id: 9, nome: 'Admin', email: 'admin@exemplo.com', tipoUsuario: TipoUsuario.admin),
+      );
+      mockAuthApiRotas({
+        'GET /universidades': RespostaFalsa(envelope([_card(1, 'Fatec Sorocaba')], _metaUmaPagina)),
+      });
+
+      await pumpPesquisa(tester);
+
+      expect(find.text('Fatec Sorocaba'), findsOneWidget);
+      expect(find.byTooltip('Salvar faculdade'), findsNothing);
+      expect(find.text('Salvar pesquisa'), findsNothing);
+      expect(find.text('Gerar relatório'), findsOneWidget);
     });
   });
 }

@@ -27,6 +27,7 @@ import 'avaliar_dialog.dart';
 import '../../../shared/utils/plural.dart';
 import '../../../shared/widgets/gj_estrelas.dart';
 import '../../../shared/utils/sigla_instituicao.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 class DetalheUniversidadePage extends StatefulWidget {
   const DetalheUniversidadePage({super.key, required this.id});
@@ -66,8 +67,8 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
     return detalhe;
   }
 
-  void _avisar(String mensagem) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensagem)));
+  void _avisar(String mensagem, {GJAvisoTipo tipo = GJAvisoTipo.sucesso}) {
+    ScaffoldMessenger.of(context).aviso(mensagem, tipo: tipo);
   }
 
   /// RF01: visitante vai ao login e volta para cá; aluno que já avaliou
@@ -108,7 +109,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
       setState(() => _salvo = salvar);
       _avisar(salvar ? 'Faculdade salva.' : 'Faculdade removida das salvas.');
     } on ApiException catch (erro) {
-      if (mounted) _avisar(erro.message);
+      if (mounted) _avisar(erro.message, tipo: GJAvisoTipo.erro);
     } finally {
       if (mounted) setState(() => _salvando = false);
     }
@@ -253,6 +254,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                         ],
                       ),
                     ),
+                    if (mostrarAcoesDeAluno())
                     IconButton(
                       tooltip: _salvo ? 'Remover das salvas' : 'Salvar faculdade',
                       onPressed: _salvando ? null : _alternarSalvo,
@@ -315,6 +317,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                         variant: GJButtonVariant.secondary,
                         onPressed: () => abrirLinkExterno(universidade.linkSimulados!),
                       ),
+                    if (mostrarAcoesDeAluno())
                     GJButton(
                       label: _minhaAvaliacao != null ? 'Editar avaliação' : 'Avaliar',
                       variant: GJButtonVariant.ghost,
@@ -639,10 +642,10 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
           if (avaliacoes.isEmpty) {
             return GJEmptyState(
               titulo: 'Nenhuma avaliação ainda',
-              texto: 'Seja o primeiro a avaliar essa universidade.',
+              texto: mostrarAcoesDeAluno() ? 'Seja o primeiro a avaliar essa universidade.' : 'Os estudantes ainda não avaliaram esta universidade.',
               icone: Symbols.rate_review,
-              acaoLabel: 'Avaliar universidade',
-              onAcao: () => _avaliar(universidade),
+              acaoLabel: mostrarAcoesDeAluno() ? 'Avaliar universidade' : null,
+              onAcao: mostrarAcoesDeAluno() ? () => _avaliar(universidade) : null,
             );
           }
 
@@ -702,12 +705,14 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
                   ),
                 ],
               ),
-              const SizedBox(height: GJSpace.s4),
-              GJButton(
-                label: _minhaAvaliacao != null ? 'Editar minha avaliação' : 'Avaliar universidade',
-                expand: true,
-                onPressed: () => _avaliar(universidade),
-              ),
+              if (mostrarAcoesDeAluno()) ...[
+                const SizedBox(height: GJSpace.s4),
+                GJButton(
+                  label: _minhaAvaliacao != null ? 'Editar minha avaliação' : 'Avaliar universidade',
+                  expand: true,
+                  onPressed: () => _avaliar(universidade),
+                ),
+              ],
               const SizedBox(height: GJSpace.s4),
               const Divider(height: 1, color: GJColors.surfaceHigh),
               const SizedBox(height: GJSpace.s4),

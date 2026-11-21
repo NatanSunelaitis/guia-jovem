@@ -28,6 +28,7 @@ import '../../programas/domain/programa.dart';
 import '../data/universidades_repository.dart';
 import '../domain/universidade.dart';
 import 'salvar_pesquisa_dialog.dart';
+import '../../../shared/widgets/gj_aviso.dart';
 
 class PesquisaUniversidadesPage extends StatefulWidget {
   const PesquisaUniversidadesPage({super.key, this.filtrosIniciais});
@@ -167,8 +168,8 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
     return Uri(path: '/universidades', queryParameters: parametros.isEmpty ? null : parametros).toString();
   }
 
-  void _avisar(String mensagem) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensagem)));
+  void _avisar(String mensagem, {GJAvisoTipo tipo = GJAvisoTipo.sucesso}) {
+    ScaffoldMessenger.of(context).aviso(mensagem, tipo: tipo);
   }
 
   Future<void> _salvarPesquisa() async {
@@ -195,7 +196,7 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
       setState(() => _salvasAlteradas[universidade.id] = salvar);
       _avisar(salvar ? 'Faculdade salva.' : 'Faculdade removida das salvas.');
     } on ApiException catch (erro) {
-      if (mounted) _avisar(erro.message);
+      if (mounted) _avisar(erro.message, tipo: GJAvisoTipo.erro);
     } finally {
       if (mounted) setState(() => _salvandoIds.remove(universidade.id));
     }
@@ -373,7 +374,7 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
       children: [
         _ordenarPor(),
         _botaoGerarRelatorio(),
-        _botaoSalvarPesquisa(),
+        if (mostrarAcoesDeAluno()) _botaoSalvarPesquisa(),
       ],
     );
 
@@ -662,11 +663,13 @@ class _CardUniversidadeGrid extends StatelessWidget {
         for (final programa in universidade.programas.take(3))
           GJTag(label: programa.sigla ?? programa.nome, tone: tonePrograma(programa.tipo)),
       ],
-      acao: IconButton(
-        tooltip: salva ? 'Remover das salvas' : 'Salvar faculdade',
-        onPressed: salvando ? null : onAlternarSalva,
-        icon: Icon(Symbols.bookmark, fill: salva ? 1 : 0, color: GJColors.primary),
-      ),
+      acao: mostrarAcoesDeAluno()
+          ? IconButton(
+              tooltip: salva ? 'Remover das salvas' : 'Salvar faculdade',
+              onPressed: salvando ? null : onAlternarSalva,
+              icon: Icon(Symbols.bookmark, fill: salva ? 1 : 0, color: GJColors.primary),
+            )
+          : null,
       onTap: () => context.go('/universidades/${universidade.id}'),
     );
   }
