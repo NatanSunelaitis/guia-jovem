@@ -162,6 +162,8 @@ class _SecaoCursosUniversidadeState extends State<SecaoCursosUniversidade> {
         if (aviso != null) AvisoSomenteLeitura(aviso),
         SecaoCarregavel<CursoGestao>(
           future: _future,
+          porPagina: 15,
+          descreverTotal: (total) => '$total cursos cadastrados',
           onTentarNovamente: _recarregar,
           vazio: GJEmptyState(
             titulo: 'Nenhum curso cadastrado',

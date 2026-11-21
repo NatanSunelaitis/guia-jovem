@@ -51,6 +51,8 @@ class _HistoricoSugestoesSecaoState extends State<HistoricoSugestoesSecao> {
         const SizedBox(height: GJSpace.s4),
         SecaoCarregavel<Sugestao>(
           future: _future,
+          porPagina: 8,
+          descreverTotal: (total) => '$total sugestões enviadas',
           onTentarNovamente: _recarregar,
           vazio: GJEmptyState(
             titulo: 'Você ainda não enviou sugestões',

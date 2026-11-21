@@ -113,6 +113,8 @@ class _SecaoBolsasInstitucionaisState extends State<SecaoBolsasInstitucionais> {
         if (aviso != null) AvisoSomenteLeitura(aviso),
         SecaoCarregavel<BolsaInstitucional>(
           future: _future,
+          porPagina: 15,
+          descreverTotal: (total) => '$total bolsas',
           onTentarNovamente: _recarregar,
           vazio: GJEmptyState(
             titulo: 'Nenhuma bolsa institucional',

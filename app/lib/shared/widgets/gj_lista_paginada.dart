@@ -196,3 +196,44 @@ class _GJListaPaginadaState<T> extends State<GJListaPaginada<T>> {
     );
   }
 }
+
+/// Tira acentos e caixa, para a busca local achar "tatui" em "Tatuí".
+String normalizarBusca(String texto) {
+  const de = 'áàâãäéèêëíìîïóòôõöúùûüçÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇ';
+  const para = 'aaaaaeeeeiiiiooooouuuucAAAAAEEEEIIIIOOOOOUUUUC';
+  final buffer = StringBuffer();
+  for (final c in texto.split('')) {
+    final i = de.indexOf(c);
+    buffer.write(i >= 0 ? para[i] : c);
+  }
+  return buffer.toString().toLowerCase();
+}
+
+/// Pagina na memória uma lista que já veio inteira da API, para usar o
+/// [GJListaPaginada] do mesmo jeito. [texto] diz onde buscar e [categoria]
+/// o valor comparado com o filtro.
+Future<PaginatedResult<T>> paginarLocal<T>(
+  List<T> itens, {
+  required int pagina,
+  required int porPagina,
+  String? busca,
+  String? filtro,
+  required String Function(T item) texto,
+  String? Function(T item)? categoria,
+}) async {
+  final termo = busca == null ? null : normalizarBusca(busca);
+  final filtrados = [
+    for (final item in itens)
+      if ((termo == null || normalizarBusca(texto(item)).contains(termo)) && (filtro == null || categoria?.call(item) == filtro)) item,
+  ];
+  final totalPaginas = filtrados.isEmpty ? 1 : (filtrados.length / porPagina).ceil();
+  final atual = pagina.clamp(1, totalPaginas);
+  final inicio = (atual - 1) * porPagina;
+  return PaginatedResult(
+    data: filtrados.sublist(inicio.clamp(0, filtrados.length), (inicio + porPagina).clamp(0, filtrados.length)),
+    page: atual,
+    pageSize: porPagina,
+    total: filtrados.length,
+    totalPages: totalPaginas,
+  );
+}

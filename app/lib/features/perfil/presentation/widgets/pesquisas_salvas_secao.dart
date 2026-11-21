@@ -49,7 +49,9 @@ class _PesquisasSalvasSecaoState extends State<PesquisasSalvasSecao> {
     try {
       await favoritosRepository.excluirPesquisa(pesquisa.id);
       if (!mounted) return;
-      setState(() => lista.remove(pesquisa));
+      final todas = await _future;
+      if (!mounted) return;
+      setState(() => todas.remove(pesquisa));
       mensageiro.aviso('Pesquisa excluída.');
     } on ApiException catch (erro) {
       mensageiro.aviso(erro.message, tipo: GJAvisoTipo.erro);
@@ -62,6 +64,8 @@ class _PesquisasSalvasSecaoState extends State<PesquisasSalvasSecao> {
   Widget build(BuildContext context) {
     return SecaoCarregavel<PesquisaSalva>(
       future: _future,
+      porPagina: 8,
+      descreverTotal: (total) => '$total pesquisas salvas',
       onTentarNovamente: () => setState(() {
         _future = favoritosRepository.listarPesquisas();
       }),

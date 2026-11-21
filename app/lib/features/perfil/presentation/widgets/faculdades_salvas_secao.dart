@@ -34,7 +34,10 @@ class _FaculdadesSalvasSecaoState extends State<FaculdadesSalvasSecao> {
     try {
       await favoritosRepository.removerUniversidade(universidade.id);
       if (!mounted) return;
-      setState(() => lista.remove(universidade));
+      // Remove da lista completa (a página mostrada é só uma fatia dela).
+      final todas = await _future;
+      if (!mounted) return;
+      setState(() => todas.remove(universidade));
       mensageiro.aviso('Faculdade removida das salvas.');
     } on ApiException catch (erro) {
       mensageiro.aviso(erro.message, tipo: GJAvisoTipo.erro);
@@ -47,6 +50,8 @@ class _FaculdadesSalvasSecaoState extends State<FaculdadesSalvasSecao> {
   Widget build(BuildContext context) {
     return SecaoCarregavel<UniversidadeResumo>(
       future: _future,
+      porPagina: 6,
+      descreverTotal: (total) => '$total faculdades salvas',
       // Bloco (não arrow): setState não aceita callback que devolve Future.
       onTentarNovamente: () => setState(() {
         _future = favoritosRepository.listarUniversidades();

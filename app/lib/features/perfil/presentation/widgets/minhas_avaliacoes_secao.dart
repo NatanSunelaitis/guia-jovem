@@ -29,6 +29,8 @@ class _MinhasAvaliacoesSecaoState extends State<MinhasAvaliacoesSecao> {
   Widget build(BuildContext context) {
     return SecaoCarregavel<AvaliacaoDoAluno>(
       future: _future,
+      porPagina: 8,
+      descreverTotal: (total) => '$total avaliações',
       onTentarNovamente: () => setState(() {
         _future = universidadesRepository.minhasAvaliacoes();
       }),

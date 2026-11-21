@@ -130,6 +130,8 @@ class _SecaoCampiState extends State<SecaoCampi> {
         if (aviso != null) AvisoSomenteLeitura(aviso),
         SecaoCarregavel<CampusGestao>(
           future: _future,
+          porPagina: 15,
+          descreverTotal: (total) => '$total campi',
           onTentarNovamente: _recarregar,
           vazio: const GJEmptyState(titulo: 'Nenhum campus cadastrado', icone: Symbols.location_city),
           construir: _tabela,
