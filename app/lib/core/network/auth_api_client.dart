@@ -87,16 +87,23 @@ class AuthApiClient {
   }
 
   Never _lancarExcecaoDe(DioException erro) {
-    final corpo = erro.response?.data as Map<String, dynamic>?;
-    final erroCorpo = corpo?['error'] as Map<String, dynamic>?;
-    if (erroCorpo != null) {
+    final resposta = erro.response;
+    if (resposta == null) {
+      // Corpo que não é JSON (página de erro de um proxy) falha na conversão
+      // de tipo antes de virar resposta; o resto é falta de conexão.
+      if (erro.error is TypeError) throw ApiException.respostaInvalida();
+      throw ApiException.semConexao();
+    }
+    final corpo = resposta.data;
+    final erroCorpo = corpo is Map ? corpo['error'] : null;
+    if (erroCorpo is Map) {
       throw ApiException(
         code: erroCorpo['code'] as String? ?? 'ERRO_DESCONHECIDO',
         message: erroCorpo['message'] as String? ?? 'Ocorreu um erro inesperado.',
         details: erroCorpo['details'] as List<dynamic>? ?? const [],
       );
     }
-    throw const ApiException(code: 'ERRO_DESCONHECIDO', message: 'Não foi possível conectar ao servidor.');
+    throw ApiException.respostaInvalida(resposta.statusCode);
   }
 
   Future<Map<String, dynamic>> post(String path, {Map<String, dynamic>? body}) async {
