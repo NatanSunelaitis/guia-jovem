@@ -115,7 +115,16 @@ async function excluirOferta(req, res, next) {
   }
 }
 
+async function areas(req, res, next) {
+  try {
+    res.json({ data: await service.listarAreas(prisma), meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
 module.exports = {
+  areas,
   listar,
   destaques,
   obter,

@@ -16,6 +16,8 @@ const filtrosPesquisaSchema = z.object({
   natureza: z.enum(['P', 'V']).optional(),
   programaId: z.coerce.number().int().positive().optional(),
   cursoId: z.coerce.number().int().positive().optional(),
+  // Nome do curso (campo "Curso" da home e da pesquisa).
+  curso: z.string().trim().min(1).optional(),
   areaCurso: z.string().trim().min(1).optional(),
   notaMinima: z.coerce.number().min(0).max(5).optional(),
   sort: z.enum(['nome', 'media', 'avaliacoes']).optional(),

@@ -65,4 +65,14 @@ function findPorNome(prisma, nome) {
   });
 }
 
-module.exports = { list, count, nomesAtivos, findDetalhePublicado, findPorNome };
+/** Áreas distintas dos cursos ativos de universidades aprovadas. */
+async function areas(prisma) {
+  const linhas = await prisma.curso.findMany({
+    where: { ativo: true, universidade: { status: 'A' }, areaCurso: { not: null } },
+    select: { areaCurso: true },
+    distinct: ['areaCurso'],
+  });
+  return linhas.map((l) => l.areaCurso).filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+module.exports = { list, count, nomesAtivos, findDetalhePublicado, findPorNome, areas };

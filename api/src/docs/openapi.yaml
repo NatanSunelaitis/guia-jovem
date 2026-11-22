@@ -513,6 +513,7 @@ paths:
         - { in: query, name: programaId, schema: { type: integer } }
         - { in: query, name: cursoId, schema: { type: integer } }
         - { in: query, name: areaCurso, schema: { type: string } }
+        - { in: query, name: curso, schema: { type: string }, description: 'Nome do curso oferecido (sem diferenciar maiúsculas nem acentos)' }
         - { in: query, name: notaMinima, schema: { type: number, minimum: 0, maximum: 5 }, description: 'Extensão do RF04 além do contrato original (ver docs/DECISOES.md): filtra por media_avaliacao >= notaMinima.' }
         - { in: query, name: sort, schema: { type: string, enum: [nome, media, avaliacoes] } }
         - { in: query, name: page, schema: { type: integer, default: 1 } }
@@ -1437,6 +1438,21 @@ paths:
                     type: array
                     items: { $ref: '#/components/schemas/Curso' }
                   meta: { $ref: '#/components/schemas/Paginacao' }
+
+  /cursos/areas:
+    get:
+      tags: [Cursos]
+      summary: Áreas dos cursos ativos (filtro "Área do curso" da pesquisa)
+      responses:
+        '200':
+          description: Áreas em ordem alfabética
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { type: string } }
+                  meta: { type: object }
 
   /cursos/destaques:
     get:
@@ -2477,6 +2493,7 @@ paths:
         - { in: query, name: programaId, schema: { type: integer } }
         - { in: query, name: cursoId, schema: { type: integer } }
         - { in: query, name: areaCurso, schema: { type: string } }
+        - { in: query, name: curso, schema: { type: string }, description: 'Nome do curso oferecido (sem diferenciar maiúsculas nem acentos)' }
         - { in: query, name: notaMinima, schema: { type: number, minimum: 0, maximum: 5 } }
         - { in: query, name: sort, schema: { type: string, enum: [nome, media, avaliacoes] } }
         - { in: query, name: formato, required: true, schema: { type: string, enum: [csv, pdf] } }

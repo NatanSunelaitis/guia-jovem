@@ -185,3 +185,15 @@ describe('GET /api/v1/cursos/nome/:nome', () => {
     expect(resposta.status).toBe(404);
   });
 });
+
+describe('GET /api/v1/cursos/areas', () => {
+  it('lista as áreas distintas, em ordem alfabética (200)', async () => {
+    prisma.curso.findMany.mockResolvedValue([{ areaCurso: 'Saúde' }, { areaCurso: 'Engenharia' }, { areaCurso: 'Negócios' }]);
+
+    const resposta = await request(app).get('/api/v1/cursos/areas');
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data).toEqual(['Engenharia', 'Negócios', 'Saúde']);
+    expect(prisma.curso.findMany.mock.calls[0][0]).toMatchObject({ distinct: ['areaCurso'], where: { ativo: true, universidade: { status: 'A' } } });
+  });
+});

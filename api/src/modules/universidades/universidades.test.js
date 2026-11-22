@@ -95,6 +95,20 @@ describe('GET /api/v1/universidades/destaques', () => {
   });
 });
 
+describe('pesquisa por nome do curso', () => {
+  it('filtra pelas universidades com curso ativo daquele nome, e cidade só em campus ativo', async () => {
+    prisma.universidade.findMany.mockResolvedValue([]);
+    prisma.universidade.count.mockResolvedValue(0);
+
+    const resposta = await request(app).get('/api/v1/universidades?curso=educacao%20fisica&cidade=tatui');
+
+    expect(resposta.status).toBe(200);
+    const where = prisma.universidade.findMany.mock.calls[0][0].where;
+    expect(where.cursos).toEqual({ some: { ativo: true, nome: { contains: 'educacao fisica' } } });
+    expect(where.campus).toEqual({ some: { ativo: true, endereco: { cidade: { contains: 'tatui' } } } });
+  });
+});
+
 describe('GET /api/v1/universidades/:id', () => {
   it('retorna o detalhe e registra a visita (200)', async () => {
     prisma.universidade.findFirst.mockResolvedValue(universidadeFake());

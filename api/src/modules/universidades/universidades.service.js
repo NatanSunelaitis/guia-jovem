@@ -36,9 +36,12 @@ function buildWhere(query) {
   if (query.natureza) where.natureza = query.natureza;
   if (query.notaMinima != null) where.mediaAvaliacao = { gte: query.notaMinima };
 
+  // Texto (nome, cidade, curso, área) com "contains": a collation do MySQL
+  // (utf8mb4_unicode_ci) ignora maiúsculas, minúsculas e acentos.
   if (query.cidade || query.estado) {
     where.campus = {
       some: {
+        ativo: true,
         endereco: {
           ...(query.cidade ? { cidade: { contains: query.cidade } } : {}),
           ...(query.estado ? { estado: query.estado.toUpperCase() } : {}),
@@ -53,9 +56,10 @@ function buildWhere(query) {
 
   const condicoesCurso = {};
   if (query.cursoId) condicoesCurso.id = query.cursoId;
+  if (query.curso) condicoesCurso.nome = { contains: query.curso };
   if (query.areaCurso) condicoesCurso.areaCurso = { contains: query.areaCurso };
   if (Object.keys(condicoesCurso).length > 0) {
-    where.cursos = { some: condicoesCurso };
+    where.cursos = { some: { ativo: true, ...condicoesCurso } };
   }
 
   return where;

@@ -24,6 +24,7 @@ router.get(
 
 router.get('/', validate(schemas.listQuerySchema), controller.listar);
 router.get('/destaques', validate(schemas.destaquesQuerySchema), controller.destaques);
+router.get('/areas', controller.areas);
 router.get('/nome/:nome', validate(schemas.nomeParamSchema), controller.obterPorNome);
 router.get('/:id', validate(schemas.idParamSchema), controller.obter);
 

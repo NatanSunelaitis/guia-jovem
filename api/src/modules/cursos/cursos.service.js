@@ -159,4 +159,8 @@ async function obterPorNome(prisma, nome, req) {
   };
 }
 
-module.exports = { listar, listarDestaques, obterDetalhe, obterPorNome };
+function listarAreas(prisma) {
+  return repo.areas(prisma);
+}
+
+module.exports = { listar, listarDestaques, listarAreas, obterDetalhe, obterPorNome };
