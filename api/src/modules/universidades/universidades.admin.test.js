@@ -249,7 +249,7 @@ describe('POST /api/v1/universidades/:id/aprovar', () => {
       ],
     });
     expect(enviarEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ para: 'secretaria@fatecitu.edu.br', assunto: 'Seu cadastro foi aprovado - Guia Jovem' }),
+      expect.objectContaining({ para: 'secretaria@fatecitu.edu.br', assunto: 'Fatec Itu foi aprovada no Guia Jovem' }),
     );
   });
 
@@ -424,7 +424,7 @@ describe('POST /api/v1/universidades/:id/inativar e /reativar', () => {
       data: [expect.objectContaining({ usuarioId: 5, tipo: 'UNIVERSIDADE_INATIVADA' })],
     });
     expect(enviarEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ assunto: 'Sua universidade foi inativada - Guia Jovem' }),
+      expect.objectContaining({ assunto: expect.stringContaining('foi inativada no Guia Jovem') }),
     );
   });
 

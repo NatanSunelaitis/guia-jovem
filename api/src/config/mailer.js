@@ -17,15 +17,17 @@ const transporter = semSmtp
       auth: env.SMTP_USER ? { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } : undefined,
     });
 
-async function enviarEmail({ para, assunto, html }) {
+/** Envia HTML e, quando houver, a versão em texto puro (clientes sem HTML). */
+async function enviarEmail({ para, assunto, html, texto }) {
   const resultado = await transporter.sendMail({
     from: env.SMTP_FROM,
     to: para,
     subject: assunto,
     html,
+    ...(texto ? { text: texto } : {}),
   });
   if (semSmtp && env.NODE_ENV !== 'test') {
-    console.log(`[e-mail sem SMTP] para: ${para} | assunto: ${assunto} | ${html}`);
+    console.log(`[e-mail sem SMTP] para: ${para} | assunto: ${assunto}\n${texto ?? html}`);
   }
   return resultado;
 }

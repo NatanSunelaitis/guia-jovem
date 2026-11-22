@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 
 const env = require('../../config/env');
 const { enviarEmail } = require('../../config/mailer');
+const { montarEmail } = require('../../shared/email/modeloEmail');
 const AppError = require('../../shared/errors/AppError');
 const notificacoesService = require('../notificacoes/notificacoes.service');
 const { verifyGoogleIdToken } = require('./google.util');
@@ -290,12 +291,18 @@ async function forgotPassword(prisma, { email }, req) {
       entidadeId: usuario.id,
     });
 
-    const link = `${env.APP_URL}/#/redefinir-senha?token=${tokenBruto}`;
-    await enviarEmail({
-      para: usuario.email,
-      assunto: 'Recuperação de senha - Guia Jovem',
-      html: `<p>Olá, ${usuario.nome}.</p><p>Clique no link abaixo para redefinir sua senha. O link é válido por 1 hora.</p><p><a href="${link}">${link}</a></p>`,
+    const link = `${String(env.APP_URL).replace(/\/+$/, '')}/#/redefinir-senha?token=${tokenBruto}`;
+    const email = montarEmail({
+      titulo: 'Redefina sua senha',
+      saudacao: `Olá, ${usuario.nome.split(' ')[0]}.`,
+      paragrafos: [
+        'Recebemos um pedido para redefinir a senha da sua conta no Guia Jovem.',
+        ['Para criar uma senha nova, use o botão abaixo. O link vale por ', { forte: '1 hora' }, ' e só pode ser usado uma vez.'],
+      ],
+      botao: { texto: 'Redefinir senha', url: link },
+      observacao: 'Se você não pediu a troca, ignore este e-mail: sua senha continua a mesma.',
     });
+    await enviarEmail({ para: usuario.email, assunto: 'Redefinição de senha do Guia Jovem', html: email.html, texto: email.texto });
   }
 
   // Resposta neutra: nunca revela se o e-mail existe (seção 6, regra 4).

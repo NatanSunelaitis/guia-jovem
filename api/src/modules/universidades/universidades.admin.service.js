@@ -1,4 +1,5 @@
 const { enviarEmail } = require('../../config/mailer');
+const { montarEmail, urlDoApp } = require('../../shared/email/modeloEmail');
 const AppError = require('../../shared/errors/AppError');
 const { buildMeta, parsePagination } = require('../../shared/utils/pagination');
 const notificacoesService = require('../notificacoes/notificacoes.service');
@@ -35,15 +36,6 @@ const LIMITE_MENSAGEM_NOTIFICACAO = 255;
 
 function limitar(texto, limite) {
   return texto.length <= limite ? texto : `${texto.slice(0, limite - 3)}...`;
-}
-
-function escaparHtml(texto) {
-  return String(texto)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 function paraListaAdmin(universidade) {
@@ -161,6 +153,58 @@ function dadosDaTransicao(acao, { motivo }, req) {
   }
 }
 
+/** E-mail de cada transição (modelo comum em shared/email/modeloEmail.js). */
+function emailDaTransicao(acao, universidade, motivo) {
+  const nome = universidade.nomeFantasia;
+  const saudacao = universidade.usuario?.nome ? `Olá, ${universidade.usuario.nome.split(' ')[0]}.` : 'Olá!';
+  const pagina = { texto: 'Ver a página da universidade', url: urlDoApp(`/#/universidades/${universidade.id}`) };
+  const painel = { texto: 'Abrir o painel da universidade', url: urlDoApp('/#/painel-universidade') };
+  switch (acao) {
+    case 'aprovar':
+      return montarEmail({
+        titulo: 'Cadastro aprovado',
+        saudacao,
+        paragrafos: [
+          ['O cadastro de ', { forte: nome }, ' foi aprovado pela equipe Guia Jovem.'],
+          'A página da instituição já aparece na pesquisa de universidades. Pelo painel, mantenha campi, cursos, programas aceitos e bolsas sempre atualizados.',
+        ],
+        botao: pagina,
+      });
+    case 'reprovar':
+      return montarEmail({
+        titulo: 'Cadastro não aprovado',
+        saudacao,
+        paragrafos: [['O cadastro de ', { forte: nome }, ' não foi aprovado pela equipe Guia Jovem.']],
+        destaque: { titulo: 'Motivo', texto: motivo },
+        botao: { ...painel, texto: 'Corrigir o cadastro' },
+        observacao: 'Depois de corrigir os dados no painel, use "Reenviar para análise". A equipe avalia de novo.',
+      });
+    case 'inativar':
+      return montarEmail({
+        titulo: 'Universidade inativada',
+        saudacao,
+        paragrafos: [
+          [{ forte: nome }, ' foi inativada pela equipe Guia Jovem e deixou de aparecer no site.'],
+          'Enquanto estiver inativa, o painel fica disponível só para consulta.',
+        ],
+        botao: painel,
+        observacao: 'Se acredita que foi um engano, fale com a equipe pela área de sugestões do Guia Jovem.',
+      });
+    case 'reativar':
+      return montarEmail({
+        titulo: 'Universidade reativada',
+        saudacao,
+        paragrafos: [
+          [{ forte: nome }, ' foi reativada pela equipe Guia Jovem e voltou a aparecer na pesquisa de universidades.'],
+          'O painel volta a aceitar alterações.',
+        ],
+        botao: pagina,
+      });
+    default:
+      throw new Error(`Ação desconhecida: ${acao}`);
+  }
+}
+
 function avisoDaTransicao(acao, universidade, motivo) {
   const nome = universidade.nomeFantasia;
   switch (acao) {
@@ -169,32 +213,28 @@ function avisoDaTransicao(acao, universidade, motivo) {
         tipo: 'UNIVERSIDADE_APROVADA',
         titulo: 'Cadastro aprovado',
         mensagem: `${nome} foi aprovada e já aparece na pesquisa do Guia Jovem.`,
-        assunto: 'Seu cadastro foi aprovado - Guia Jovem',
-        html: `<p>Olá!</p><p>O cadastro de <strong>${escaparHtml(nome)}</strong> foi aprovado pela equipe Guia Jovem. A página da instituição já aparece na pesquisa de universidades.</p>`,
+        assunto: `${nome} foi aprovada no Guia Jovem`,
       };
     case 'reprovar':
       return {
         tipo: 'UNIVERSIDADE_REPROVADA',
         titulo: 'Cadastro reprovado',
         mensagem: `Motivo: ${motivo}`,
-        assunto: 'Seu cadastro não foi aprovado - Guia Jovem',
-        html: `<p>Olá!</p><p>O cadastro de <strong>${escaparHtml(nome)}</strong> não foi aprovado pela equipe Guia Jovem.</p><p>Motivo: ${escaparHtml(motivo)}</p>`,
+        assunto: `O cadastro de ${nome} não foi aprovado no Guia Jovem`,
       };
     case 'inativar':
       return {
         tipo: 'UNIVERSIDADE_INATIVADA',
         titulo: 'Universidade inativada',
         mensagem: `${nome} foi inativada pela equipe Guia Jovem e não aparece mais no site.`,
-        assunto: 'Sua universidade foi inativada - Guia Jovem',
-        html: `<p>Olá!</p><p><strong>${escaparHtml(nome)}</strong> foi inativada pela equipe Guia Jovem e deixou de aparecer no site. Em caso de dúvida, responda a este e-mail.</p>`,
+        assunto: `${nome} foi inativada no Guia Jovem`,
       };
     case 'reativar':
       return {
         tipo: 'UNIVERSIDADE_REATIVADA',
         titulo: 'Universidade reativada',
         mensagem: `${nome} voltou a aparecer na pesquisa do Guia Jovem.`,
-        assunto: 'Sua universidade foi reativada - Guia Jovem',
-        html: `<p>Olá!</p><p><strong>${escaparHtml(nome)}</strong> foi reativada pela equipe Guia Jovem e voltou a aparecer no site.</p>`,
+        assunto: `${nome} foi reativada no Guia Jovem`,
       };
     default:
       throw new Error(`Ação desconhecida: ${acao}`);
@@ -262,7 +302,8 @@ async function alterarStatus(prisma, id, acao, body, req) {
 
   if (universidade.usuario?.email) {
     try {
-      await enviarEmail({ para: universidade.usuario.email, assunto: aviso.assunto, html: aviso.html });
+      const email = emailDaTransicao(acao, universidade, motivo);
+      await enviarEmail({ para: universidade.usuario.email, assunto: aviso.assunto, html: email.html, texto: email.texto });
     } catch (erro) {
       console.error(`Falha ao enviar o e-mail de "${acao}" da universidade ${id}:`, erro.message);
     }
