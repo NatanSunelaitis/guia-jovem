@@ -41,8 +41,8 @@ class _HomePageState extends State<HomePage> {
   final _universidadeController = TextEditingController();
 
   // Toggle da barra de busca (Design System Deck, T01): filtra a natureza
-  // já ao ir para a pesquisa de universidades.
-  String _natureza = 'P';
+  // já ao ir para a pesquisa de universidades. Nulo é "Todas" (o padrão).
+  String? _natureza;
 
   @override
   void initState() {
@@ -62,17 +62,18 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void _pesquisar() {
-    context.go(
-      '/universidades',
-      extra: {
-        'cidade': _cidadeController.text,
-        'q': _universidadeController.text,
-        'areaCurso': _cursoController.text,
-        'natureza': _natureza,
-      },
-    );
-  }
+  /// Filtros da barra de busca, no formato da pesquisa (vazios ficam de fora).
+  Map<String, String> get _filtros => {
+        if (_cidadeController.text.trim().isNotEmpty) 'cidade': _cidadeController.text.trim(),
+        if (_universidadeController.text.trim().isNotEmpty) 'q': _universidadeController.text.trim(),
+        if (_cursoController.text.trim().isNotEmpty) 'curso': _cursoController.text.trim(),
+        if (_natureza != null) 'natureza': _natureza!,
+      };
+
+  void _pesquisar() => context.go('/universidades', extra: _filtros);
+
+  /// "Mais filtros": a pesquisa abre com os filtros avançados à mostra.
+  void _maisFiltros() => context.go('/universidades', extra: {..._filtros, 'filtrosAvancados': 'true'});
 
   @override
   Widget build(BuildContext context) {
@@ -177,9 +178,19 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(height: GJSpace.s2),
           GJButton(label: 'Pesquisar', icon: Symbols.search, expand: isMobile, onPressed: _pesquisar),
           const SizedBox(height: GJSpace.s4),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: _toggleNatureza(),
+          Wrap(
+            spacing: GJSpace.s4,
+            runSpacing: GJSpace.s3,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              _toggleNatureza(),
+              TextButton.icon(
+                key: const Key('home-mais-filtros'),
+                onPressed: _maisFiltros,
+                icon: const Icon(Symbols.tune, size: 20),
+                label: const Text('Mais filtros'),
+              ),
+            ],
           ),
         ],
       ),
@@ -193,6 +204,7 @@ class _HomePageState extends State<HomePage> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          _opcaoNatureza(label: 'Todas', valor: null),
           _opcaoNatureza(label: 'Públicas / Federais', valor: 'P'),
           _opcaoNatureza(label: 'Privadas', valor: 'V'),
         ],
@@ -200,7 +212,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _opcaoNatureza({required String label, required String valor}) {
+  Widget _opcaoNatureza({required String label, required String? valor}) {
     final selecionado = _natureza == valor;
     return GestureDetector(
       onTap: () => setState(() => _natureza = valor),
