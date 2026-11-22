@@ -22,6 +22,7 @@ import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tag.dart';
 import '../../auth/data/session_controller.dart';
 import '../../auth/presentation/exigir_aluno.dart';
+import '../../cursos/data/cursos_repository.dart';
 import '../../favoritos/data/favoritos_repository.dart';
 import '../../programas/data/programas_repository.dart';
 import '../../programas/domain/programa.dart';
@@ -46,7 +47,9 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
 
   final _qController = TextEditingController();
   final _cidadeController = TextEditingController();
-  final _areaCursoController = TextEditingController();
+  final _cursoController = TextEditingController();
+  String? _areaCurso;
+  Future<List<String>>? _futureAreas;
   String? _natureza;
   String _sort = 'nome';
   int? _programaId;
@@ -87,13 +90,19 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
   void _aplicarFiltros(Map<String, String> filtros) {
     _qController.text = filtros['q'] ?? '';
     _cidadeController.text = filtros['cidade'] ?? '';
-    _areaCursoController.text = filtros['areaCurso'] ?? '';
+    _cursoController.text = filtros['curso'] ?? '';
+    final area = filtros['areaCurso'];
+    _areaCurso = area == null || area.isEmpty ? null : area;
     _natureza = filtros['natureza'];
     _estado = filtros['estado'];
     _programaId = int.tryParse(filtros['programaId'] ?? '');
     _cursoId = int.tryParse(filtros['cursoId'] ?? '');
     _notaMinima = (double.tryParse(filtros['notaMinima'] ?? '') ?? 0).clamp(0, 5).toDouble();
     _sort = const {'nome', 'media', 'avaliacoes'}.contains(filtros['sort']) ? filtros['sort']! : 'nome';
+    // Abre sozinho quando algum filtro avançado está em uso ou quando a
+    // home pede (link "Mais filtros").
+    _filtrosAvancadosAbertos = filtros['filtrosAvancados'] == 'true' || _filtrosAvancadosEmUso > 0;
+    if (_filtrosAvancadosAbertos) _carregarOpcoesAvancadas();
     _resolverNomePrograma();
   }
 
@@ -135,7 +144,7 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
   void dispose() {
     _qController.dispose();
     _cidadeController.dispose();
-    _areaCursoController.dispose();
+    _cursoController.dispose();
     super.dispose();
   }
 
@@ -147,7 +156,8 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
       natureza: _natureza,
       programaId: _programaId,
       cursoId: _cursoId,
-      areaCurso: _areaCursoController.text,
+      curso: _cursoController.text,
+      areaCurso: _areaCurso,
       notaMinima: _notaMinima > 0 ? _notaMinima : null,
       sort: _sort,
       page: page,
@@ -205,11 +215,22 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
     }
   }
 
+  /// Quantos filtros avançados (estado, programa, área) estão em uso.
+  int get _filtrosAvancadosEmUso => [_estado, _programaId, _areaCurso].where((f) => f != null).length;
+
+  void _carregarOpcoesAvancadas() {
+    // As opções podem chegar antes de a tela escutar; ignore() evita o erro
+    // "não tratado" sem esconder a falha do FutureBuilder.
+    _futureProgramas ??= programasRepository.listar(const FiltrosProgramas()).then((r) => r.data)..ignore();
+    _futureAreas ??= cursosRepository.areas()..ignore();
+  }
+
   void _limparTudo() {
     setState(() {
       _qController.clear();
       _cidadeController.clear();
-      _areaCursoController.clear();
+      _cursoController.clear();
+      _areaCurso = null;
       _estado = null;
       _programaId = null;
       _programaNome = null;
@@ -342,9 +363,14 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
           });
           _buscar();
         }),
-      if (_areaCursoController.text.isNotEmpty)
-        GJTag(label: 'Área: ${_areaCursoController.text}', tone: GJTagTone.entrada, onRemove: () {
-          _areaCursoController.clear();
+      if (_cursoController.text.isNotEmpty)
+        GJTag(label: 'Curso: ${_cursoController.text}', tone: GJTagTone.entrada, onRemove: () {
+          _cursoController.clear();
+          _buscar();
+        }),
+      if (_areaCurso != null)
+        GJTag(label: 'Área: $_areaCurso', tone: GJTagTone.entrada, onRemove: () {
+          setState(() => _areaCurso = null);
           _buscar();
         }),
       if (_notaMinima > 0)
@@ -497,6 +523,7 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
     final campos = [
       GJInput(label: 'Universidade', hint: 'Nome da universidade', controller: _qController, icon: Symbols.search),
       GJInput(label: 'Cidade', hint: 'Cidade', controller: _cidadeController, icon: Symbols.location_on),
+      GJInput(label: 'Curso', hint: 'Curso que deseja estudar', controller: _cursoController, icon: Symbols.menu_book),
     ];
 
     return Container(
@@ -540,14 +567,18 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
           ),
           const SizedBox(height: GJSpace.s2),
           GestureDetector(
+            key: const Key('botao-filtros-avancados'),
             onTap: () => setState(() {
               _filtrosAvancadosAbertos = !_filtrosAvancadosAbertos;
-              _futureProgramas ??= programasRepository.listar(const FiltrosProgramas()).then((r) => r.data);
+              _carregarOpcoesAvancadas();
             }),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Filtros avançados', style: GJTypography.label(color: GJColors.primary)),
+                Text(
+                  _filtrosAvancadosEmUso == 0 ? 'Filtros avançados' : 'Filtros avançados ($_filtrosAvancadosEmUso)',
+                  style: GJTypography.label(color: GJColors.primary),
+                ),
                 const SizedBox(width: GJSpace.s1),
                 Icon(_filtrosAvancadosAbertos ? Symbols.expand_less : Symbols.tune, size: 20, color: GJColors.primary),
               ],
@@ -638,11 +669,26 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
           );
         },
       ),
-      GJInput(
-        label: 'Área do curso',
-        hint: 'Ex.: Saúde, Negócios...',
-        controller: _areaCursoController,
-        onChanged: (_) => _buscar(),
+      FutureBuilder<List<String>>(
+        future: _futureAreas,
+        builder: (context, snapshot) {
+          final areas = [...?snapshot.data];
+          // Área vinda de uma pesquisa salva que não existe mais na lista.
+          if (_areaCurso != null && !areas.contains(_areaCurso)) areas.insert(0, _areaCurso!);
+          return DropdownButtonFormField<String?>(
+            key: const Key('filtro-area-curso'),
+            value: _areaCurso,
+            decoration: const InputDecoration(labelText: 'Área do curso', border: OutlineInputBorder()),
+            items: [
+              const DropdownMenuItem(value: null, child: Text('Qualquer área')),
+              for (final area in areas) DropdownMenuItem(value: area, child: Text(area)),
+            ],
+            onChanged: (valor) => setState(() {
+              _areaCurso = valor;
+              _buscar();
+            }),
+          );
+        },
       ),
     ];
 

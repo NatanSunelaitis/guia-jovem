@@ -182,6 +182,7 @@ List<String> descreverFiltros(Map<String, dynamic> parametros) {
     if (texto('natureza') == 'P') 'Públicas',
     if (texto('natureza') == 'V') 'Privadas',
     if (nota != null && nota > 0) 'Nota mínima ${nota.toStringAsFixed(1).replaceAll('.', ',')}',
+    if (texto('curso') != null) 'Curso: ${texto('curso')}',
     if (texto('areaCurso') != null) 'Área: ${texto('areaCurso')}',
     if (texto('programaId') != null) 'Programa aceito',
     if (texto('cursoId') != null) 'Curso',

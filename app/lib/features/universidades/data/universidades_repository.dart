@@ -13,6 +13,7 @@ class FiltrosUniversidades {
     this.natureza,
     this.programaId,
     this.cursoId,
+    this.curso,
     this.areaCurso,
     this.notaMinima,
     this.sort,
@@ -25,6 +26,9 @@ class FiltrosUniversidades {
   final String? natureza;
   final int? programaId;
   final int? cursoId;
+
+  /// Nome do curso (campo "Curso" da home e da pesquisa).
+  final String? curso;
   final String? areaCurso;
   final double? notaMinima;
   final String? sort;
@@ -37,6 +41,7 @@ class FiltrosUniversidades {
         if (natureza != null) 'natureza': natureza,
         if (programaId != null) 'programaId': programaId,
         if (cursoId != null) 'cursoId': cursoId,
+        if (curso != null && curso!.isNotEmpty) 'curso': curso,
         if (areaCurso != null && areaCurso!.isNotEmpty) 'areaCurso': areaCurso,
         if (notaMinima != null) 'notaMinima': notaMinima,
         if (sort != null) 'sort': sort,
@@ -60,6 +65,7 @@ class FiltrosUniversidades {
       natureza: natureza ?? this.natureza,
       programaId: programaId,
       cursoId: cursoId,
+      curso: curso,
       areaCurso: areaCurso ?? this.areaCurso,
       notaMinima: notaMinima ?? this.notaMinima,
       sort: sort ?? this.sort,

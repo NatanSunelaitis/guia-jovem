@@ -44,6 +44,12 @@ class CursosRepository {
     return (json['data'] as List<dynamic>).map((item) => CursoDestaque.fromJson(item as Map<String, dynamic>)).toList();
   }
 
+  /// Áreas dos cursos cadastrados, para o filtro "Área do curso".
+  Future<List<String>> areas() async {
+    final json = await _client.get('/cursos/areas');
+    return (json['data'] as List<dynamic>).cast<String>();
+  }
+
   Future<CursoDetalhe> detalhe(int id) async {
     final json = await _client.get('/cursos/$id');
     return CursoDetalhe.fromJson(json['data'] as Map<String, dynamic>);
