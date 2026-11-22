@@ -1,5 +1,5 @@
-﻿# Para a API e o servidor do app iniciados pelo iniciar-demo.cmd. Não mexe
-# no banco nem no build; os logs ficam em .demo/.
+﻿# Para a API, o servidor do app e a caixa de e-mails de testes iniciados pelo
+# iniciar-demo.cmd. Não mexe no banco nem no build; os logs ficam em .demo/.
 $ErrorActionPreference = 'Stop'
 $raiz = Split-Path -Parent $PSScriptRoot
 $arquivoPids = Join-Path $raiz '.demo\pids.json'
@@ -14,6 +14,7 @@ $itens = @(
   @{ nome = 'A API'; parado = 'parada'; id = $pids.api; porta = $pids.portaApi },
   @{ nome = 'O app'; parado = 'parado'; id = $pids.app; porta = $pids.portaApp }
 )
+if ($pids.email) { $itens += @{ nome = 'A caixa de e-mails'; parado = 'parada'; id = $pids.email; porta = $pids.portaEmail } }
 foreach ($item in $itens) {
   $processo = Get-Process -Id $item.id -ErrorAction SilentlyContinue
   if ($processo -and $processo.ProcessName -eq 'node') {

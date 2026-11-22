@@ -1,9 +1,10 @@
 /**
- * Sobe a API contra o banco de demonstração, sem SMTP (os e-mails vão para
- * o log). Usado pelo iniciar-demo.cmd; as variáveis definidas aqui vencem as
- * do api/.env, que continua fornecendo os segredos do JWT.
+ * Sobe a API contra o banco de demonstração. Os e-mails vão para a caixa de
+ * testes local (MailDev) na porta SMTP dada; sem ela, vão para o log. Usado
+ * pelo iniciar-demo.cmd; as variáveis definidas aqui vencem as do api/.env,
+ * que continua fornecendo os segredos do JWT.
  *
- *   node scripts/demo/api-demo.js <porta> [url do app]
+ *   node scripts/demo/api-demo.js <porta> [url do app] [porta SMTP da caixa de testes]
  *   node scripts/demo/api-demo.js --conferir   (só confere o banco)
  *
  * Banco: DEMO_DATABASE_URL, ou o DATABASE_URL do api/.env com o nome trocado
@@ -50,11 +51,15 @@ if (require.main === module && process.argv[2] === '--conferir') {
     process.exitCode = codigo;
   });
 } else if (require.main === module) {
-  const [porta = '3000', appUrl = 'http://localhost:8080'] = process.argv.slice(2);
+  const [porta = '3000', appUrl = 'http://localhost:8080', portaSmtp = ''] = process.argv.slice(2);
   process.env.DATABASE_URL = urlDoBancoDemo();
   process.env.PORT = porta;
   process.env.NODE_ENV = 'development';
-  process.env.SMTP_HOST = '';
+  // Caixa de testes local (sem usuário e senha) ou, sem ela, o log.
+  process.env.SMTP_HOST = portaSmtp ? '127.0.0.1' : '';
+  process.env.SMTP_PORT = portaSmtp || '587';
+  process.env.SMTP_USER = '';
+  process.env.SMTP_PASSWORD = '';
   process.env.APP_URL = appUrl;
   // O CORS aceita só a origem do app servido pelo iniciar-demo (com localhost e 127.0.0.1).
   process.env.CORS_ORIGENS = [appUrl, appUrl.replace('localhost', '127.0.0.1')].join(',');
