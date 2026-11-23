@@ -1,5 +1,6 @@
 const AppError = require('../../shared/errors/AppError');
 const { buildMeta, parsePagination } = require('../../shared/utils/pagination');
+const { agruparPorNome, normalizarNome } = require('../../shared/utils/nomesCurso');
 const repo = require('./cursos.repository');
 const { agruparProgramasPorTipo } = require('../universidades/universidades.service');
 
@@ -53,21 +54,25 @@ async function listar(prisma, query) {
   return { data: cursos.map(paraLista), meta: buildMeta({ page, pageSize, total }) };
 }
 
+/**
+ * Cursos agrupados pelo nome (sem diferenciar maiúsculas, acentos e espaços
+ * repetidos), com a grafia mais usada, a área mais frequente e os graus do
+ * grupo, dos mais oferecidos para os menos.
+ */
 async function listarDestaques(prisma, { limite = DESTAQUES_PADRAO, q, areaCurso } = {}) {
   const where = buildWhere({ q, areaCurso });
   const cursos = await repo.nomesAtivos(prisma, where);
 
-  const contagemPorNome = new Map();
-  const areaPorNome = new Map();
-  for (const { nome, areaCurso } of cursos) {
-    contagemPorNome.set(nome, (contagemPorNome.get(nome) ?? 0) + 1);
-    if (!areaPorNome.has(nome)) areaPorNome.set(nome, areaCurso);
-  }
-
-  return [...contagemPorNome.entries()]
-    .sort((a, b) => b[1] - a[1])
+  return agruparPorNome(cursos)
+    .sort((a, b) => b.totalOfertas - a.totalOfertas || a.nome.localeCompare(b.nome, 'pt-BR'))
     .slice(0, limite)
-    .map(([nome, totalOfertas]) => ({ nome, areaCurso: areaPorNome.get(nome), totalOfertas }));
+    .map(({ nome, areaCurso: area, graus, totalOfertas, totalUniversidades }) => ({
+      nome,
+      areaCurso: area,
+      graus,
+      totalOfertas,
+      totalUniversidades,
+    }));
 }
 
 function paraCampus(campusCurso) {
@@ -142,19 +147,27 @@ async function obterDetalhe(prisma, id, req) {
   return paraDetalhe(curso);
 }
 
+/**
+ * Página do curso por nome (T06): os cursos de mesmo nome normalizado em
+ * universidades aprovadas. O título é a grafia mais usada e a área (que o
+ * app usa para a foto) é a mais frequente do grupo.
+ */
 async function obterPorNome(prisma, nome, req) {
-  const cursos = await repo.findPorNome(prisma, nome);
-  if (cursos.length === 0) {
+  const chave = normalizarNome(nome);
+  const candidatos = await repo.nomesAtivos(prisma, buildWhere({}));
+  const [grupo] = agruparPorNome(candidatos.filter((c) => normalizarNome(c.nome) === chave));
+  if (!grupo) {
     throw AppError.notFound('Nenhum curso encontrado com esse nome');
   }
 
-  // Página do curso por nome (T06): várias universidades, sem um id só.
+  const cursos = await repo.findOfertas(prisma, grupo.cursos.map((c) => c.id));
+
+  // Várias universidades, sem um id só.
   req.registrarVisita({ entidade: 'curso' });
 
   return {
-    nome,
-    // Área do primeiro cadastro: o app usa para escolher a foto do curso.
-    areaCurso: cursos[0].areaCurso ?? null,
+    nome: grupo.nome,
+    areaCurso: grupo.areaCurso,
     universidades: cursos.map(paraOferta),
   };
 }

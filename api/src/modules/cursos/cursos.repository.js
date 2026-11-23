@@ -43,10 +43,12 @@ function count(prisma, where) {
   return prisma.curso.count({ where });
 }
 
+/** Campos para agrupar pelo nome, na ordem de cadastro (desempata a grafia e a área). */
 function nomesAtivos(prisma, where) {
   return prisma.curso.findMany({
     where,
-    select: { nome: true, areaCurso: true },
+    select: { id: true, nome: true, areaCurso: true, grau: true, universidadeId: true },
+    orderBy: { id: 'asc' },
   });
 }
 
@@ -57,11 +59,12 @@ function findDetalhePublicado(prisma, id) {
   });
 }
 
-function findPorNome(prisma, nome) {
+/** Ofertas da página do curso: os cursos do grupo, pelos ids. */
+function findOfertas(prisma, ids) {
   return prisma.curso.findMany({
-    where: { nome: { equals: nome }, ativo: true, universidade: { status: 'A' } },
+    where: { id: { in: ids } },
     include: INCLUDE_OFERTA,
-    orderBy: { universidade: { nomeFantasia: 'asc' } },
+    orderBy: [{ universidade: { nomeFantasia: 'asc' } }, { id: 'asc' }],
   });
 }
 
@@ -75,4 +78,4 @@ async function areas(prisma) {
   return linhas.map((l) => l.areaCurso).filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR'));
 }
 
-module.exports = { list, count, nomesAtivos, findDetalhePublicado, findPorNome, areas };
+module.exports = { list, count, nomesAtivos, findDetalhePublicado, findOfertas, areas };

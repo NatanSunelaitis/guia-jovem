@@ -54,16 +54,43 @@ describe('GET /api/v1/cursos', () => {
 describe('GET /api/v1/cursos/destaques', () => {
   it('agrupa por nome e ordena pela contagem (200)', async () => {
     prisma.curso.findMany.mockResolvedValue([
-      { nome: 'Administração', areaCurso: 'Negócios' },
-      { nome: 'Administração', areaCurso: 'Negócios' },
-      { nome: 'Farmácia', areaCurso: 'Saúde' },
+      { id: 1, nome: 'Administração', areaCurso: 'Negócios', grau: 'Bacharelado', universidadeId: 1 },
+      { id: 2, nome: 'Administração', areaCurso: 'Negócios', grau: 'Bacharelado', universidadeId: 2 },
+      { id: 3, nome: 'Farmácia', areaCurso: 'Saúde', grau: 'Bacharelado', universidadeId: 1 },
     ]);
 
     const resposta = await request(app).get('/api/v1/cursos/destaques');
 
     expect(resposta.status).toBe(200);
-    expect(resposta.body.data[0]).toEqual({ nome: 'Administração', areaCurso: 'Negócios', totalOfertas: 2 });
-    expect(resposta.body.data[1]).toEqual({ nome: 'Farmácia', areaCurso: 'Saúde', totalOfertas: 1 });
+    expect(resposta.body.data[0]).toEqual({
+      nome: 'Administração',
+      areaCurso: 'Negócios',
+      graus: ['Bacharelado'],
+      totalOfertas: 2,
+      totalUniversidades: 2,
+    });
+    expect(resposta.body.data[1]).toMatchObject({ nome: 'Farmácia', areaCurso: 'Saúde', totalOfertas: 1 });
+    expect(prisma.curso.findMany.mock.calls[0][0].orderBy).toEqual({ id: 'asc' });
+  });
+
+  it('junta grafias que só diferem em maiúsculas, acentos e espaços, com a grafia e a área mais usadas', async () => {
+    prisma.curso.findMany.mockResolvedValue([
+      { id: 1, nome: 'Análise e Desenvolvimento de Sistemas', areaCurso: 'Tecnologia', grau: 'Tecnólogo', universidadeId: 1 },
+      { id: 2, nome: 'analise e desenvolvimento  de sistemas ', areaCurso: 'Computação', grau: 'Tecnólogo', universidadeId: 2 },
+      { id: 3, nome: 'Análise e Desenvolvimento de Sistemas', areaCurso: 'Tecnologia', grau: 'Bacharelado', universidadeId: 3 },
+      { id: 4, nome: 'Educação Física', areaCurso: 'Saúde', grau: 'Licenciatura', universidadeId: 1 },
+    ]);
+
+    const resposta = await request(app).get('/api/v1/cursos/destaques');
+
+    expect(resposta.body.data).toHaveLength(2);
+    expect(resposta.body.data[0]).toEqual({
+      nome: 'Análise e Desenvolvimento de Sistemas',
+      areaCurso: 'Tecnologia',
+      graus: ['Tecnólogo', 'Bacharelado'],
+      totalOfertas: 3,
+      totalUniversidades: 3,
+    });
   });
 
   it('aplica os filtros q e areaCurso (usado por T07)', async () => {
@@ -102,8 +129,16 @@ describe('GET /api/v1/cursos/:id', () => {
 });
 
 describe('GET /api/v1/cursos/nome/:nome', () => {
+  /** Primeira consulta: os nomes para agrupar; segunda: as ofertas do grupo. */
+  function mockNomes(nomes) {
+    prisma.curso.findMany.mockResolvedValueOnce(
+      nomes.map(([id, nome, areaCurso = 'Negócios', universidadeId = id]) => ({ id, nome, areaCurso, grau: 'Bacharelado', universidadeId })),
+    );
+  }
+
   it('cada oferta traz os dados do curso, a universidade, os campi com turno e vagas e os programas aceitos', async () => {
-    prisma.curso.findMany.mockResolvedValue([
+    mockNomes([[5, 'Administração'], [6, 'Administração']]);
+    prisma.curso.findMany.mockResolvedValueOnce([
       cursoFake(),
       cursoFake({
         id: 6,
@@ -143,21 +178,40 @@ describe('GET /api/v1/cursos/nome/:nome', () => {
     });
   });
 
-  it('busca só campi ativos, programas ativos e ordena pelas universidades', async () => {
-    prisma.curso.findMany.mockResolvedValue([cursoFake()]);
+  it('busca só cursos ativos de universidades aprovadas, campi e programas ativos, e ordena pelas universidades', async () => {
+    mockNomes([[5, 'Administração']]);
+    prisma.curso.findMany.mockResolvedValueOnce([cursoFake()]);
 
     await request(app).get('/api/v1/cursos/nome/Administração');
 
-    const chamada = prisma.curso.findMany.mock.calls[0][0];
-    expect(chamada.where).toEqual({ nome: { equals: 'Administração' }, ativo: true, universidade: { status: 'A' } });
-    expect(chamada.include.campusCursos.where).toEqual({ campus: { ativo: true } });
-    expect(chamada.include.universidade.select.campus.where).toEqual({ ativo: true });
-    expect(chamada.include.universidade.select.programas.where).toEqual({ ativo: true });
-    expect(chamada.orderBy).toEqual({ universidade: { nomeFantasia: 'asc' } });
+    const [nomes, ofertas] = prisma.curso.findMany.mock.calls.map((c) => c[0]);
+    expect(nomes.where).toEqual({ ativo: true, universidade: { status: 'A' } });
+    expect(ofertas.where).toEqual({ id: { in: [5] } });
+    expect(ofertas.include.campusCursos.where).toEqual({ campus: { ativo: true } });
+    expect(ofertas.include.universidade.select.campus.where).toEqual({ ativo: true });
+    expect(ofertas.include.universidade.select.programas.where).toEqual({ ativo: true });
+    expect(ofertas.orderBy).toEqual([{ universidade: { nomeFantasia: 'asc' } }, { id: 'asc' }]);
+  });
+
+  it('junta os cursos de nome igual sem diferenciar maiúsculas, acentos e espaços repetidos', async () => {
+    mockNomes([
+      [5, 'Análise e Desenvolvimento de Sistemas', 'Tecnologia'],
+      [6, 'ANALISE E DESENVOLVIMENTO  DE SISTEMAS', 'Computação'],
+      [7, 'Análise e Desenvolvimento de Sistemas', 'Tecnologia'],
+      [8, 'Análise de Sistemas', 'Tecnologia'],
+    ]);
+    prisma.curso.findMany.mockResolvedValueOnce([cursoFake()]);
+
+    const resposta = await request(app).get('/api/v1/cursos/nome/analise%20e%20desenvolvimento%20de%20sistemas');
+
+    expect(prisma.curso.findMany.mock.calls[1][0].where).toEqual({ id: { in: [5, 6, 7] } });
+    expect(resposta.body.data.nome).toBe('Análise e Desenvolvimento de Sistemas');
+    expect(resposta.body.data.areaCurso).toBe('Tecnologia');
   });
 
   it('retorna as universidades que oferecem o curso (200)', async () => {
-    prisma.curso.findMany.mockResolvedValue([cursoFake()]);
+    mockNomes([[5, 'Administração']]);
+    prisma.curso.findMany.mockResolvedValueOnce([cursoFake()]);
 
     const resposta = await request(app).get('/api/v1/cursos/nome/Administração');
 

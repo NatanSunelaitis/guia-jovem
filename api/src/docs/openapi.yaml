@@ -1458,6 +1458,9 @@ paths:
     get:
       tags: [Cursos]
       summary: Cursos mais ofertados, agrupados por nome (RF19)
+      description: >-
+        Junta os cursos de nome igual sem diferenciar maiúsculas, acentos e espaços repetidos.
+        O nome é a grafia mais usada no grupo e a área é a mais frequente.
       parameters:
         - { in: query, name: limite, schema: { type: integer, default: 8, maximum: 200 } }
         - { in: query, name: q, schema: { type: string }, description: 'Usado por T07 (lista de cursos) para buscar por nome' }
@@ -1477,13 +1480,17 @@ paths:
                       properties:
                         nome: { type: string }
                         areaCurso: { type: string, nullable: true }
-                        totalOfertas: { type: integer }
+                        graus: { type: array, items: { type: string }, description: 'Graus do grupo, do mais para o menos oferecido' }
+                        totalOfertas: { type: integer, description: 'Cursos no grupo' }
+                        totalUniversidades: { type: integer }
                   meta: { type: object }
 
   /cursos/nome/{nome}:
     get:
       tags: [Cursos]
       summary: Universidades onde um curso (pelo nome) está disponível
+      description: >-
+        O nome é comparado sem diferenciar maiúsculas, acentos e espaços repetidos.
       parameters:
         - in: path
           name: nome
@@ -1500,8 +1507,8 @@ paths:
                   data:
                     type: object
                     properties:
-                      nome: { type: string }
-                      areaCurso: { type: string, nullable: true, description: "Área do curso (do primeiro cadastro com esse nome)" }
+                      nome: { type: string, description: 'Grafia mais usada entre os cursos do grupo' }
+                      areaCurso: { type: string, nullable: true, description: 'Área mais frequente no grupo' }
                       universidades: { type: array, items: { $ref: '#/components/schemas/OfertaCurso' } }
                   meta: { type: object }
         '404': { $ref: '#/components/responses/NaoEncontrado' }
