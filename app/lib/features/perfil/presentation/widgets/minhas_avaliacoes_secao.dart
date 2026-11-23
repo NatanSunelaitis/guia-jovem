@@ -42,6 +42,7 @@ class _MinhasAvaliacoesSecaoState extends State<MinhasAvaliacoesSecao> {
         onAcao: () => context.go('/universidades'),
       ),
       construir: (lista) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final avaliacao in lista)
             Padding(
@@ -62,7 +63,7 @@ class _MinhasAvaliacoesSecaoState extends State<MinhasAvaliacoesSecao> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(avaliacao.nomeUniversidade, style: GJTypography.h4()),
+                          Text(avaliacao.nomeUniversidade, style: GJTypography.h4(), maxLines: 3, overflow: TextOverflow.ellipsis),
                           const SizedBox(height: GJSpace.s1),
                           Row(
                             mainAxisSize: MainAxisSize.min,
@@ -80,7 +81,14 @@ class _MinhasAvaliacoesSecaoState extends State<MinhasAvaliacoesSecao> {
                           ),
                           if (avaliacao.comentario != null) ...[
                             const SizedBox(height: GJSpace.s2),
-                            Text(avaliacao.comentario!, style: GJTypography.bodySm()),
+                            // O comentário inteiro aparece na página da universidade.
+                            Text(
+                              avaliacao.comentario!,
+                              key: const Key('avaliacao-comentario'),
+                              style: GJTypography.bodySm(),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ],
                         ],
                       ),

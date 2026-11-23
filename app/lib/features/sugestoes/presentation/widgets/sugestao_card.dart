@@ -29,6 +29,10 @@ class SugestaoStatusBadge extends StatelessWidget {
 
 /// Cartão de uma sugestão nas listas (histórico do aluno e recebidas). Para o
 /// destinatário ([mostrarAutor]), a linha de origem traz o autor em vez do destino.
+///
+/// Ocupa sempre a largura da lista, com um item ou com vários. Título, texto
+/// e resposta quebram dentro do card (inclusive palavras e links sem
+/// espaços) e param em três linhas; o texto completo fica no detalhe.
 class SugestaoCard extends StatelessWidget {
   const SugestaoCard({super.key, required this.sugestao, this.onTap, this.mostrarAutor = false, this.acao});
 
@@ -45,7 +49,9 @@ class SugestaoCard extends StatelessWidget {
         ? 'De: ${sugestao.autorNome ?? 'Usuário removido'}'
         : 'Para: ${sugestao.destino}';
 
-    return Material(
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
       color: GJColors.surfaceLowest,
       borderRadius: GJRadius.borderLg,
       child: InkWell(
@@ -56,20 +62,32 @@ class SugestaoCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: GJSpace.s3,
-                runSpacing: GJSpace.s2,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(sugestao.titulo, style: GJTypography.h4()),
+                  Expanded(
+                    child: Text(
+                      sugestao.titulo,
+                      key: const Key('sugestao-card-titulo'),
+                      style: GJTypography.h4(),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: GJSpace.s3),
                   SugestaoStatusBadge(status: sugestao.status),
                 ],
               ),
               const SizedBox(height: GJSpace.s1),
               Text('${formatarData(sugestao.criadoEm)} · $origem', style: GJTypography.caption()),
               const SizedBox(height: GJSpace.s2),
-              Text(sugestao.texto, style: GJTypography.bodySm(), maxLines: 3, overflow: TextOverflow.ellipsis),
+              Text(
+                sugestao.texto,
+                key: const Key('sugestao-card-texto'),
+                style: GJTypography.bodySm(),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
               if (sugestao.resposta != null) ...[
                 const SizedBox(height: GJSpace.s3),
                 Container(
@@ -79,7 +97,13 @@ class SugestaoCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Resposta: ${sugestao.resposta}', style: GJTypography.bodySm()),
+                      Text(
+                        'Resposta: ${sugestao.resposta}',
+                        key: const Key('sugestao-card-resposta'),
+                        style: GJTypography.bodySm(),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       if (sugestao.avaliadoEm != null) ...[
                         const SizedBox(height: GJSpace.s1),
                         Text('Respondida em ${formatarData(sugestao.avaliadoEm!)}', style: GJTypography.caption()),
@@ -95,6 +119,7 @@ class SugestaoCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

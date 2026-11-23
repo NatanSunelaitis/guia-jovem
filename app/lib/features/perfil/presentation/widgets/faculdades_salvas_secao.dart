@@ -89,6 +89,7 @@ class _FaculdadesSalvasSecaoState extends State<FaculdadesSalvasSecao> {
 
         if (MediaQuery.sizeOf(context).width < 600) {
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [for (final card in cards) Padding(padding: const EdgeInsets.only(bottom: GJSpace.s4), child: card)],
           );
         }

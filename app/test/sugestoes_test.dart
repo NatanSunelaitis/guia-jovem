@@ -5,8 +5,12 @@ import 'package:app/features/perfil/presentation/perfil_page.dart';
 import 'package:app/features/sugestoes/presentation/detalhe_sugestao_page.dart';
 import 'package:app/features/sugestoes/presentation/nova_sugestao_dialog.dart';
 import 'package:app/features/sugestoes/presentation/sugestoes_recebidas_page.dart';
+import 'package:app/features/sugestoes/presentation/widgets/sugestao_card.dart';
+import 'package:app/features/perfil/presentation/widgets/historico_sugestoes_secao.dart';
+import 'package:app/shared/widgets/gj_button.dart';
 import 'package:app/shared/widgets/gj_input.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -32,6 +36,7 @@ Map<String, dynamic> _sugestao({
   int id = 12,
   String titulo = 'Mais vagas no noturno',
   String status = 'EM_ANALISE',
+  String texto = 'Abrir mais turmas no período noturno ajudaria quem trabalha.',
   String? resposta,
   String? avaliadoEm,
   Map<String, dynamic>? universidade = const {'id': 7, 'nomeFantasia': 'Fatec Itu'},
@@ -41,7 +46,7 @@ Map<String, dynamic> _sugestao({
     {
       'id': id,
       'titulo': titulo,
-      'texto': 'Abrir mais turmas no período noturno ajudaria quem trabalha.',
+      'texto': texto,
       'status': status,
       'resposta': resposta,
       'criadoEm': '2026-11-10T12:00:00.000Z',
@@ -116,6 +121,77 @@ void main() {
       await tester.tap(find.text('Filtro por cidade'));
       await tester.pumpAndSettle();
       expect(find.text('Detalhe 13'), findsOneWidget);
+    });
+
+    // Tamanhos de tela conferidos: notebook comum e o menor desktop usual.
+    for (final tela in const [Size(1366, 768), Size(1280, 720)]) {
+      for (final quantidade in const [1, 3]) {
+        testWidgets(
+            'em ${tela.width.toInt()} x ${tela.height.toInt()}, com $quantidade item(ns), cada card ocupa a largura da aba, '
+            'alinhado ao botão "Nova sugestão"', (tester) async {
+          tester.view.physicalSize = tela;
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+          mockAuthApiRotas({
+            'GET /notificacoes': _semNotificacoes,
+            'GET /sugestoes/minhas': RespostaFalsa(_pagina([
+              // Textos curtos: sem a correção, o card ficava com a largura do conteúdo.
+              for (var i = 0; i < quantidade; i++) _sugestao(id: 20 + i, titulo: 'T$i', texto: 'Curto.', universidade: null),
+            ])),
+          });
+
+          await pumpHistorico(tester);
+
+          final botao = tester.getRect(find.widgetWithText(GJButton, 'Nova sugestão'));
+          final secao = tester.getRect(find.byType(HistoricoSugestoesSecao));
+          final cards = find.byType(SugestaoCard);
+          expect(cards, findsNWidgets(quantidade));
+          for (var i = 0; i < quantidade; i++) {
+            final card = tester.getRect(cards.at(i));
+            expect(card.left, moreOrLessEquals(secao.left), reason: 'card $i não começa na margem da aba');
+            expect(card.right, moreOrLessEquals(botao.right), reason: 'card $i não termina no botão');
+          }
+        });
+      }
+    }
+
+    testWidgets('texto longo sem espaços quebra dentro do card, em até três linhas com reticências', (tester) async {
+      tester.view.physicalSize = const Size(1280, 720);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final palavra = 'Pneumoultramicroscopicossilicovulcanoconiotico' * 6;
+      const link = 'https://www.exemplo.com.br/um/caminho/muito/comprido/sem/espacos/para/testar/a/quebra/da/linha/'
+          'dentro/do/card/de/sugestao/do/perfil/do/aluno/no/guia/jovem/com/varias/pastas/e/mais/pastas/e/ainda/mais';
+      mockAuthApiRotas({
+        'GET /notificacoes': _semNotificacoes,
+        'GET /sugestoes/minhas': RespostaFalsa(_pagina([
+          _sugestao(
+            titulo: palavra,
+            texto: '$link $palavra $palavra',
+            status: 'APROVADA',
+            resposta: '$link$palavra$palavra',
+            avaliadoEm: '2026-11-12T12:00:00.000Z',
+          ),
+        ])),
+      });
+
+      await pumpHistorico(tester);
+
+      expect(tester.takeException(), isNull);
+      final card = tester.getRect(find.byType(SugestaoCard));
+      for (final chave in const ['sugestao-card-titulo', 'sugestao-card-texto', 'sugestao-card-resposta']) {
+        final texto = find.byKey(Key(chave));
+        final caixa = tester.getRect(texto);
+        expect(caixa.right, lessThanOrEqualTo(card.right), reason: '$chave estourou a largura do card');
+        final paragrafo = tester.renderObject<RenderParagraph>(find.descendant(of: texto, matching: find.byType(RichText)));
+        // Quebrou em várias linhas (não cortou numa linha só) e parou em três.
+        expect(paragrafo.size.height, greaterThan(paragrafo.text.style!.fontSize! * 2), reason: '$chave não quebrou');
+        // O texto completo é mais alto que o mostrado: parou em três linhas.
+        final completo = TextPainter(text: paragrafo.text, textDirection: TextDirection.ltr, textScaleFactor: paragrafo.textScaleFactor)
+          ..layout(maxWidth: paragrafo.size.width);
+        expect(completo.height, greaterThan(paragrafo.size.height), reason: '$chave não parou em três linhas');
+        expect((tester.widget<Text>(texto)).maxLines, 3);
+      }
     });
 
     testWidgets('sem sugestões, mostra o estado vazio com o atalho para enviar', (tester) async {

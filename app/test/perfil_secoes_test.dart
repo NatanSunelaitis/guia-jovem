@@ -1,9 +1,11 @@
 import 'package:app/features/auth/data/session_controller.dart';
 import 'package:app/features/auth/domain/usuario_sessao.dart';
 import 'package:app/features/perfil/presentation/perfil_page.dart';
+import 'package:app/features/perfil/presentation/widgets/minhas_avaliacoes_secao.dart';
 import 'package:app/features/perfil/presentation/widgets/pesquisas_salvas_secao.dart';
 import 'package:app/shared/widgets/gj_skeleton.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -251,6 +253,38 @@ void main() {
       await tester.tap(find.text('Ver universidade'));
       await tester.pumpAndSettle();
       expect(find.text('Detalhe da Fatec'), findsOneWidget);
+    });
+
+    testWidgets('um item ocupa a largura da aba e o comentário longo para em três linhas', (tester) async {
+      tester.view.physicalSize = const Size(1366, 768);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      mockAuthApiRotas(rotas(RespostaFalsa(_pagina([
+        {
+          'id': 50,
+          'universidadeId': 7,
+          'nota': 4,
+          'comentario': 'https://www.exemplo.com.br/' + 'comentario-sem-espacos-' * 40,
+          'criadoEm': '2026-11-16T12:00:00.000Z',
+          'universidade': {'id': 7, 'nomeFantasia': 'Fatec Sorocaba', 'logoUrl': null},
+        },
+      ]))));
+      await pumpPerfil(tester);
+      await abrirAba(tester, 'Avaliações');
+
+      expect(tester.takeException(), isNull);
+      final comentario = find.byKey(const Key('avaliacao-comentario'));
+      expect(tester.widget<Text>(comentario).maxLines, 3);
+      final paragrafo = tester.renderObject<RenderParagraph>(find.descendant(of: comentario, matching: find.byType(RichText)));
+      // O texto completo é mais alto que o mostrado: parou em três linhas.
+      final completo = TextPainter(text: paragrafo.text, textDirection: TextDirection.ltr, textScaleFactor: paragrafo.textScaleFactor)
+        ..layout(maxWidth: paragrafo.size.width);
+      expect(completo.height, greaterThan(paragrafo.size.height));
+      // O card (Container com largura total) vai de uma margem à outra da seção.
+      final secao = tester.getRect(find.byType(MinhasAvaliacoesSecao));
+      final cartao = find.ancestor(of: comentario, matching: find.byType(Container)).last;
+      expect(tester.getRect(cartao).left, moreOrLessEquals(secao.left));
+      expect(tester.getRect(cartao).right, moreOrLessEquals(secao.right));
     });
 
     testWidgets('estado vazio', (tester) async {

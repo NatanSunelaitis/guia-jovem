@@ -62,7 +62,9 @@ class _HistoricoSugestoesSecaoState extends State<HistoricoSugestoesSecao> {
             acaoLabel: 'Enviar uma sugestão',
             onAcao: _novaSugestao,
           ),
+          // Lista (um card por linha): cada card ocupa a largura da aba.
           construir: (lista) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (final sugestao in lista)
                 Padding(

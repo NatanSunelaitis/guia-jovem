@@ -105,8 +105,11 @@ class GJNotificationBell extends StatelessWidget {
                                         notificacao.titulo,
                                         style: GJTypography.bodySm(color: GJColors.textPrimary)
                                             .copyWith(fontWeight: FontWeight.w600),
+                                        maxLines: 3,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                      Text(notificacao.mensagem, style: GJTypography.bodySm()),
+                                      // A mensagem inteira fica na tela de destino da notificação.
+                                      Text(notificacao.mensagem, style: GJTypography.bodySm(), maxLines: 3, overflow: TextOverflow.ellipsis),
                                       const SizedBox(height: GJSpace.s1),
                                       Text(notificacao.tempoRelativo, style: GJTypography.caption()),
                                     ],

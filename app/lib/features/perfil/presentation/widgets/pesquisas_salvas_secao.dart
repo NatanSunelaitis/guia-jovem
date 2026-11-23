@@ -77,6 +77,7 @@ class _PesquisasSalvasSecaoState extends State<PesquisasSalvasSecao> {
         onAcao: () => context.go('/universidades'),
       ),
       construir: (lista) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final pesquisa in lista)
             Padding(
@@ -127,7 +128,7 @@ class _ItemPesquisa extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(pesquisa.nome, style: GJTypography.h4()),
+                Text(pesquisa.nome, style: GJTypography.h4(), maxLines: 3, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: GJSpace.s1),
                 Text('Salva em ${formatarData(pesquisa.criadoEm)}', style: GJTypography.caption()),
                 const SizedBox(height: GJSpace.s2),
