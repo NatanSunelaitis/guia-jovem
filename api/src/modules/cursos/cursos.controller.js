@@ -39,6 +39,22 @@ async function obterPorNome(req, res, next) {
   }
 }
 
+async function nomes(req, res, next) {
+  try {
+    res.json({ data: await service.sugerirNomes(prisma, req.query), meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
+async function nomesParecidos(req, res, next) {
+  try {
+    res.json({ data: await adminService.nomesParecidos(prisma), meta: {} });
+  } catch (erro) {
+    next(erro);
+  }
+}
+
 async function listarAdmin(req, res, next) {
   try {
     res.json(await adminService.listarAdmin(prisma, req.query));
@@ -125,6 +141,8 @@ async function areas(req, res, next) {
 
 module.exports = {
   areas,
+  nomes,
+  nomesParecidos,
   listar,
   destaques,
   obter,

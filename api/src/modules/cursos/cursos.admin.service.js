@@ -1,4 +1,5 @@
 const AppError = require('../../shared/errors/AppError');
+const { gruposDeNomesParecidos } = require('../../shared/utils/nomesCurso');
 const { buildMeta, parsePagination } = require('../../shared/utils/pagination');
 
 /**
@@ -51,6 +52,26 @@ async function listarAdmin(prisma, query) {
   ]);
 
   return { data: cursos.map(paraAdmin), meta: buildMeta({ page, pageSize, total }) };
+}
+
+/**
+ * Filtro "nomes parecidos": cursos ativos de qualquer universidade com
+ * grafias próximas (abreviações e pequenas diferenças), agrupados, para o
+ * administrador padronizar editando o nome.
+ */
+async function nomesParecidos(prisma) {
+  const cursos = await prisma.curso.findMany({
+    where: { ativo: true },
+    include: INCLUDE_ADMIN,
+    orderBy: { id: 'asc' },
+  });
+  return gruposDeNomesParecidos(cursos).map((grupo) => ({
+    nomeSugerido: grupo.nomeSugerido,
+    grafias: grupo.grafias,
+    cursos: grupo.cursos
+      .map(paraAdmin)
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR') || a.universidade.nomeFantasia.localeCompare(b.universidade.nomeFantasia, 'pt-BR')),
+  }));
 }
 
 async function buscarAtivo(prisma, id) {
@@ -111,4 +132,4 @@ async function excluir(prisma, id, req) {
   });
 }
 
-module.exports = { listarAdmin, obterAdmin, criar, atualizar, excluir };
+module.exports = { listarAdmin, nomesParecidos, obterAdmin, criar, atualizar, excluir };

@@ -182,3 +182,76 @@ describe('DELETE /api/v1/cursos/:id', () => {
     expect(resposta.status).toBe(403);
   });
 });
+
+describe('GET /api/v1/cursos/nomes (sugestão de nomes no cadastro)', () => {
+  const nomes = [
+    { id: 1, nome: 'Pedagogia', areaCurso: 'Humanas', grau: 'Licenciatura', universidadeId: 1 },
+    { id: 2, nome: 'pedagogia', areaCurso: 'Humanas', grau: 'Licenciatura', universidadeId: 2 },
+    { id: 3, nome: 'Pedagogia Empresarial', areaCurso: 'Humanas', grau: 'Bacharelado', universidadeId: 3 },
+    { id: 4, nome: 'Psicopedagogia', areaCurso: 'Humanas', grau: 'Bacharelado', universidadeId: 3 },
+  ];
+
+  it('agrupa os nomes, conta as universidades e põe os mais usados primeiro (200)', async () => {
+    prisma.curso.findMany.mockResolvedValue(nomes);
+
+    const resposta = await comAdmin(request(app).get('/api/v1/cursos/nomes?q=pedag'));
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data).toEqual([
+      { nome: 'Pedagogia', totalUniversidades: 2 },
+      { nome: 'Pedagogia Empresarial', totalUniversidades: 1 },
+      { nome: 'Psicopedagogia', totalUniversidades: 1 },
+    ]);
+    expect(prisma.curso.findMany.mock.calls[0][0].where).toEqual({
+      ativo: true,
+      universidade: { status: 'A' },
+      nome: { contains: 'pedag' },
+    });
+  });
+
+  it('a universidade também recebe sugestões; aluno e visitante não', async () => {
+    prisma.curso.findMany.mockResolvedValue(nomes);
+
+    const universidade = await request(app).get('/api/v1/cursos/nomes?q=Ped').set('Authorization', `Bearer ${TOKEN_UNIVERSIDADE}`);
+    const aluno = await request(app).get('/api/v1/cursos/nomes?q=Ped').set('Authorization', `Bearer ${TOKEN_ALUNO}`);
+    const visitante = await request(app).get('/api/v1/cursos/nomes?q=Ped');
+
+    expect(universidade.status).toBe(200);
+    expect(aluno.status).toBe(403);
+    expect(visitante.status).toBe(401);
+  });
+
+  it('responde 400 sem o texto digitado', async () => {
+    const resposta = await comAdmin(request(app).get('/api/v1/cursos/nomes'));
+
+    expect(resposta.status).toBe(400);
+  });
+});
+
+describe('GET /api/v1/cursos/administracao/nomes-parecidos', () => {
+  it('agrupa as grafias próximas com o nome mais usado como sugestão (200)', async () => {
+    prisma.curso.findMany.mockResolvedValue([
+      cursoFake({ id: 30 }),
+      cursoFake({ id: 31, nome: 'Analise e Desenvolvimento de Sistemas', universidade: { id: 8, nomeFantasia: 'UniVale' } }),
+      cursoFake({ id: 32, nome: 'ADS', universidade: { id: 9, nomeFantasia: 'Faculdade Sul' } }),
+      cursoFake({ id: 33, nome: 'Pedagogia' }),
+      cursoFake({ id: 34, nome: 'Pedagogia', universidade: { id: 8, nomeFantasia: 'UniVale' } }),
+    ]);
+
+    const resposta = await comAdmin(request(app).get('/api/v1/cursos/administracao/nomes-parecidos'));
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.data).toHaveLength(1);
+    expect(resposta.body.data[0]).toMatchObject({ nomeSugerido: 'Análise e Desenvolvimento de Sistemas', grafias: 3 });
+    expect(resposta.body.data[0].cursos.map((c) => c.id)).toEqual([32, 31, 30]);
+    expect(prisma.curso.findMany.mock.calls[0][0].where).toEqual({ ativo: true });
+  });
+
+  it('só o administrador acessa', async () => {
+    const resposta = await request(app)
+      .get('/api/v1/cursos/administracao/nomes-parecidos')
+      .set('Authorization', `Bearer ${TOKEN_UNIVERSIDADE}`);
+
+    expect(resposta.status).toBe(403);
+  });
+});

@@ -14,6 +14,7 @@ const router = Router();
 
 // RF19 (T24.4): cadastro de cursos pelo administrador. Antes de /:id.
 router.get('/administracao', auth, requireRole('D'), validate(schemas.adminListQuerySchema), controller.listarAdmin);
+router.get('/administracao/nomes-parecidos', auth, requireRole('D'), controller.nomesParecidos);
 router.get(
   '/administracao/:id',
   auth,
@@ -25,6 +26,8 @@ router.get(
 router.get('/', validate(schemas.listQuerySchema), controller.listar);
 router.get('/destaques', validate(schemas.destaquesQuerySchema), controller.destaques);
 router.get('/areas', controller.areas);
+// Sugestão de nomes no cadastro de curso (quem cadastra: administrador e universidade).
+router.get('/nomes', auth, requireRole('D', 'U'), validate(schemas.nomesQuerySchema), controller.nomes);
 router.get('/nome/:nome', validate(schemas.nomeParamSchema), controller.obterPorNome);
 router.get('/:id', validate(schemas.idParamSchema), controller.obter);
 

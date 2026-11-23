@@ -32,6 +32,14 @@ const destaquesQuerySchema = {
   }),
 };
 
+// Sugestão de nomes no cadastro de curso (painel da universidade e do administrador).
+const nomesQuerySchema = {
+  query: z.object({
+    q: z.string().trim().min(1, 'Digite parte do nome').max(100),
+    limite: z.coerce.number().int().positive().max(20).optional(),
+  }),
+};
+
 // Texto opcional: vazio vira null, para o formulário poder limpar o campo.
 const textoOpcional = (max) =>
   z
@@ -116,6 +124,7 @@ module.exports = {
   nomeParamSchema,
   listQuerySchema,
   destaquesQuerySchema,
+  nomesQuerySchema,
   adminListQuerySchema,
   criarCursoSchema,
   atualizarCursoSchema,

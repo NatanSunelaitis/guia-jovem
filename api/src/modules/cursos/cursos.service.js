@@ -172,8 +172,30 @@ async function obterPorNome(prisma, nome, req) {
   };
 }
 
+const SUGESTOES_PADRAO = 8;
+
+/**
+ * Nomes de curso já cadastrados que contêm o texto digitado (sem diferenciar
+ * maiúsculas e acentos), com quantas universidades usam cada um: os mais
+ * usados primeiro. Só cursos ativos de universidades aprovadas.
+ */
+async function sugerirNomes(prisma, { q, limite = SUGESTOES_PADRAO }) {
+  const busca = normalizarNome(q);
+  const cursos = await repo.nomesAtivos(prisma, buildWhere({ q: q.replace(/s+/g, ' ').trim() }));
+  return agruparPorNome(cursos)
+    .filter((grupo) => grupo.chave.includes(busca))
+    .sort(
+      (a, b) =>
+        b.totalUniversidades - a.totalUniversidades ||
+        Number(b.chave.startsWith(busca)) - Number(a.chave.startsWith(busca)) ||
+        a.nome.localeCompare(b.nome, 'pt-BR'),
+    )
+    .slice(0, limite)
+    .map(({ nome, totalUniversidades }) => ({ nome, totalUniversidades }));
+}
+
 function listarAreas(prisma) {
   return repo.areas(prisma);
 }
 
-module.exports = { listar, listarDestaques, listarAreas, obterDetalhe, obterPorNome };
+module.exports = { listar, listarDestaques, listarAreas, sugerirNomes, obterDetalhe, obterPorNome };
