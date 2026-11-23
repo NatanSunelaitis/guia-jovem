@@ -116,7 +116,7 @@ void main() {
     expect(find.text('Em quais universidades este curso está disponível'), findsOneWidget);
     // Resumo do topo.
     expect(find.text('Bacharelado'), findsWidgets);
-    expect(find.text('Presencial e EAD'), findsOneWidget);
+    expect(find.text('EAD e Presencial'), findsOneWidget);
     expect(find.text('8 a 10 semestres'), findsOneWidget);
     expect(find.text('2 universidades em 2 cidades'), findsOneWidget);
 

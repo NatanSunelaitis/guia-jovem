@@ -58,15 +58,21 @@ function agruparPorNome(cursos) {
   }
 
   return [...grupos.entries()].map(([chave, itens]) => {
-    const contagemGraus = new Map();
-    for (const { grau } of itens) {
-      if (grau) contagemGraus.set(grau, (contagemGraus.get(grau) ?? 0) + 1);
+    // Graus pelo número de universidades que oferecem cada um (como na
+    // página do curso); no empate, em ordem alfabética.
+    const universidadesPorGrau = new Map();
+    for (const { grau, universidadeId } of itens) {
+      if (!grau) continue;
+      if (!universidadesPorGrau.has(grau)) universidadesPorGrau.set(grau, new Set());
+      universidadesPorGrau.get(grau).add(universidadeId);
     }
     return {
       chave,
       nome: grafiaMaisUsada(itens.map((c) => c.nome)),
       areaCurso: maisFrequente(itens.map((c) => c.areaCurso)),
-      graus: [...contagemGraus.entries()].sort((a, b) => b[1] - a[1]).map(([grau]) => grau),
+      graus: [...universidadesPorGrau.entries()]
+        .sort((a, b) => b[1].size - a[1].size || a[0].localeCompare(b[0], 'pt-BR'))
+        .map(([grau]) => grau),
       totalOfertas: itens.length,
       totalUniversidades: new Set(itens.map((c) => c.universidadeId)).size,
       cursos: itens,

@@ -224,7 +224,8 @@ String? duracaoDasOfertas(List<OfertaCurso> ofertas) {
 }
 
 /// Quantas universidades oferecem cada valor do [campo] (grau, modalidade),
-/// do mais para o menos frequente; no empate, na ordem em que aparecem.
+/// do mais para o menos frequente; no empate, em ordem alfabética (a mesma
+/// ordem dos graus no card da lista de cursos).
 List<(String, int)> distribuicaoPorUniversidade(List<OfertaCurso> ofertas, String? Function(OfertaCurso) campo) {
   final porValor = <String, Set<int>>{};
   for (final oferta in ofertas) {
@@ -233,8 +234,7 @@ List<(String, int)> distribuicaoPorUniversidade(List<OfertaCurso> ofertas, Strin
     porValor.putIfAbsent(valor, () => <int>{}).add(oferta.universidade.id);
   }
   final itens = [for (final e in porValor.entries) (e.key, e.value.length)];
-  final ordem = porValor.keys.toList();
-  itens.sort((a, b) => b.$2 != a.$2 ? b.$2.compareTo(a.$2) : ordem.indexOf(a.$1).compareTo(ordem.indexOf(b.$1)));
+  itens.sort((a, b) => b.$2 != a.$2 ? b.$2.compareTo(a.$2) : a.$1.compareTo(b.$1));
   return itens;
 }
 
