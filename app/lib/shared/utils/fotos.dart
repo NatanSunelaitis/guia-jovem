@@ -45,7 +45,10 @@ const Set<String> fotosProgramas = {
 };
 
 /// Programas cujo nome cadastrado não coincide com o arquivo da foto.
-const Map<String, String> _apelidosProgramas = {'provao-paulista-seriado': 'provao-paulista'};
+const Map<String, String> _apelidosProgramas = {
+  'provao-paulista-seriado': 'provao-paulista',
+  'vestibular-fatec': 'vestibular',
+};
 
 const _acentos = {
   'á': 'a', 'à': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a',

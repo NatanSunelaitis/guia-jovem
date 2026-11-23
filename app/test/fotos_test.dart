@@ -83,7 +83,7 @@ void main() {
 
     final programas = RegExp(r"sigla: '([^']+)',\s+nome: '([^']+)'").allMatches(dados).toList();
     final bolsas = RegExp(r"nome: '(Bolsa [^']+)',\s+sigla: (?:'([^']+)'|null)").allMatches(dados).toList();
-    expect(programas.length, 8);
+    expect(programas.length, 9);
     expect(bolsas.length, 2);
     for (final p in programas) {
       expect(fotoPrograma(nome: p[2]!, sigla: p[1]), endsWith('.jpg'), reason: p[2]);

@@ -969,9 +969,9 @@ As regras, as datas e as vagas mudam a cada edição. Confira sempre o edital no
     comoFunciona: null,
     requisitos: null,
     linkOficial: 'https://vestibular.fatec.sp.gov.br/',
-    // A foto segue a regra dos demais programas (fotoPrograma): sem foto com
-    // o nome dele, vale a imagem cadastrada, aqui a foto de vestibular.
-    imagemUrl: 'assets/fotos/programas/vestibular.jpg',
+    // A foto segue a regra dos demais programas (fotoPrograma): o apelido
+    // "vestibular-fatec" usa a foto de vestibular.
+    imagemUrl: 'assets/img/programas/vestibular.svg',
     eventos: [],
   },
   {
