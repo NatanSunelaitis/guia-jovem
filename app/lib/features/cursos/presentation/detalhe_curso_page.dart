@@ -14,11 +14,11 @@ import '../../../shared/utils/fotos.dart';
 import '../../../shared/utils/plural.dart';
 import '../../../shared/utils/programa_estilo.dart';
 import '../../../shared/utils/sigla_instituicao.dart';
-import '../../../shared/utils/texto_formatado.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
 import '../../../shared/widgets/gj_lista_paginada.dart';
 import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
+import '../../../shared/widgets/gj_tabs.dart';
 import '../../../shared/widgets/gj_tag.dart';
 import '../../../shared/widgets/gj_texto_formatado.dart';
 import '../../universidades/domain/universidade.dart' show ProgramaTag;
@@ -85,7 +85,9 @@ class _DetalheCursoPageState extends State<DetalheCursoPage> {
 /// Cards de universidade por página quando o curso tem muitas ofertas.
 const _porPagina = 8;
 
-class _Conteudo extends StatelessWidget {
+/// Corpo da página: cabeçalho com o resumo, "Sobre o curso" e os cards das
+/// universidades, com filtros por grau e modalidade quando eles variam.
+class _Conteudo extends StatefulWidget {
   const _Conteudo({required this.nome, required this.areaCurso, required this.ofertas, required this.porNome});
 
   final String nome;
@@ -94,9 +96,23 @@ class _Conteudo extends StatelessWidget {
   final bool porNome;
 
   @override
+  State<_Conteudo> createState() => _ConteudoState();
+}
+
+class _ConteudoState extends State<_Conteudo> {
+  String? _grau;
+  String? _modalidade;
+
+  @override
   Widget build(BuildContext context) {
     final isMobile = MediaQuery.sizeOf(context).width < 600;
-    final comum = descricaoComum(ofertas);
+    final ofertas = widget.ofertas;
+    final graus = distribuicaoPorUniversidade(ofertas, (o) => o.grau);
+    final modalidades = distribuicaoPorUniversidade(ofertas, (o) => o.modalidade);
+    final filtradas = [
+      for (final o in ofertas)
+        if ((_grau == null || o.grau == _grau) && (_modalidade == null || o.modalidade == _modalidade)) o,
+    ];
 
     return GJPageContainer(
       child: Padding(
@@ -105,14 +121,14 @@ class _Conteudo extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _CabecalhoCurso(
-              imagem: fotoCurso(nome: nome, areaCurso: areaCurso),
+              imagem: fotoCurso(nome: widget.nome, areaCurso: widget.areaCurso),
               children: [
-                if (areaCurso != null) ...[
-                  Text(areaCurso!.toUpperCase(), style: GJTypography.eyebrow()),
+                if (widget.areaCurso != null) ...[
+                  Text(widget.areaCurso!.toUpperCase(), style: GJTypography.eyebrow()),
                   const SizedBox(height: GJSpace.s2),
                 ],
-                Text(nome, style: GJTypography.display(size: isMobile ? 32 : 44)),
-                if (porNome) ...[
+                Text(widget.nome, style: GJTypography.display(size: isMobile ? 32 : 44)),
+                if (widget.porNome) ...[
                   const SizedBox(height: GJSpace.s2),
                   Text(
                     'Em quais universidades este curso está disponível',
@@ -120,64 +136,64 @@ class _Conteudo extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: GJSpace.s5),
-                _ResumoCurso(areaCurso: areaCurso, ofertas: ofertas),
+                _ResumoCurso(areaCurso: widget.areaCurso, ofertas: ofertas),
               ],
             ),
-            if (comum != null) ...[
-              const SizedBox(height: GJSpace.s8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(GJSpace.s8),
-                decoration: BoxDecoration(color: GJColors.surfaceLow, borderRadius: GJRadius.borderXl),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Sobre o curso', style: GJTypography.h2(size: 24)),
-                    const SizedBox(height: GJSpace.s4),
-                    GJTextoFormatado(comum),
-                  ],
-                ),
-              ),
-            ],
+            const SizedBox(height: GJSpace.s8),
+            _SobreOCurso(ofertas: ofertas),
             const SizedBox(height: GJSpace.s8),
             Text(
               ofertas.length == 1 ? 'Universidade que oferece este curso' : 'Universidades que oferecem este curso',
               style: GJTypography.h2(),
             ),
             const SizedBox(height: GJSpace.s4),
+            if (graus.length > 1) ...[
+              const _AvisoGraus(),
+              const SizedBox(height: GJSpace.s4),
+              _FiltroCards(
+                rotulo: 'Grau',
+                chave: 'grau',
+                todos: 'Todos os graus',
+                opcoes: graus,
+                selecionado: _grau,
+                onMudar: (valor) => setState(() => _grau = valor),
+              ),
+            ],
+            if (modalidades.length > 1)
+              _FiltroCards(
+                rotulo: 'Modalidade',
+                chave: 'modalidade',
+                todos: 'Todas as modalidades',
+                opcoes: modalidades,
+                selecionado: _modalidade,
+                onMudar: (valor) => setState(() => _modalidade = valor),
+              ),
             if (ofertas.isEmpty)
               const GJEmptyState(titulo: 'Nenhuma universidade oferece este curso no momento')
-            else if (ofertas.length <= _porPagina)
-              for (final oferta in ofertas)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: GJSpace.s4),
-                  child: _CardOferta(oferta: oferta, mostrarDescricao: comum == null),
-                )
+            else if (filtradas.isEmpty)
+              const GJEmptyState(titulo: 'Nenhuma universidade com esses filtros', texto: 'Escolha outro grau ou outra modalidade.')
+            else if (filtradas.length <= _porPagina)
+              for (final oferta in filtradas)
+                Padding(padding: const EdgeInsets.only(bottom: GJSpace.s4), child: _CardOferta(oferta: oferta))
             else
               // Muitas universidades: 8 cards por página, com busca. O resumo
               // do topo continua considerando todas as ofertas.
               GJListaPaginada<OfertaCurso>(
+                key: ValueKey('ofertas-${_grau ?? ''}-${_modalidade ?? ''}'),
                 carregar: ({required pagina, busca, filtro}) => paginarLocal(
-                  ofertas,
+                  filtradas,
                   pagina: pagina,
                   porPagina: _porPagina,
                   busca: busca,
-                  filtro: filtro,
                   texto: (oferta) => [oferta.universidade.nomeFantasia, oferta.universidade.cidade, for (final c in oferta.campus) c.cidade].join(' '),
-                  categoria: (oferta) => oferta.modalidade,
                 ),
                 dicaBusca: 'Buscar universidade ou cidade',
-                rotuloFiltro: 'Modalidade',
-                opcoesFiltro: {for (final o in ofertas) if (o.modalidade != null) o.modalidade!}.toList()..sort(),
                 descreverTotal: (total) => contagem(total, 'universidade', 'universidades'),
                 textoVazio: 'Nenhuma universidade encontrada com essa busca',
                 construirItens: (context, pagina) => Column(
                   children: [
                     for (final oferta in pagina)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: GJSpace.s4),
-                        child: _CardOferta(oferta: oferta, mostrarDescricao: comum == null),
-                      ),
+                      Padding(padding: const EdgeInsets.only(bottom: GJSpace.s4), child: _CardOferta(oferta: oferta)),
                   ],
                 ),
               ),
@@ -188,7 +204,165 @@ class _Conteudo extends StatelessWidget {
   }
 }
 
-/// Resumo no topo: área, graus, modalidades, duração e onde o curso é dado.
+/// Aviso curto quando o mesmo curso é oferecido em mais de um grau.
+class _AvisoGraus extends StatelessWidget {
+  const _AvisoGraus();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      key: const Key('aviso-graus'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(GJSpace.s4),
+      decoration: BoxDecoration(color: GJColors.primaryFixed, borderRadius: GJRadius.borderLg),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Symbols.info, size: 20, color: GJColors.primary),
+          const SizedBox(width: GJSpace.s3),
+          Expanded(
+            child: Text(
+              'Este curso é oferecido em formatos diferentes. O grau muda o diploma, a duração e onde você pode atuar: '
+              'confira o de cada universidade.',
+              style: GJTypography.bodySm().copyWith(color: GJColors.primaryContainerOn),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Filtro sobre os cards (grau ou modalidade), com quantas universidades
+/// oferecem cada opção.
+class _FiltroCards extends StatelessWidget {
+  const _FiltroCards({
+    required this.rotulo,
+    required this.chave,
+    required this.todos,
+    required this.opcoes,
+    required this.selecionado,
+    required this.onMudar,
+  });
+
+  final String rotulo;
+  final String chave;
+  final String todos;
+  final List<(String, int)> opcoes;
+  final String? selecionado;
+  final ValueChanged<String?> onMudar;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: GJSpace.s4),
+      child: Wrap(
+        spacing: GJSpace.s2,
+        runSpacing: GJSpace.s2,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          SizedBox(width: GJSpace.s24, child: Text(rotulo, style: GJTypography.label(color: GJColors.textPrimary))),
+          ChoiceChip(
+            key: Key('filtro-$chave-todos'),
+            label: Text(todos),
+            selected: selecionado == null,
+            onSelected: (_) => onMudar(null),
+          ),
+          for (final (valor, total) in opcoes)
+            ChoiceChip(
+              key: Key('filtro-$chave-$valor'),
+              label: Text('$valor ($total)'),
+              selected: selecionado == valor,
+              onSelected: (marcado) => onMudar(marcado ? valor : null),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// "Sobre o curso": sempre no mesmo lugar, acima dos cards. Uma descrição
+/// (ou todas iguais) aparece inteira; descrições diferentes ficam em abas
+/// com a sigla de cada universidade que descreveu o curso.
+class _SobreOCurso extends StatefulWidget {
+  const _SobreOCurso({required this.ofertas});
+
+  final List<OfertaCurso> ofertas;
+
+  @override
+  State<_SobreOCurso> createState() => _SobreOCursoState();
+}
+
+class _SobreOCursoState extends State<_SobreOCurso> {
+  int _aba = 0;
+
+  /// Sigla da aba; a mesma universidade com duas ofertas leva a modalidade.
+  List<String> _rotulos(List<OfertaCurso> ofertas) {
+    final siglas = [for (final o in ofertas) siglaDaInstituicao(o.universidade.nomeFantasia)];
+    return [
+      for (var i = 0; i < ofertas.length; i++)
+        siglas.where((s) => s == siglas[i]).length > 1 && ofertas[i].modalidade != null
+            ? '${siglas[i]} (${ofertas[i].modalidade})'
+            : siglas[i],
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final comDescricao = ofertasComDescricao(widget.ofertas);
+    final unica = descricaoComum(widget.ofertas);
+    final Widget conteudo;
+
+    if (comDescricao.isEmpty) {
+      conteudo = Text(
+        'As universidades ainda não descreveram este curso. Veja abaixo onde ele é oferecido.',
+        key: const Key('sobre-sem-descricao'),
+        style: GJTypography.body().copyWith(color: GJColors.textSecondary),
+      );
+    } else if (unica != null) {
+      conteudo = GJTextoFormatado(unica);
+    } else {
+      final aba = _aba.clamp(0, comDescricao.length - 1);
+      final selecionada = comDescricao[aba];
+      conteudo = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Descrição informada por cada instituição', style: GJTypography.bodySm()),
+          const SizedBox(height: GJSpace.s3),
+          GJTabs(
+            key: const Key('abas-descricao'),
+            tabs: [for (final rotulo in _rotulos(comDescricao)) GJTabItem(label: rotulo)],
+            selectedIndex: aba,
+            onChanged: (indice) => setState(() => _aba = indice),
+          ),
+          const SizedBox(height: GJSpace.s4),
+          Text(selecionada.universidade.nomeFantasia, style: GJTypography.label(color: GJColors.textPrimary)),
+          const SizedBox(height: GJSpace.s2),
+          GJTextoFormatado(selecionada.descricao!, key: ValueKey('descricao-${selecionada.cursoId}')),
+        ],
+      );
+    }
+
+    return Container(
+      key: const Key('sobre-o-curso'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(GJSpace.s8),
+      decoration: BoxDecoration(color: GJColors.surfaceLow, borderRadius: GJRadius.borderXl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Sobre o curso', style: GJTypography.h2(size: 24)),
+          const SizedBox(height: GJSpace.s4),
+          conteudo,
+        ],
+      ),
+    );
+  }
+}
+
+/// Resumo no topo: área, graus, modalidades, duração, nota do MEC e onde o
+/// curso é dado. Valores que variam entre as universidades aparecem como
+/// faixa ou lista, com a distribuição por grau e por modalidade.
 class _ResumoCurso extends StatelessWidget {
   const _ResumoCurso({required this.areaCurso, required this.ofertas});
 
@@ -197,21 +371,36 @@ class _ResumoCurso extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final graus = valoresDistintos(ofertas.map((o) => o.grau));
-    final modalidades = valoresDistintos(ofertas.map((o) => o.modalidade));
+    final graus = distribuicaoPorUniversidade(ofertas, (o) => o.grau);
+    final modalidades = distribuicaoPorUniversidade(ofertas, (o) => o.modalidade);
     final duracao = duracaoDasOfertas(ofertas);
+    final notaMec = notaMecDasOfertas(ofertas);
     final universidades = {for (final o in ofertas) o.universidade.id}.length;
     final cidades = cidadesDasOfertas(ofertas).length;
 
-    final fatos = <(IconData, String, String)>[
-      if (areaCurso != null) (Symbols.category, 'Área', areaCurso!),
-      if (graus != null) (Symbols.school, graus.contains(' e ') ? 'Graus' : 'Grau', graus),
-      if (modalidades != null) (Symbols.devices, modalidades.contains(' e ') ? 'Modalidades' : 'Modalidade', modalidades),
-      if (duracao != null) (Symbols.schedule, 'Duração', duracao),
+    final fatos = <(IconData, String, String, String?)>[
+      if (areaCurso != null) (Symbols.category, 'Área', areaCurso!, null),
+      if (graus.isNotEmpty)
+        (
+          Symbols.school,
+          graus.length > 1 ? 'Graus' : 'Grau',
+          valoresDistintos(graus.map((g) => g.$1))!,
+          textoDistribuicao(graus),
+        ),
+      if (modalidades.isNotEmpty)
+        (
+          Symbols.devices,
+          modalidades.length > 1 ? 'Modalidades' : 'Modalidade',
+          valoresDistintos(modalidades.map((m) => m.$1))!,
+          textoDistribuicao(modalidades),
+        ),
+      if (duracao != null) (Symbols.schedule, 'Duração', duracao, null),
+      if (notaMec != null) (Symbols.verified, 'Nota do MEC', notaMec, null),
       (
         Symbols.location_on,
         'Onde é oferecido',
         '${contagem(universidades, 'universidade', 'universidades')} em ${contagem(cidades, 'cidade', 'cidades')}',
+        null,
       ),
     ];
 
@@ -219,7 +408,7 @@ class _ResumoCurso extends StatelessWidget {
       spacing: GJSpace.s3,
       runSpacing: GJSpace.s3,
       children: [
-        for (final (icone, rotulo, valor) in fatos)
+        for (final (icone, rotulo, valor, detalhe) in fatos)
           Container(
             key: Key('resumo-$rotulo'),
             padding: const EdgeInsets.symmetric(horizontal: GJSpace.s4, vertical: GJSpace.s3),
@@ -236,6 +425,7 @@ class _ResumoCurso extends StatelessWidget {
                     children: [
                       Text(rotulo, style: GJTypography.caption()),
                       Text(valor, style: GJTypography.label(color: GJColors.textPrimary)),
+                      if (detalhe != null) Text(detalhe, style: GJTypography.caption()),
                     ],
                   ),
                 ),
@@ -250,10 +440,9 @@ class _ResumoCurso extends StatelessWidget {
 /// Card de uma universidade que oferece o curso. Tocar no card leva ao
 /// detalhe do primeiro campus da oferta; cada campus leva ao dele.
 class _CardOferta extends StatelessWidget {
-  const _CardOferta({required this.oferta, required this.mostrarDescricao});
+  const _CardOferta({required this.oferta});
 
   final OfertaCurso oferta;
-  final bool mostrarDescricao;
 
   @override
   Widget build(BuildContext context) {
@@ -264,6 +453,24 @@ class _CardOferta extends StatelessWidget {
     final identificacao = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // O grau em destaque: o mesmo curso pode ser bacharelado numa
+        // universidade e licenciatura ou tecnólogo em outra.
+        if (oferta.grau != null) ...[
+          Container(
+            key: Key('grau-oferta-${oferta.cursoId}'),
+            padding: const EdgeInsets.symmetric(horizontal: GJSpace.s3, vertical: GJSpace.s1),
+            decoration: BoxDecoration(color: GJColors.primary, borderRadius: GJRadius.borderSm),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Symbols.school, size: 16, color: GJColors.primaryOn),
+                const SizedBox(width: GJSpace.s1),
+                Text(oferta.grau!, style: GJTypography.label(color: GJColors.primaryOn)),
+              ],
+            ),
+          ),
+          const SizedBox(height: GJSpace.s3),
+        ],
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -313,7 +520,6 @@ class _CardOferta extends StatelessWidget {
           spacing: GJSpace.s5,
           runSpacing: GJSpace.s2,
           children: [
-            if (oferta.grau != null) _dado(Symbols.school, 'Grau', oferta.grau!),
             if (oferta.modalidade != null) _dado(Symbols.devices, 'Modalidade', oferta.modalidade!),
             if (oferta.duracaoSemestres != null)
               _dado(Symbols.schedule, 'Duração', duracaoDasOfertas([oferta])!),
@@ -401,12 +607,6 @@ class _CardOferta extends StatelessWidget {
                     Expanded(flex: 4, child: programas),
                   ],
                 ),
-              if (mostrarDescricao && (oferta.descricao?.trim().isNotEmpty ?? false)) ...[
-                const SizedBox(height: GJSpace.s5),
-                const Divider(height: 1, color: GJColors.surfaceHigh),
-                const SizedBox(height: GJSpace.s4),
-                _DescricaoRecolhida(texto: oferta.descricao!),
-              ],
               const SizedBox(height: GJSpace.s4),
               Wrap(
                 alignment: WrapAlignment.end,
@@ -513,40 +713,6 @@ class _Programas extends StatelessWidget {
                 ],
               ),
             ),
-      ],
-    );
-  }
-}
-
-/// Descrição do curso nesta universidade: recolhida (resumo em três linhas)
-/// com "Ver mais" para abrir o texto formatado inteiro.
-class _DescricaoRecolhida extends StatefulWidget {
-  const _DescricaoRecolhida({required this.texto});
-
-  final String texto;
-
-  @override
-  State<_DescricaoRecolhida> createState() => _DescricaoRecolhidaState();
-}
-
-class _DescricaoRecolhidaState extends State<_DescricaoRecolhida> {
-  bool _aberta = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Sobre o curso nesta universidade', style: GJTypography.label(color: GJColors.textPrimary)),
-        const SizedBox(height: GJSpace.s2),
-        if (_aberta)
-          GJTextoFormatado(widget.texto)
-        else
-          Text(resumoTextoFormatado(widget.texto), style: GJTypography.body(), maxLines: 3, overflow: TextOverflow.ellipsis),
-        TextButton(
-          onPressed: () => setState(() => _aberta = !_aberta),
-          child: Text(_aberta ? 'Ver menos' : 'Ver mais'),
-        ),
       ],
     );
   }

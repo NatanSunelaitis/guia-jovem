@@ -13,6 +13,8 @@ Map<String, dynamic> _oferta({
   String nomeFantasia = 'UniVale Sorocaba',
   String natureza = 'V',
   String modalidade = 'Presencial',
+  String grau = 'Bacharelado',
+  String notaMec = '4',
   int duracao = 8,
   String? descricao = '## O que você estuda\n\nGestão de **pessoas** e finanças.',
   List<Map<String, dynamic>>? campus,
@@ -20,10 +22,10 @@ Map<String, dynamic> _oferta({
     {
       'cursoId': cursoId,
       'areaCurso': 'Negócios',
-      'grau': 'Bacharelado',
+      'grau': grau,
       'modalidade': modalidade,
       'duracaoSemestres': duracao,
-      'notaMec': '4',
+      'notaMec': notaMec,
       'descricao': descricao,
       'universidade': {
         'id': universidadeId,
@@ -86,7 +88,7 @@ void main() {
     expect((imagem.image as AssetImage).assetName, 'assets/fotos/cursos/administracao.jpg');
   });
 
-  testWidgets('por nome: um card por universidade com tudo da oferta e a descrição recolhida', (tester) async {
+  testWidgets('por nome: descrições diferentes em abas por universidade e duração em faixa no resumo', (tester) async {
     mockApi({
       '/cursos/nome/Pedagogia': envelope({
         'nome': 'Pedagogia',
@@ -119,8 +121,9 @@ void main() {
     expect(find.text('2 universidades em 2 cidades'), findsOneWidget);
 
     // Card: sigla, nome, cidade, natureza, dados do curso, campi e programas.
-    expect(find.text('UniVale'), findsOneWidget);
-    expect(find.text('UniVale Sorocaba'), findsOneWidget);
+    // A sigla aparece no card e na aba da descrição.
+    expect(find.text('UniVale'), findsNWidgets(2));
+    expect(find.text('UniVale Sorocaba'), findsNWidgets(2));
     expect(find.text('Privada'), findsOneWidget);
     expect(find.text('Pública'), findsOneWidget);
     expect(find.text('Campus Centro'), findsOneWidget);
@@ -131,14 +134,99 @@ void main() {
     expect(find.text('Bolsa Mérito UniVale'), findsNWidgets(2));
     expect(find.textContaining('Nota do MEC: 4', findRichText: true), findsNWidgets(2));
 
-    // Descrições diferentes: dentro de cada card, recolhidas.
-    expect(find.text('Sobre o curso'), findsNothing);
-    expect(find.text('Ver mais'), findsNWidgets(2));
-    expect(find.text('Texto diferente com a modalidade a distância.'), findsOneWidget);
-    await tester.tap(find.text('Ver mais').last);
+    // Descrições diferentes: "Sobre o curso" acima dos cards, com uma aba por
+    // universidade e a primeira aberta; nada de descrição dentro dos cards.
+    expect(find.text('Sobre o curso'), findsOneWidget);
+    expect(find.text('Descrição informada por cada instituição'), findsOneWidget);
+    expect(find.byKey(const Key('abas-descricao')), findsOneWidget);
+    expect(find.text('Ver mais'), findsNothing);
+    expect(find.byKey(const ValueKey('descricao-7')), findsOneWidget);
+    expect(find.text('Texto diferente com a modalidade a distância.', findRichText: true), findsNothing);
+    final sobre = tester.getRect(find.byKey(const Key('sobre-o-curso')));
+    expect(sobre.bottom, lessThan(tester.getTopLeft(find.byKey(const Key('oferta-7'))).dy));
+
+    await tester.tap(find.descendant(of: find.byKey(const Key('abas-descricao')), matching: find.text('UESP')));
     await tester.pump();
-    expect(find.text('Ver menos'), findsOneWidget);
+    expect(find.byKey(const ValueKey('descricao-8')), findsOneWidget);
     expect(find.text('Texto diferente com a modalidade a distância.', findRichText: true), findsOneWidget);
+    expect(find.text('O que você estuda', findRichText: true), findsNothing);
+
+    // Uma modalidade em cada universidade: filtro sobre os cards.
+    await tester.tap(find.byKey(const Key('filtro-modalidade-EAD')));
+    await tester.pump();
+    expect(find.byKey(const Key('oferta-8')), findsOneWidget);
+    expect(find.byKey(const Key('oferta-7')), findsNothing);
+  });
+
+  testWidgets('por nome: mesmo curso com dois graus mostra a distribuição, o aviso e o filtro por grau', (tester) async {
+    mockApi({
+      '/cursos/nome/Educação Física': envelope({
+        'nome': 'Educação Física',
+        'areaCurso': 'Saúde',
+        'universidades': [
+          _oferta(grau: 'Licenciatura', notaMec: '3', descricao: 'Igual.'),
+          _oferta(cursoId: 8, universidadeId: 3, nomeFantasia: 'UESP', duracao: 8, notaMec: '5', descricao: 'Igual.'),
+          _oferta(cursoId: 9, universidadeId: 4, nomeFantasia: 'FEITU', descricao: 'Igual.'),
+        ],
+      }),
+    });
+
+    await abrir(tester, const DetalheCursoPage.porNome(nome: 'Educação Física'));
+
+    expect(find.text('Graus'), findsOneWidget);
+    expect(find.text('Bacharelado e Licenciatura'), findsOneWidget);
+    expect(find.text('Bacharelado em 2 universidades, Licenciatura em 1'), findsOneWidget);
+    expect(find.text('3 a 5'), findsOneWidget);
+    expect(find.text('8 semestres (4 anos)'), findsWidgets);
+    expect(find.byKey(const Key('aviso-graus')), findsOneWidget);
+    // Grau em destaque em cada card.
+    expect(find.descendant(of: find.byKey(const Key('grau-oferta-7')), matching: find.text('Licenciatura')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const Key('grau-oferta-8')), matching: find.text('Bacharelado')), findsOneWidget);
+    // Uma só modalidade: sem filtro de modalidade.
+    expect(find.byKey(const Key('filtro-modalidade-todos')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('filtro-grau-Licenciatura')));
+    await tester.pump();
+    expect(find.byKey(const Key('oferta-7')), findsOneWidget);
+    expect(find.byKey(const Key('oferta-8')), findsNothing);
+    expect(find.byKey(const Key('oferta-9')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('filtro-grau-todos')));
+    await tester.pump();
+    expect(find.byKey(const Key('oferta-9')), findsOneWidget);
+  });
+
+  testWidgets('por nome: sem descrição nenhuma, "Sobre o curso" mostra uma mensagem curta', (tester) async {
+    mockApi({
+      '/cursos/nome/Logística': envelope({
+        'nome': 'Logística',
+        'areaCurso': 'Negócios',
+        'universidades': [_oferta(descricao: null), _oferta(cursoId: 8, universidadeId: 3, nomeFantasia: 'UESP', descricao: '  ')],
+      }),
+    });
+
+    await abrir(tester, const DetalheCursoPage.porNome(nome: 'Logística'));
+
+    expect(find.text('Sobre o curso'), findsOneWidget);
+    expect(find.byKey(const Key('sobre-sem-descricao')), findsOneWidget);
+    expect(find.byKey(const Key('abas-descricao')), findsNothing);
+    expect(find.byKey(const Key('aviso-graus')), findsNothing);
+  });
+
+  testWidgets('por nome: só uma universidade descreveu o curso, sem abas', (tester) async {
+    mockApi({
+      '/cursos/nome/Turismo': envelope({
+        'nome': 'Turismo',
+        'areaCurso': 'Humanas',
+        'universidades': [_oferta(descricao: null), _oferta(cursoId: 8, universidadeId: 3, nomeFantasia: 'UESP')],
+      }),
+    });
+
+    await abrir(tester, const DetalheCursoPage.porNome(nome: 'Turismo'));
+
+    expect(find.text('O que você estuda', findRichText: true), findsOneWidget);
+    expect(find.byKey(const Key('abas-descricao')), findsNothing);
+    expect(find.text('Descrição informada por cada instituição'), findsNothing);
   });
 
   testWidgets('por nome: descrições iguais aparecem uma vez só, acima dos cards', (tester) async {
@@ -176,7 +264,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(tester.takeException(), isNull);
-    expect(find.text('FVT'), findsOneWidget);
+    expect(find.text('FVT'), findsNWidgets(2));
   });
 
   testWidgets('volume: 20 universidades em 8 por página, com busca, e o resumo conta todas', (tester) async {
@@ -227,10 +315,30 @@ void main() {
       expect(valoresDistintos(['Bacharelado', 'Licenciatura', 'Bacharelado', 'Tecnólogo']), 'Bacharelado, Licenciatura e Tecnólogo');
     });
 
-    test('descrição comum só quando todas são iguais e não vazias', () {
+    test('descrição única quando só uma universidade descreveu ou todas são iguais', () {
       expect(descricaoComum([oferta(descricao: 'A'), oferta(descricao: 'A')]), 'A');
+      expect(descricaoComum([oferta(descricao: 'A'), oferta(descricao: null)]), 'A');
       expect(descricaoComum([oferta(descricao: 'A'), oferta(descricao: 'B')]), isNull);
       expect(descricaoComum([oferta(descricao: null), oferta(descricao: null)]), isNull);
+      expect(ofertasComDescricao([oferta(descricao: 'A'), oferta(descricao: ' '), oferta(descricao: null)]), hasLength(1));
+    });
+
+    OfertaCurso daUniversidade(int id, {String? grau, String? nota}) => OfertaCurso.fromJson({
+          ..._oferta(universidadeId: id, grau: grau ?? 'Bacharelado', notaMec: nota ?? '4'),
+        });
+
+    test('distribuição por grau conta universidades, do mais oferecido para o menos', () {
+      final ofertas = [daUniversidade(1), daUniversidade(2, grau: 'Tecnólogo'), daUniversidade(3), daUniversidade(3)];
+      final distribuicao = distribuicaoPorUniversidade(ofertas, (o) => o.grau);
+      expect(distribuicao, [('Bacharelado', 2), ('Tecnólogo', 1)]);
+      expect(textoDistribuicao(distribuicao), 'Bacharelado em 2 universidades, Tecnólogo em 1');
+      expect(textoDistribuicao(distribuicaoPorUniversidade([daUniversidade(1)], (o) => o.grau)), isNull);
+    });
+
+    test('nota do MEC única, em faixa ou em lista', () {
+      expect(notaMecDasOfertas([daUniversidade(1), daUniversidade(2)]), '4');
+      expect(notaMecDasOfertas([daUniversidade(1, nota: '5'), daUniversidade(2, nota: '3')]), '3 a 5');
+      expect(notaMecDasOfertas([daUniversidade(1, nota: 'Sem conceito'), daUniversidade(2, nota: '3')]), 'Sem conceito e 3');
     });
   });
 }

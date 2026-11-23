@@ -41,18 +41,28 @@ class CursoResumo {
   final UniversidadeRefCurso universidade;
 }
 
+/// Curso agrupado pelo nome (home e lista de cursos): a grafia mais usada,
+/// a área mais frequente e os graus do grupo, dos mais oferecidos primeiro.
 class CursoDestaque {
-  CursoDestaque({required this.nome, this.areaCurso, required this.totalOfertas});
+  CursoDestaque({required this.nome, this.areaCurso, this.graus = const [], required this.totalOfertas, int? totalUniversidades})
+      : totalUniversidades = totalUniversidades ?? totalOfertas;
 
   factory CursoDestaque.fromJson(Map<String, dynamic> json) => CursoDestaque(
         nome: json['nome'] as String,
         areaCurso: json['areaCurso'] as String?,
+        graus: (json['graus'] as List<dynamic>? ?? const []).cast<String>(),
         totalOfertas: json['totalOfertas'] as int,
+        totalUniversidades: json['totalUniversidades'] as int?,
       );
 
   final String nome;
   final String? areaCurso;
+  final List<String> graus;
   final int totalOfertas;
+  final int totalUniversidades;
+
+  /// "Bacharelado e Licenciatura" quando o grupo tem mais de um grau.
+  String? get grausDiferentes => graus.length > 1 ? _listaComE(graus) : null;
 }
 
 class CampusOndeOfertado {
@@ -213,6 +223,44 @@ String? duracaoDasOfertas(List<OfertaCurso> ofertas) {
   return '${duracoes.first} a ${duracoes.last} semestres';
 }
 
+/// Quantas universidades oferecem cada valor do [campo] (grau, modalidade),
+/// do mais para o menos frequente; no empate, na ordem em que aparecem.
+List<(String, int)> distribuicaoPorUniversidade(List<OfertaCurso> ofertas, String? Function(OfertaCurso) campo) {
+  final porValor = <String, Set<int>>{};
+  for (final oferta in ofertas) {
+    final valor = campo(oferta)?.trim();
+    if (valor == null || valor.isEmpty) continue;
+    porValor.putIfAbsent(valor, () => <int>{}).add(oferta.universidade.id);
+  }
+  final itens = [for (final e in porValor.entries) (e.key, e.value.length)];
+  final ordem = porValor.keys.toList();
+  itens.sort((a, b) => b.$2 != a.$2 ? b.$2.compareTo(a.$2) : ordem.indexOf(a.$1).compareTo(ordem.indexOf(b.$1)));
+  return itens;
+}
+
+/// "Bacharelado em 2 universidades, Tecnólogo em 1". Nulo com um valor só
+/// (todas as universidades iguais) ou nenhum.
+String? textoDistribuicao(List<(String, int)> distribuicao) {
+  if (distribuicao.length < 2) return null;
+  return [
+    for (var i = 0; i < distribuicao.length; i++)
+      i == 0
+          ? '${distribuicao[i].$1} em ${distribuicao[i].$2} ${distribuicao[i].$2 == 1 ? 'universidade' : 'universidades'}'
+          : '${distribuicao[i].$1} em ${distribuicao[i].$2}',
+  ].join(', ');
+}
+
+/// Nota do MEC no resumo: "4", a faixa "3 a 5" quando as notas diferem, ou
+/// a lista quando alguma não é um número.
+String? notaMecDasOfertas(List<OfertaCurso> ofertas) {
+  final notas = {for (final o in ofertas) if (o.notaMec != null && o.notaMec!.trim().isNotEmpty) o.notaMec!.trim()};
+  if (notas.isEmpty) return null;
+  final numeros = notas.map(int.tryParse).toList();
+  if (numeros.any((n) => n == null)) return _listaComE(notas.toList());
+  final ordenadas = numeros.cast<int>().toList()..sort();
+  return ordenadas.first == ordenadas.last ? '${ordenadas.first}' : '${ordenadas.first} a ${ordenadas.last}';
+}
+
 /// Valores distintos, na ordem em que aparecem, juntados com vírgula e "e".
 String? valoresDistintos(Iterable<String?> valores) {
   final vistos = <String>[];
@@ -232,10 +280,13 @@ Set<String> cidadesDasOfertas(List<OfertaCurso> ofertas) => {
           '${oferta.universidade.cidade}/${oferta.universidade.estado}',
     };
 
-/// Descrição comum: quando todas as ofertas têm o mesmo texto, ele aparece
-/// uma vez só, acima dos cards. Nulo quando há diferença ou nenhuma descrição.
+/// Ofertas que têm descrição (as sem descrição não ganham aba em "Sobre o curso").
+List<OfertaCurso> ofertasComDescricao(List<OfertaCurso> ofertas) =>
+    [for (final o in ofertas) if (o.descricao != null && o.descricao!.trim().isNotEmpty) o];
+
+/// Descrição única: o texto quando só uma universidade descreveu o curso ou
+/// todas escreveram o mesmo; nulo quando há textos diferentes ou nenhum.
 String? descricaoComum(List<OfertaCurso> ofertas) {
-  final textos = {for (final o in ofertas) o.descricao?.trim() ?? ''};
-  if (textos.length != 1 || textos.first.isEmpty) return null;
-  return textos.first;
+  final textos = {for (final o in ofertasComDescricao(ofertas)) o.descricao!.trim()};
+  return textos.length == 1 ? textos.first : null;
 }
