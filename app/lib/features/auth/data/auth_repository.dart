@@ -1,3 +1,4 @@
+import '../../../core/network/api_exception.dart';
 import '../../../core/network/auth_api_client.dart';
 import '../../../core/storage/token_storage.dart';
 import '../domain/usuario_sessao.dart';
@@ -91,10 +92,15 @@ class AuthRepository {
     if (accessToken == null) return null;
 
     try {
-      final json = await _client.get('/auth/me');
+      // Com limite de tempo: o app espera esta resposta antes de mostrar as telas.
+      final json = await _client.get('/auth/me').timeout(const Duration(seconds: 8));
       return UsuarioSessao.fromJson(json['data'] as Map<String, dynamic>);
+    } on ApiException catch (erro) {
+      // Sem conexão a sessão não é descartada: volta na próxima abertura.
+      if (erro.code != 'SEM_CONEXAO' && erro.code != 'RESPOSTA_INVALIDA') await tokenStorage.limpar();
+      return null;
     } catch (_) {
-      await tokenStorage.limpar();
+      // Tempo esgotado ou resposta inesperada: segue como visitante, sem apagar a sessão.
       return null;
     }
   }
