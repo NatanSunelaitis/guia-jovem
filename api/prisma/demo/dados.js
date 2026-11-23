@@ -25,9 +25,17 @@ const CONTAS = {
 };
 
 // Descrição de cada curso: conteúdo geral da área, em linguagem simples para
-// quem está no ensino médio, sem números de mercado ou salário. Pedagogia tem
-// duas versões (presencial na UESP e a distância na UniTatuí): com descrições
-// diferentes, a página do curso mostra cada uma dentro do card da universidade.
+// quem está no ensino médio, sem números de mercado ou salário. Casos para a
+// página do curso com universidades diferentes:
+// - Pedagogia: presencial na UESP (8 semestres) e a distância na UniTatuí
+//   (7 semestres), com descrições diferentes: o resumo mostra a faixa de
+//   duração e "Sobre o curso" ganha uma aba por universidade;
+// - Educação Física: licenciatura na UniTatuí e bacharelado na UniVale (mesmo
+//   nome, graus diferentes);
+// - Análise e Desenvolvimento de Sistemas: na FAMS foi cadastrado sem acento
+//   e em minúsculas; a página pública junta as duas grafias, exibe a da
+//   Faculdade Votorantim (cadastrada antes) e o administrador encontra o
+//   caso no filtro "nomes parecidos".
 const CURSOS = {
   enfermagem: `## O que você estuda
 
@@ -406,6 +414,28 @@ Educação Física estuda o movimento humano, o esporte, o jogo e a atividade f�
 ## Perfil de quem escolhe o curso
 
 Combina com quem gosta de esporte e de atividade física, tem energia para trabalhar com turmas e acredita no movimento como parte da formação das pessoas.`,
+
+  educacaoFisicaBacharelado: `## O que você estuda
+
+Educação Física estuda o movimento humano, o esporte e a atividade física como parte da saúde. Este curso é um **bacharelado**, voltado ao trabalho fora da escola: academias, clubes, equipes esportivas e programas de saúde.
+
+- **Ciências do corpo:** anatomia, fisiologia do exercício e biomecânica.
+- **Treinamento esportivo** e prescrição de exercícios.
+- **Atividade física e saúde** para crianças, adultos e idosos.
+- **Esportes, lutas, danças e ginástica.**
+- **Gestão de academias e eventos esportivos.**
+- **Estágios** em academias, clubes e serviços de saúde.
+
+## Onde pode trabalhar
+
+- Academias e estúdios, como orientador de exercícios e personal trainer.
+- Clubes e equipes esportivas, na preparação física de atletas.
+- Programas de saúde e qualidade de vida em empresas e unidades de saúde.
+- Recreação, lazer e eventos esportivos.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de esporte e de cuidar da saúde das pessoas. Para dar aula em escolas, o caminho é a licenciatura.`,
 
   contabeis: `## O que você estuda
 
@@ -886,6 +916,7 @@ Para quem precisa de ajuda com a mensalidade, a instituição aceita o ProUni, o
       { nome: 'Administração', areaCurso: 'Negócios', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.administracao, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 100 }, { campus: 1, turno: 'Matutino', vagas: 50 }] },
       { nome: 'Psicologia', areaCurso: 'Saúde', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 10, notaMec: '5', descricao: CURSOS.psicologia, ofertas: [{ campus: 1, turno: 'Integral', vagas: 80 }] },
       { nome: 'Ciência da Computação', areaCurso: 'Tecnologia', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.computacao, ofertas: [{ campus: 1, turno: 'Noturno', vagas: 60 }] },
+      { nome: 'Educação Física', areaCurso: 'Saúde', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.educacaoFisicaBacharelado, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
     ],
     programas: { ENEM: null, VESTIBULAR: 'Vestibular de verão com prova on-line', FIES: 'Até 100% da mensalidade', 'Fies Social': null, ProUni: 'Bolsas integrais e parciais em todos os cursos', 'Escola da Família': 'Conveniada ao programa' },
     bolsas: [
@@ -1121,7 +1152,7 @@ A instituição aceita o ProUni, o Fies e o Programa Escola da Família, que aju
     ],
     cursos: [
       { nome: 'Nutrição', areaCurso: 'Saúde', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.nutricao, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
-      { nome: 'Pedagogia', areaCurso: 'Humanas', grau: 'Licenciatura', modalidade: 'EAD', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.pedagogiaEad, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 120 }] },
+      { nome: 'Pedagogia', areaCurso: 'Humanas', grau: 'Licenciatura', modalidade: 'EAD', duracaoSemestres: 7, notaMec: '4', descricao: CURSOS.pedagogiaEad, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 120 }] },
       { nome: 'Educação Física', areaCurso: 'Saúde', grau: 'Licenciatura', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '3', descricao: CURSOS.educacaoFisica, ofertas: [{ campus: 0, turno: 'Matutino', vagas: 60 }] },
     ],
     programas: { ENEM: null, VESTIBULAR: null, ProUni: null, FIES: null, 'Escola da Família': null },
@@ -1137,7 +1168,7 @@ A instituição aceita o ProUni, o Fies e o Programa Escola da Família, que aju
     responsavel: 'Rogério Antunes',
     descricao: `Faculdade pública municipal, sem mensalidade, com ingresso por vestibular próprio e pela nota do Enem.
 
-Mantida por uma fundação do município, a FAMS é uma faculdade pequena, com duas graduações noturnas e turmas que permitem acompanhar cada estudante de perto.
+Mantida por uma fundação do município, a FAMS é uma faculdade pequena, com três graduações noturnas e turmas que permitem acompanhar cada estudante de perto.
 
 O curso de Turismo aproveita os atrativos naturais e históricos de Salto e da região em aulas de campo, e o curso de Ciências Contábeis mantém um núcleo que orienta pequenos empreendedores da cidade.
 
@@ -1163,6 +1194,8 @@ Parte das vagas é preenchida pela nota do Enem, e o restante pelo vestibular pr
     cursos: [
       { nome: 'Ciências Contábeis', areaCurso: 'Negócios', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 8, notaMec: '4', descricao: CURSOS.contabeis, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 50 }] },
       { nome: 'Turismo', areaCurso: 'Humanas', grau: 'Bacharelado', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: '3', descricao: CURSOS.turismo, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 40 }] },
+      // Grafia diferente de propósito (sem acento e em minúsculas): ver o comentário de CURSOS.
+      { nome: 'Analise e desenvolvimento de sistemas', areaCurso: 'Tecnologia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 5, notaMec: '3', descricao: CURSOS.ads, ofertas: [{ campus: 0, turno: 'Noturno', vagas: 40 }] },
     ],
     programas: { ENEM: '30% das vagas pela nota do Enem', VESTIBULAR: 'Prova em dezembro' },
     bolsas: [],
