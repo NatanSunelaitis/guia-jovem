@@ -120,7 +120,7 @@ npm run db:demo
 
 Se o banco já tiver qualquer usuário ou universidade, o comando para sem alterar nada. Para apagar tudo e gravar só os dados de demonstração, confirme com `npm run db:demo -- --substituir`. Para usar esse banco, aponte o `DATABASE_URL` do `api/.env` para ele e suba a API.
 
-Conteúdo: 6 universidades aprovadas da região de Sorocaba (fictícias), com campi, cursos, ofertas com turno e vagas, programas aceitos, links e avaliações; 1 universidade pendente e 1 reprovada com motivo, para demonstrar a aprovação; os programas de entrada, financiamento e bolsa com datas importantes; 2 bolsas institucionais; visitas e logins dos últimos 30 dias para o dashboard. Sugestões, pesquisas salvas e faculdades salvas ficam vazias, para serem criadas ao vivo. **Todos os dados factuais (datas, vagas, notas, endereços, telefones, CNPJs e links) são ilustrativos** e ficam em `api/prisma/demo/dados.js`; os sites, as páginas de simulados e os e-mails das universidades e dos campi usam o domínio reservado `example.com`.
+Conteúdo: 7 universidades aprovadas da região de Sorocaba, com campi, cursos, ofertas com turno e vagas, programas aceitos, links e avaliações: a **FATEC Sorocaba**, única instituição real, cadastrada com dados de fontes oficiais (site da Fatec Sorocaba e do Centro Paula Souza; vagas e nota do MEC ficam em branco porque não foram encontradas nelas), e 6 fictícias; 1 universidade pendente e 1 reprovada com motivo, para demonstrar a aprovação; os programas de entrada, financiamento e bolsa com datas importantes; 2 bolsas institucionais; visitas e logins dos últimos 30 dias para o dashboard. Sugestões e pesquisas salvas ficam vazias, para serem criadas ao vivo; as únicas faculdades salvas são a FATEC Sorocaba, na lista do Natan e da Mayara. **Nas instituições fictícias, todos os dados factuais (datas, vagas, notas, endereços, telefones, CNPJs e links) são ilustrativos** e ficam em `api/prisma/demo/dados.js`; os sites, as páginas de simulados e os e-mails delas e dos campi usam o domínio reservado `example.com`. As fontes da FATEC Sorocaba estão no comentário do topo desse arquivo.
 
 Contas (senha `Demo@2026` em todas, ou o valor de `DEMO_SENHA`):
 
@@ -129,6 +129,9 @@ Contas (senha `Demo@2026` em todas, ou o valor de `DEMO_SENHA`):
 | Administrador | `admin@demo.guiajovem.com.br` | Dashboard, aprovação da pendente, usuários, programas, sugestões |
 | Aluno | `beatriz@demo.guiajovem.com.br` | Ainda não avaliou UESP, UniTatuí e Faculdade Municipal de Salto |
 | Aluno | `lucas@demo.guiajovem.com.br` | Ainda não avaliou Faculdade Votorantim de Tecnologia, FEITU e Faculdade Municipal de Salto |
+| Aluno | `natan@demo.guiajovem.com.br` (Natan Sunelaitis) | Avaliou só a FATEC Sorocaba (nota 5) e a tem salva; pode avaliar qualquer outra ao vivo |
+| Aluno | `mayara@demo.guiajovem.com.br` (Mayara Santos) | Avaliou só a FATEC Sorocaba (nota 4) e a tem salva |
+| Universidade aprovada | `fatec@example.com` | Painel da FATEC Sorocaba (instituição real, dados de fontes oficiais) |
 | Universidade aprovada | `univale@example.com` | Painel completo, com bolsa institucional |
 | Universidades aprovadas | `uesp@`, `fvt@`, `feitu@`, `unitatui@` e `fams@example.com` | Demais painéis |
 | Universidade pendente | `fcsboituva@example.com` | Painel em análise; aparece para o administrador aprovar |
