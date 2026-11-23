@@ -62,10 +62,13 @@ Future<void> pumpPainelAdmin(WidgetTester tester, String local) async {
   await tester.pumpAndSettle();
 }
 
-/// Escolhe uma opção de um DropdownButtonFormField pela [chave].
+/// Escolhe uma opção de um DropdownButtonFormField pela [chave] (a lista
+/// fica abaixo do rótulo, dentro do campo com a chave).
 Future<void> escolher(WidgetTester tester, Key chave, String opcao) async {
-  await tester.ensureVisible(find.byKey(chave));
-  await tester.tap(find.byKey(chave));
+  final lista = find.descendant(of: find.byKey(chave), matching: find.byWidgetPredicate((w) => w is DropdownButtonFormField));
+  final alvo = lista.evaluate().isEmpty ? find.byKey(chave) : lista.first;
+  await tester.ensureVisible(alvo);
+  await tester.tap(alvo);
   await tester.pumpAndSettle();
   await tester.tap(find.text(opcao).last);
   await tester.pumpAndSettle();

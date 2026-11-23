@@ -9,6 +9,7 @@ import '../../../../shared/widgets/gj_button.dart';
 import '../../../../shared/widgets/gj_drawer.dart';
 import '../../../../shared/widgets/gj_editor_texto_formatado.dart';
 import '../../../../shared/widgets/gj_input.dart';
+import '../../../../shared/widgets/gj_select.dart';
 
 /// Abre um formulário no painel lateral (GJDrawer, seção 3.10). O
 /// formulário fecha a si mesmo com `Navigator.pop(resultado)` ao salvar.
@@ -99,6 +100,8 @@ class CampoTextoLongo extends StatelessWidget {
   }
 }
 
+/// Lista de opções dos formulários dos painéis: o [GJSelect], com rótulo
+/// acima e a mesma caixa do [CampoTexto].
 class CampoSelecao<T> extends StatelessWidget {
   const CampoSelecao({
     super.key,
@@ -121,15 +124,13 @@ class CampoSelecao<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: GJSpace.s4),
-      child: DropdownButtonFormField<T?>(
+      child: GJSelect<T>(
+        label: rotulo,
         value: valor,
-        isExpanded: true,
-        decoration: InputDecoration(labelText: rotulo, border: const OutlineInputBorder(), errorText: erro),
-        items: [
-          for (final opcao in opcoes.entries)
-            DropdownMenuItem<T?>(value: opcao.key, child: Text(opcao.value, overflow: TextOverflow.ellipsis)),
-        ],
-        onChanged: enabled ? onChanged : null,
+        items: opcoes,
+        errorText: erro,
+        enabled: enabled,
+        onChanged: onChanged,
       ),
     );
   }
