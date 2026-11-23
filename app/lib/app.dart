@@ -29,6 +29,15 @@ class _GuiaJovemAppState extends State<GuiaJovemApp> {
       debugShowCheckedModeBanner: false,
       theme: GJTheme.light,
       routerConfig: appRouter,
+      // Ao abrir ou recarregar (F5), as telas só montam depois de a sessão
+      // ser restaurada do storage: assim nenhuma tela decide o que mostrar
+      // (ações por perfil, painel, conta) com a sessão ainda vazia.
+      builder: (context, child) => AnimatedBuilder(
+        animation: sessionController,
+        builder: (context, _) => sessionController.carregando
+            ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+            : child ?? const SizedBox.shrink(),
+      ),
       // Textos internos do Flutter (contador de caracteres, seletores de data,
       // leitores de tela) em português.
       locale: const Locale('pt', 'BR'),
