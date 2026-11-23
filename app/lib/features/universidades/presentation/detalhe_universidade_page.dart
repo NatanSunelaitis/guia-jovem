@@ -19,6 +19,7 @@ import '../../../shared/widgets/gj_remote_or_asset_image.dart';
 import '../../../shared/widgets/gj_skeleton.dart';
 import '../../../shared/widgets/gj_tag.dart';
 import '../../../shared/widgets/gj_texto_formatado.dart';
+import '../../auth/data/session_controller.dart';
 import '../../auth/presentation/exigir_aluno.dart';
 import '../../favoritos/data/favoritos_repository.dart';
 import '../data/universidades_repository.dart';
@@ -60,6 +61,17 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
   void initState() {
     super.initState();
     _future = _carregar();
+    sessionController.addListener(_aoMudarSessao);
+  }
+
+  /// Ao recarregar a página (F5), ela monta antes de a sessão ser restaurada:
+  /// quando a sessão chega (ou muda), as ações por perfil e os dados do
+  /// aluno (salva, minha avaliação) são refeitos.
+  void _aoMudarSessao() {
+    if (!mounted) return;
+    setState(() {
+      _future = _carregar();
+    });
   }
 
   Future<UniversidadeDetalhe> _carregar() async {
@@ -122,6 +134,7 @@ class _DetalheUniversidadePageState extends State<DetalheUniversidadePage> {
 
   @override
   void dispose() {
+    sessionController.removeListener(_aoMudarSessao);
     _campusQueryController.dispose();
     super.dispose();
   }

@@ -83,6 +83,14 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
       _aplicarFiltros(iniciais);
       _buscar();
     }
+    sessionController.addListener(_aoMudarSessao);
+  }
+
+  /// A sessão restaurada depois da montagem (F5) muda as ações por perfil e
+  /// quais faculdades aparecem como salvas: refaz a pesquisa atual.
+  void _aoMudarSessao() {
+    if (!mounted || _nomePesquisaSalva != null) return;
+    _buscar(page: _filtros.page);
   }
 
   /// Preenche os campos a partir de filtros em texto, no mesmo formato da
@@ -142,6 +150,7 @@ class _PesquisaUniversidadesPageState extends State<PesquisaUniversidadesPage> {
 
   @override
   void dispose() {
+    sessionController.removeListener(_aoMudarSessao);
     _qController.dispose();
     _cidadeController.dispose();
     _cursoController.dispose();

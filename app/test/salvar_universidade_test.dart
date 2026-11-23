@@ -116,6 +116,24 @@ void main() {
       expect(find.text('Login para /universidades/1'), findsOneWidget);
     });
 
+    testWidgets('ao recarregar a página como administrador, salvar e avaliar somem quando a sessão chega', (tester) async {
+      sessionController.redefinirParaTestes(carregando: true);
+      mockApi({'/universidades/1/avaliacoes': _avaliacoesVazias, '/universidades/1': envelope(_detalhe())});
+      mockAuthApiRotas({'GET /universidades/1': RespostaFalsa(envelope(_detalhe()))});
+
+      await pumpDetalhe(tester);
+      expect(find.byTooltip('Salvar faculdade'), findsOneWidget);
+
+      sessionController.redefinirParaTestes(
+        usuario: UsuarioSessao(id: 9, nome: 'Admin', email: 'admin@exemplo.com', tipoUsuario: TipoUsuario.admin),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.byTooltip('Salvar faculdade'), findsNothing);
+      expect(find.text('Avaliar'), findsNothing);
+    });
+
     testWidgets('perfil Universidade não vê salvar nem avaliar', (tester) async {
       sessionController.redefinirParaTestes(usuario: _universidade);
       mockApi({'/universidades/1/avaliacoes': _avaliacoesVazias});
