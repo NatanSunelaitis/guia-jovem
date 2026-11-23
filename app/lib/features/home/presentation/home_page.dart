@@ -142,6 +142,8 @@ class _HomePageState extends State<HomePage> {
                 nome: curso.nome,
                 ilustracao: fotoCurso(nome: curso.nome, areaCurso: curso.areaCurso),
                 onTap: () => context.go('/cursos/nome/${Uri.encodeComponent(curso.nome)}'),
+                // O mesmo nome em graus diferentes (ex.: Licenciatura e Bacharelado).
+                subtitulo: curso.grausDiferentes,
               ),
               vazio: 'Nenhum curso em destaque no momento.',
             ),

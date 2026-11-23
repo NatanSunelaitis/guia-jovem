@@ -29,6 +29,27 @@ void main() {
     expect(find.text('2 universidades'), findsOneWidget);
   });
 
+  testWidgets('grupo com mais de um grau indica os graus no card e conta universidades', (tester) async {
+    mockApi({
+      '/cursos/destaques': envelope([
+        {
+          'nome': 'Educação Física',
+          'areaCurso': 'Saúde',
+          'graus': ['Licenciatura', 'Bacharelado'],
+          'totalOfertas': 3,
+          'totalUniversidades': 2,
+        },
+        {'nome': 'Direito', 'areaCurso': 'Direito', 'graus': ['Bacharelado'], 'totalOfertas': 1, 'totalUniversidades': 1},
+      ]),
+    });
+
+    await pump(tester);
+
+    expect(find.text('Licenciatura e Bacharelado'), findsOneWidget);
+    expect(find.text('2 universidades'), findsOneWidget);
+    expect(find.byKey(const Key('graus-Direito')), findsNothing);
+  });
+
   testWidgets('volume: 30 cursos em páginas de 12', (tester) async {
     tester.view.physicalSize = const Size(1366, 3000);
     tester.view.devicePixelRatio = 1;

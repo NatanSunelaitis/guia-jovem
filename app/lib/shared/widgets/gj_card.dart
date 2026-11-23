@@ -164,6 +164,7 @@ class GJCard extends StatefulWidget {
     required String ilustracao,
     required VoidCallback onTap,
     Widget? rodape,
+    String? subtitulo,
   }) {
     return GJCard(
       key: key,
@@ -180,12 +181,21 @@ class GJCard extends StatefulWidget {
           Padding(
             padding: const EdgeInsets.all(GJSpace.s4),
             child: rodape == null
-                ? Text(
-                    nome,
-                    style: GJTypography.label().copyWith(fontSize: 15, color: GJColors.textPrimary),
-                    textAlign: TextAlign.center,
-                    maxLines: _linhasTitulo,
-                    overflow: TextOverflow.ellipsis,
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        nome,
+                        style: GJTypography.label().copyWith(fontSize: 15, color: GJColors.textPrimary),
+                        textAlign: TextAlign.center,
+                        maxLines: _linhasTitulo,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (subtitulo != null) ...[
+                        const SizedBox(height: GJSpace.s1),
+                        Text(subtitulo, style: GJTypography.caption(), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+                      ],
+                    ],
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

@@ -45,6 +45,7 @@ void main() {
       ]),
       '/cursos/destaques': envelope([
         {'nome': 'Administração', 'totalOfertas': 3},
+        {'nome': 'Educação Física', 'graus': ['Licenciatura', 'Bacharelado'], 'totalOfertas': 2},
       ]),
     });
 
@@ -53,6 +54,8 @@ void main() {
     expect(find.text('Fatec Sorocaba'), findsOneWidget);
     expect(find.text('Exame Nacional do Ensino Médio'), findsOneWidget);
     expect(find.text('Administração'), findsOneWidget);
+    // Mais de um grau no grupo: os graus aparecem no card.
+    expect(find.text('Licenciatura e Bacharelado'), findsOneWidget);
   });
 
   testWidgets('o carrossel de programas pede os destaques dos três tipos (Figura 14)', (tester) async {

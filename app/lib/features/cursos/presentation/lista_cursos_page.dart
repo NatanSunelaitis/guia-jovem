@@ -132,9 +132,12 @@ class _ListaCursosPageState extends State<ListaCursosPage> {
                               children: [
                                 if (curso.areaCurso != null) GJTag(label: curso.areaCurso!, tone: GJTagTone.entrada),
                                 Text(
-                                  curso.totalOfertas == 1 ? '1 universidade' : '${curso.totalOfertas} universidades',
+                                  curso.totalUniversidades == 1 ? '1 universidade' : '${curso.totalUniversidades} universidades',
                                   style: GJTypography.bodySm(),
                                 ),
+                                // O mesmo nome em graus diferentes.
+                                if (curso.grausDiferentes != null)
+                                  Text(curso.grausDiferentes!, key: Key('graus-${curso.nome}'), style: GJTypography.caption()),
                               ],
                             ),
                           ),
