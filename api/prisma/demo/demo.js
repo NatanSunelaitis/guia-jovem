@@ -8,8 +8,9 @@
  * comando receba `-- --substituir`: aí o banco é APAGADO (prisma migrate
  * reset) e recriado só com os dados de dados.js.
  *
- * Sugestões, pesquisas salvas e faculdades salvas ficam vazias (são criadas
- * ao vivo). Senha de todas as contas: DEMO_SENHA (padrão abaixo).
+ * Sugestões e pesquisas salvas ficam vazias (são criadas ao vivo); as
+ * faculdades salvas são só as de FACULDADES_SALVAS. Senha de todas as
+ * contas: DEMO_SENHA (padrão abaixo).
  */
 const path = require('path');
 const { execFileSync } = require('child_process');
@@ -217,6 +218,15 @@ async function popular(cliente, senha) {
         nota: avaliacao.nota,
         comentario: avaliacao.comentario,
         criadoEm: new Date(Date.now() - (avaliacao.diasAtras ?? 0) * 24 * 60 * 60 * 1000),
+      },
+    });
+  }
+  for (const salva of dados.FACULDADES_SALVAS ?? []) {
+    await cliente.universidadeSalva.create({
+      data: {
+        usuarioId: alunos[salva.aluno].id,
+        universidadeId: universidades[salva.universidade].id,
+        criadoEm: new Date(Date.now() - (salva.diasAtras ?? 0) * DIA_MS),
       },
     });
   }
