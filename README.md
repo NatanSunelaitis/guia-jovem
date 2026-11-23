@@ -175,7 +175,7 @@ flutter test
 flutter build web
 ```
 
-`npm run conferencia` recria o banco de `CONFERENCIA_DATABASE_URL` (o nome precisa terminar em `_teste`, `_test` ou `_e2e`, porque ele é apagado a cada execução), aplica as migrations e o seed, sobe a API numa porta própria (3999) e percorre pela HTTP os fluxos do visitante, do aluno, da universidade e do administrador: pesquisa, relatório CSV e PDF, cadastro e login, avaliação, faculdades e pesquisas salvas, sugestões e notificações, aprovação e reprovação, painel da universidade, dashboard, recuperação e troca de senha, exclusão de conta, auditoria e registro de visitas. Termina com erro se algum ponto falhar.
+`npm run conferencia` recria o banco de `CONFERENCIA_DATABASE_URL` (o nome precisa terminar em `_teste`, `_test` ou `_e2e`, porque ele é apagado a cada execução), aplica as migrations e o seed, sobe a API numa porta própria (3999) e percorre pela HTTP os fluxos do visitante, do aluno, da universidade e do administrador: pesquisa, relatório CSV e PDF, cadastro e login, avaliação, faculdades e pesquisas salvas, sugestões e notificações, aprovação e reprovação, painel da universidade, cursos de mesmo nome (agrupamento, sugestão de nomes e nomes parecidos), dashboard, recuperação e troca de senha, exclusão de conta, auditoria e registro de visitas. Termina com erro se algum ponto falhar.
 
 ```bash
 CONFERENCIA_DATABASE_URL="mysql://root:SUA_SENHA@127.0.0.1:3306/guiajovem_teste" npm run conferencia

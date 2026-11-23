@@ -375,6 +375,34 @@ function criarRoteiro({ chamar, prisma, log, admin, base }) {
     conferir(oferta.programas.BOLSA.some((p) => p.institucional), 'a oferta veio sem a bolsa institucional');
   });
 
+  ponto('Cursos de mesmo nome: agrupamento sem maiúsculas, acentos e espaços, sugestão de nomes e nomes parecidos (T06, RF19)', async () => {
+    const token = estado.universidade.token;
+    const sugestoes = status(await chamar('GET', '/cursos/nomes?q=desenvolvimento', { token }), 200).data;
+    conferir(sugestoes.some((s) => s.nome === estado.curso.nome && s.totalUniversidades >= 1), 'a sugestão de nomes não trouxe o curso cadastrado');
+    status(await chamar('GET', '/cursos/nomes?q=desenvolvimento'), 401);
+
+    const variante = await chamar('POST', `/universidades/${estado.universidade.id}/cursos`, {
+      token,
+      corpo: { nome: 'analise e  desenvolvimento de SISTEMAS', grau: 'Bacharelado' },
+    });
+    const outra = status(variante, 201).data;
+    const porNome = status(await chamar('GET', '/cursos/nome/ANALISE%20E%20DESENVOLVIMENTO%20DE%20SISTEMAS'), 200).data;
+    const ids = porNome.universidades.map((o) => o.cursoId);
+    conferir(ids.includes(estado.curso.id) && ids.includes(outra.id), 'a página do curso não juntou as duas grafias');
+    conferir(porNome.nome === estado.curso.nome, `o nome exibido não é a grafia mais usada (veio "${porNome.nome}")`);
+    const destaques = status(await chamar('GET', '/cursos/destaques?limite=200&q=desenvolvimento'), 200).data;
+    const grupo = destaques.find((c) => c.nome === estado.curso.nome);
+    conferir(grupo && grupo.graus.includes('Bacharelado') && grupo.graus.includes('Tecnólogo'), 'a lista de cursos não juntou as grafias com os dois graus');
+
+    const parecidos = status(await chamar('GET', '/cursos/administracao/nomes-parecidos', { token: estado.admin.token }), 200).data;
+    conferir(
+      parecidos.some((g) => g.cursos.some((c) => c.id === outra.id) && g.cursos.some((c) => c.id === estado.curso.id)),
+      'o filtro de nomes parecidos não agrupou as duas grafias',
+    );
+    status(await chamar('GET', '/cursos/administracao/nomes-parecidos', { token }), 403);
+    status(await chamar('DELETE', `/cursos/${outra.id}`, { token }), 200);
+  });
+
   ponto('Sugestão para a universidade: notifica, ela avalia e o aluno é notificado (RF08, RF14, RF15)', async () => {
     const criada = await chamar('POST', '/sugestoes', {
       token: estado.aluno.token,
