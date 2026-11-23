@@ -258,8 +258,8 @@ class _NomesParecidos extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Cursos com grafias próximas aparecem como cursos diferentes no site quando o nome não é igual. '
-              'Edite o nome para padronizar.',
+              'O site já junta nomes que só diferem em maiúsculas, acentos e espaços, mas siglas, abreviações e erros de '
+              'digitação viram cursos separados. Edite o nome para deixar todos na mesma grafia.',
               style: GJTypography.bodySm(),
             ),
             const SizedBox(height: GJSpace.s4),
