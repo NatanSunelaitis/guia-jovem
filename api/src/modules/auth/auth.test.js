@@ -223,6 +223,10 @@ describe('POST /api/v1/auth/login', () => {
 });
 
 describe('POST /api/v1/auth/login: limite de tentativas (padrão de 10 falhas em 15 minutos)', () => {
+  // Cada login confere a senha com bcrypt: dez ou mais seguidos passam dos
+  // 5 segundos padrão quando a suíte inteira roda em paralelo.
+  const VARIOS_LOGINS = 30000;
+
   it('login certo repetido não bloqueia', async () => {
     prisma.usuario.findUnique.mockResolvedValue(usuarioFake());
 
@@ -230,7 +234,7 @@ describe('POST /api/v1/auth/login: limite de tentativas (padrão de 10 falhas em
       const resposta = await request(app).post('/api/v1/auth/login').send({ email: 'repetido@example.com', senha: 'senha1234' });
       expect(resposta.status).toBe(200);
     }
-  });
+  }, VARIOS_LOGINS);
 
   it('a 11ª tentativa depois de 10 falhas é bloqueada com o tempo de espera, e a outra conta segue entrando', async () => {
     prisma.usuario.findUnique.mockResolvedValue(usuarioFake());
@@ -248,7 +252,7 @@ describe('POST /api/v1/auth/login: limite de tentativas (padrão de 10 falhas em
       message: 'Muitas tentativas de login sem sucesso nesta conta. Tente novamente em 15 minutos.',
     });
     expect(outra.status).toBe(200);
-  });
+  }, VARIOS_LOGINS);
 });
 
 describe('POST /api/v1/auth/google', () => {
