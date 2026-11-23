@@ -155,6 +155,8 @@ O banco usado é o `DEMO_DATABASE_URL` do `api/.env` ou, sem ele, o `DATABASE_UR
 
 Opções: `-PortaApi 3001`, `-PortaApp 8081`, `-PortaSmtp 1026` e `-PortaEmail 1081` trocam as portas; `-SemBuild` reaproveita o `app/build/web` existente (gerado para a mesma porta da API). Se uma porta estiver ocupada, o script para e diz qual programa a usa, sem derrubar nada.
 
+**Limite de login na demonstração.** A API conta as tentativas de login sem sucesso por IP e e-mail e bloqueia depois de `LIMITE_TENTATIVAS_LOGIN` falhas em 15 minutos (padrão 10, o valor de produção), com a mensagem "Tente novamente em N minutos". Logins certos não contam. O `iniciar-demo` sobe a API com `LIMITE_TENTATIVAS_LOGIN=500`, para ensaios, capturas e apresentações com muitos logins seguidos não esbarrarem no bloqueio; `-LimiteLogin 20` troca o valor (por exemplo, para mostrar o bloqueio). **Esse valor alto é só do ambiente de demonstração**: em produção, deixe `LIMITE_TENTATIVAS_LOGIN` em 10 (ou fora do `.env`). Reiniciar a API com o `parar-demo` e o `iniciar-demo` zera as contagens.
+
 Para parar a API, o app e a caixa de e-mails:
 
 ```bat

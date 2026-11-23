@@ -3,7 +3,11 @@
 # internet), build web release do app e um servidor estático para ele, todos
 # em segundo plano. Para parar: parar-demo.cmd.
 #
-#   iniciar-demo.cmd [-PortaApi 3000] [-PortaApp 8080] [-PortaSmtp 1025] [-PortaEmail 1080] [-SemBuild]
+#   iniciar-demo.cmd [-PortaApi 3000] [-PortaApp 8080] [-PortaSmtp 1025] [-PortaEmail 1080] [-LimiteLogin 500] [-SemBuild]
+#
+# -LimiteLogin é o limite de tentativas de login sem sucesso da API
+# (LIMITE_TENTATIVAS_LOGIN). Na demonstração fica alto (500) para ensaios e
+# capturas com muitos logins; em produção o padrão é 10 em 15 minutos.
 #
 # -SemBuild reaproveita o app/build/web existente (precisa ter sido gerado
 # para a mesma porta da API).
@@ -12,6 +16,7 @@ param(
   [int]$PortaApp = 8080,
   [int]$PortaSmtp = 1025,
   [int]$PortaEmail = 1080,
+  [int]$LimiteLogin = 500,
   [switch]$SemBuild
 )
 
@@ -141,7 +146,7 @@ if (-not (Esperar $urlEmail 20 $email)) {
 }
 
 Etapa "Subindo a API em $urlApi"
-$api = IniciarNode "scripts/demo/api-demo.js $PortaApi $urlApp $PortaSmtp" $logs.apiSaida $logs.apiErro
+$api = IniciarNode "scripts/demo/api-demo.js $PortaApi $urlApp $PortaSmtp $LimiteLogin" $logs.apiSaida $logs.apiErro
 if (-not $api) { Parar @($email); Falhar "A API não iniciou. Veja $($logs.apiErro)." }
 if (-not (Esperar "$urlApi/api/v1/health" 30 $api)) {
   Parar @($api, $email)

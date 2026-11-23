@@ -4,7 +4,11 @@
  * pelo iniciar-demo.cmd; as variáveis definidas aqui vencem as do api/.env,
  * que continua fornecendo os segredos do JWT.
  *
- *   node scripts/demo/api-demo.js <porta> [url do app] [porta SMTP da caixa de testes]
+ *   node scripts/demo/api-demo.js <porta> [url do app] [porta SMTP da caixa de testes] [limite de login]
+ *
+ * O limite de tentativas de login sem sucesso (LIMITE_TENTATIVAS_LOGIN) sobe
+ * para 500 por padrão: ensaios e capturas fazem muitos logins seguidos. Só
+ * vale para a demonstração; em produção o padrão é 10 em 15 minutos.
  *   node scripts/demo/api-demo.js --conferir   (só confere o banco)
  *
  * Banco: DEMO_DATABASE_URL, ou o DATABASE_URL do api/.env com o nome trocado
@@ -51,7 +55,7 @@ if (require.main === module && process.argv[2] === '--conferir') {
     process.exitCode = codigo;
   });
 } else if (require.main === module) {
-  const [porta = '3000', appUrl = 'http://localhost:8080', portaSmtp = ''] = process.argv.slice(2);
+  const [porta = '3000', appUrl = 'http://localhost:8080', portaSmtp = '', limiteLogin = '500'] = process.argv.slice(2);
   process.env.DATABASE_URL = urlDoBancoDemo();
   process.env.PORT = porta;
   process.env.NODE_ENV = 'development';
@@ -61,6 +65,7 @@ if (require.main === module && process.argv[2] === '--conferir') {
   process.env.SMTP_USER = '';
   process.env.SMTP_PASSWORD = '';
   process.env.APP_URL = appUrl;
+  process.env.LIMITE_TENTATIVAS_LOGIN = limiteLogin;
   // O CORS aceita só a origem do app servido pelo iniciar-demo (com localhost e 127.0.0.1).
   process.env.CORS_ORIGENS = [appUrl, appUrl.replace('localhost', '127.0.0.1')].join(',');
   process.chdir(RAIZ_API);
