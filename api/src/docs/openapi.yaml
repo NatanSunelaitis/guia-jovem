@@ -3265,7 +3265,10 @@ components:
         application/json:
           schema: { $ref: '#/components/schemas/Erro' }
     RateLimited:
-      description: Limite de tentativas excedido (10 req / 15 min por IP)
+      description: >-
+        Limite de tentativas excedido. Login: LIMITE_TENTATIVAS_LOGIN (10) falhas em 15 minutos por IP e e-mail,
+        e 10 vezes isso por IP; logins certos não contam. Recuperação de senha: 10 pedidos em 15 minutos por IP.
+        A mensagem informa em quanto tempo tentar de novo (ex.: "Tente novamente em 12 minutos").
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Erro' }

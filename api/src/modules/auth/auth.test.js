@@ -222,6 +222,35 @@ describe('POST /api/v1/auth/login', () => {
   });
 });
 
+describe('POST /api/v1/auth/login: limite de tentativas (padrão de 10 falhas em 15 minutos)', () => {
+  it('login certo repetido não bloqueia', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(usuarioFake());
+
+    for (let i = 0; i < 12; i += 1) {
+      const resposta = await request(app).post('/api/v1/auth/login').send({ email: 'repetido@example.com', senha: 'senha1234' });
+      expect(resposta.status).toBe(200);
+    }
+  });
+
+  it('a 11ª tentativa depois de 10 falhas é bloqueada com o tempo de espera, e a outra conta segue entrando', async () => {
+    prisma.usuario.findUnique.mockResolvedValue(usuarioFake());
+    for (let i = 0; i < 10; i += 1) {
+      const falha = await request(app).post('/api/v1/auth/login').send({ email: 'bloqueado@example.com', senha: 'senha-errada' });
+      expect(falha.status).toBe(401);
+    }
+
+    const bloqueio = await request(app).post('/api/v1/auth/login').send({ email: 'bloqueado@example.com', senha: 'senha1234' });
+    const outra = await request(app).post('/api/v1/auth/login').send({ email: 'outra.pessoa@example.com', senha: 'senha1234' });
+
+    expect(bloqueio.status).toBe(429);
+    expect(bloqueio.body.error).toMatchObject({
+      code: 'RATE_LIMITED',
+      message: 'Muitas tentativas de login sem sucesso nesta conta. Tente novamente em 15 minutos.',
+    });
+    expect(outra.status).toBe(200);
+  });
+});
+
 describe('POST /api/v1/auth/google', () => {
   it('recusa o token cujo e-mail o Google não verificou (401), sem criar nem vincular conta', async () => {
     verifyGoogleIdToken.mockResolvedValue({
