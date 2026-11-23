@@ -264,6 +264,92 @@ void main() {
       expect(find.text('Curso criado.'), findsOneWidget);
     });
 
+    testWidgets('nome do curso sugere os nomes já cadastrados, com a quantidade de universidades', (tester) async {
+      mockAuthApiRotas({
+        'GET /notificacoes': semNotificacoes,
+        'GET /cursos/administracao': RespostaFalsa(paginaDe([_curso()])),
+        'GET /cursos/nomes': RespostaFalsa(envelope([
+          {'nome': 'Pedagogia', 'totalUniversidades': 2},
+          {'nome': 'Pedagogia Empresarial', 'totalUniversidades': 1},
+        ])),
+      });
+
+      await pumpPainelAdmin(tester, '/admin/cursos');
+      await tester.tap(find.byTooltip('Editar Análise e Desenvolvimento de Sistemas'));
+      await tester.pumpAndSettle();
+      // Abrir o formulário com o nome atual não dispara sugestões.
+      expect(requisicoes('GET', '/cursos/nomes'), isEmpty);
+
+      await tester.enterText(campo('Nome'), 'pedag');
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pumpAndSettle();
+      expect(requisicoes('GET', '/cursos/nomes').single.query['q'], 'pedag');
+      expect(find.byKey(const Key('sugestoes-nome-curso')), findsOneWidget);
+      expect(find.text('2 universidades'), findsOneWidget);
+      expect(find.text('Pedagogia Empresarial'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('sugestao-nome-Pedagogia')));
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(campo('Nome')).controller!.text, 'Pedagogia');
+      expect(find.byKey(const Key('sugestoes-nome-curso')), findsNothing);
+
+      // A sugestão não é obrigatória: um nome novo também é salvo.
+      await tester.enterText(campo('Nome'), 'Pedagogia Hospitalar');
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Salvar'));
+      await tester.tap(find.text('Salvar'));
+      await tester.pumpAndSettle();
+      expect((requisicoes('PATCH', '/cursos/30').single.corpo as Map)['nome'], 'Pedagogia Hospitalar');
+    });
+
+    testWidgets('filtro "nomes parecidos" agrupa as grafias próximas e permite editar o nome', (tester) async {
+      mockAuthApiRotas({
+        'GET /notificacoes': semNotificacoes,
+        'GET /cursos/administracao': RespostaFalsa(paginaDe([_curso()])),
+        'GET /cursos/administracao/nomes-parecidos': RespostaFalsa(envelope([
+          {
+            'nomeSugerido': 'Análise e Desenvolvimento de Sistemas',
+            'grafias': 2,
+            'cursos': [
+              _curso(id: 31, nome: 'ADS'),
+              _curso(),
+            ],
+          },
+        ])),
+      });
+
+      await pumpPainelAdmin(tester, '/admin/cursos');
+      await tester.tap(find.byKey(const Key('filtro-nomes-parecidos')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('grupo-parecidos-Análise e Desenvolvimento de Sistemas')), findsOneWidget);
+      expect(find.text('ADS'), findsOneWidget);
+      expect(find.textContaining('2 grafias', findRichText: true), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Editar ADS (Fatec Itu)'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(campo('Nome')).controller!.text, 'ADS');
+
+    });
+
+    testWidgets('filtro "nomes parecidos" sem grupos mostra que está tudo padronizado', (tester) async {
+      mockAuthApiRotas({
+        'GET /notificacoes': semNotificacoes,
+        'GET /cursos/administracao': RespostaFalsa(paginaDe([_curso()])),
+        'GET /cursos/administracao/nomes-parecidos': RespostaFalsa(envelope(<dynamic>[])),
+      });
+
+      await pumpPainelAdmin(tester, '/admin/cursos');
+      await tester.tap(find.byKey(const Key('filtro-nomes-parecidos')));
+      await tester.pumpAndSettle();
+      expect(find.text('Nenhum nome parecido'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('filtro-nomes-parecidos')));
+      await tester.pumpAndSettle();
+      expect(find.text('Análise e Desenvolvimento de Sistemas'), findsOneWidget);
+    });
+
     testWidgets('editar envia o PATCH com os dados do formulário', (tester) async {
       mockAuthApiRotas({
         'GET /notificacoes': semNotificacoes,

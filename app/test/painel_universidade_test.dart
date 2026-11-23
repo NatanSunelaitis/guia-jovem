@@ -354,6 +354,28 @@ void main() {
       expect((requisicoes('POST', '/universidades/7/cursos').single.corpo as Map)['nome'], 'Gestão Empresarial');
     });
 
+    testWidgets('novo curso sugere os nomes já cadastrados no sistema', (tester) async {
+      await _pumpPainel(
+        tester,
+        secao: 'cursos',
+        extras: {'GET /cursos/nomes': (_) => RespostaFalsa(envelope([
+          {'nome': 'Pedagogia', 'totalUniversidades': 2},
+          {'nome': 'Pedagogia Empresarial', 'totalUniversidades': 1},
+        ]))},
+      );
+
+      await tester.tap(find.text('Novo curso'));
+      await tester.pumpAndSettle();
+      await tester.enterText(campo('Nome'), 'Pedag');
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 universidades'), findsOneWidget);
+      await tester.tap(find.byKey(const Key('sugestao-nome-Pedagogia')));
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(campo('Nome')).controller!.text, 'Pedagogia');
+    });
+
     testWidgets('reprovada: cursos bloqueados até a aprovação', (tester) async {
       await _pumpPainel(tester, status: 'R', motivo: 'CNPJ não confere', secao: 'cursos');
 

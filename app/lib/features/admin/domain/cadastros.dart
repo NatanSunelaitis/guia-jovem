@@ -1,3 +1,33 @@
+/// Nome de curso já cadastrado, sugerido no cadastro (`GET /cursos/nomes`).
+class SugestaoNomeCurso {
+  SugestaoNomeCurso({required this.nome, required this.totalUniversidades});
+
+  factory SugestaoNomeCurso.fromJson(Map<String, dynamic> json) =>
+      SugestaoNomeCurso(nome: json['nome'] as String, totalUniversidades: json['totalUniversidades'] as int? ?? 0);
+
+  final String nome;
+  final int totalUniversidades;
+}
+
+/// Cursos com grafias parecidas (`GET /cursos/administracao/nomes-parecidos`),
+/// para o administrador padronizar o nome.
+class GrupoNomesParecidos {
+  GrupoNomesParecidos({required this.nomeSugerido, required this.grafias, required this.cursos});
+
+  factory GrupoNomesParecidos.fromJson(Map<String, dynamic> json) => GrupoNomesParecidos(
+        nomeSugerido: json['nomeSugerido'] as String,
+        grafias: json['grafias'] as int? ?? 0,
+        cursos: (json['cursos'] as List<dynamic>? ?? const [])
+            .map((item) => CursoAdmin.fromJson(item as Map<String, dynamic>))
+            .toList(),
+      );
+
+  /// A grafia mais usada no grupo.
+  final String nomeSugerido;
+  final int grafias;
+  final List<CursoAdmin> cursos;
+}
+
 /// Curso no cadastro do administrador (`GET /cursos/administracao`, RF19).
 class CursoAdmin {
   CursoAdmin({

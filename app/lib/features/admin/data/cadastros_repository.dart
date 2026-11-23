@@ -30,6 +30,18 @@ class CadastrosRepository {
     return PaginatedResult.fromJson(json, CursoAdmin.fromJson);
   }
 
+  /// Nomes já cadastrados que contêm [texto], com quantas universidades
+  /// usam cada um (cadastro de curso do administrador e da universidade).
+  Future<List<SugestaoNomeCurso>> sugestoesNomeCurso(String texto) async {
+    final json = await authApiClient.get('/cursos/nomes', query: {'q': texto});
+    return (json['data'] as List<dynamic>).map((item) => SugestaoNomeCurso.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
+  Future<List<GrupoNomesParecidos>> nomesParecidos() async {
+    final json = await authApiClient.get('/cursos/administracao/nomes-parecidos');
+    return (json['data'] as List<dynamic>).map((item) => GrupoNomesParecidos.fromJson(item as Map<String, dynamic>)).toList();
+  }
+
   Future<CursoAdmin> criarCurso(int universidadeId, Map<String, dynamic> dados) async {
     final json = await authApiClient.post('/universidades/$universidadeId/cursos', body: dados);
     return CursoAdmin.fromJson(json['data'] as Map<String, dynamic>);

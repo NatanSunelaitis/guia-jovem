@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/network/api_exception.dart';
+import '../../../core/theme/gj_colors.dart';
+import '../../../core/theme/gj_radius.dart';
 import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
 import '../../../shared/widgets/gj_data_table.dart';
@@ -39,6 +41,10 @@ class _SecaoCursosState extends State<SecaoCursos> {
   bool _carregando = true;
   ApiException? _erro;
   int _requisicao = 0;
+
+  /// Filtro "nomes parecidos": troca a tabela pelos grupos de grafias próximas.
+  bool _parecidos = false;
+  Future<List<GrupoNomesParecidos>>? _grupos;
 
   @override
   void initState() {
@@ -90,6 +96,7 @@ class _SecaoCursosState extends State<SecaoCursos> {
     if (salvo == null) return;
     if (!mounted) return;
     ScaffoldMessenger.of(context).aviso(curso == null ? 'Curso criado.' : 'Curso atualizado.');
+    if (_parecidos) setState(() => _grupos = cadastrosRepository.nomesParecidos());
     await _carregar();
   }
 
@@ -126,7 +133,28 @@ class _SecaoCursosState extends State<SecaoCursos> {
       children: [
         Text('Cursos', style: GJTypography.h2()),
         const SizedBox(height: GJSpace.s4),
-        if (_erro != null)
+        Align(
+          alignment: Alignment.centerLeft,
+          child: FilterChip(
+            key: const Key('filtro-nomes-parecidos'),
+            avatar: const Icon(Symbols.spellcheck, size: 18),
+            label: const Text('Nomes parecidos'),
+            tooltip: 'Agrupar cursos com grafias próximas para padronizar o nome',
+            selected: _parecidos,
+            onSelected: (marcado) => setState(() {
+              _parecidos = marcado;
+              if (marcado) _grupos = cadastrosRepository.nomesParecidos();
+            }),
+          ),
+        ),
+        const SizedBox(height: GJSpace.s4),
+        if (_parecidos)
+          _NomesParecidos(
+            grupos: _grupos!,
+            onEditar: _abrirFormulario,
+            onTentarDeNovo: () => setState(() => _grupos = cadastrosRepository.nomesParecidos()),
+          )
+        else if (_erro != null)
           GJEmptyState(
             titulo: 'Não foi possível carregar',
             texto: _erro!.message,
@@ -187,6 +215,218 @@ class _SecaoCursosState extends State<SecaoCursos> {
               setState(() => _pagina = pagina);
               _carregar();
             },
+          ),
+      ],
+    );
+  }
+}
+
+/// Grupos de cursos com grafias próximas (abreviações e pequenas diferenças).
+/// O administrador padroniza editando o nome de cada curso; o nome sugerido
+/// é a grafia mais usada no grupo.
+class _NomesParecidos extends StatelessWidget {
+  const _NomesParecidos({required this.grupos, required this.onEditar, required this.onTentarDeNovo});
+
+  final Future<List<GrupoNomesParecidos>> grupos;
+  final ValueChanged<CursoAdmin> onEditar;
+  final VoidCallback onTentarDeNovo;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<GrupoNomesParecidos>>(
+      future: grupos,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) return const GJSkeleton(height: 120);
+        if (snapshot.hasError) {
+          return GJEmptyState(
+            titulo: 'Não foi possível carregar',
+            texto: snapshot.error is ApiException ? (snapshot.error as ApiException).message : 'Tente novamente.',
+            icone: Symbols.wifi_off,
+            acaoLabel: 'Tentar novamente',
+            onAcao: onTentarDeNovo,
+          );
+        }
+        final lista = snapshot.data!;
+        if (lista.isEmpty) {
+          return const GJEmptyState(
+            titulo: 'Nenhum nome parecido',
+            texto: 'Os cursos de mesmo nome já estão escritos do mesmo jeito.',
+            icone: Symbols.check_circle,
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              'Cursos com grafias próximas aparecem como cursos diferentes no site quando o nome não é igual. '
+              'Edite o nome para padronizar.',
+              style: GJTypography.bodySm(),
+            ),
+            const SizedBox(height: GJSpace.s4),
+            for (final grupo in lista)
+              Container(
+                key: Key('grupo-parecidos-${grupo.nomeSugerido}'),
+                margin: const EdgeInsets.only(bottom: GJSpace.s4),
+                padding: const EdgeInsets.all(GJSpace.s4),
+                decoration: BoxDecoration(
+                  color: GJColors.surfaceLowest,
+                  borderRadius: GJRadius.borderLg,
+                  border: Border.all(color: GJColors.surfaceHigh),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(text: 'Nome mais usado: ', style: GJTypography.bodySm()),
+                          TextSpan(text: grupo.nomeSugerido, style: GJTypography.label(color: GJColors.textPrimary)),
+                          TextSpan(text: '  ·  ${grupo.grafias} grafias', style: GJTypography.bodySm()),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: GJSpace.s2),
+                    for (final curso in grupo.cursos)
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              curso.nome,
+                              style: curso.nome == grupo.nomeSugerido
+                                  ? GJTypography.body()
+                                  : GJTypography.body().copyWith(color: GJColors.warning, fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          Expanded(flex: 3, child: Text(curso.universidadeNome, style: GJTypography.bodySm())),
+                          IconButton(
+                            tooltip: 'Editar ${curso.nome} (${curso.universidadeNome})',
+                            icon: const Icon(Symbols.edit),
+                            onPressed: () => onEditar(curso),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Campo "Nome" do cadastro de curso: enquanto a pessoa digita, sugere os
+/// nomes que já existem no sistema, com quantas universidades usam cada um,
+/// para os cursos iguais se juntarem na página pública. A sugestão é
+/// opcional: qualquer nome pode ser salvo.
+class CampoNomeCurso extends StatefulWidget {
+  const CampoNomeCurso({super.key, required this.controller, this.erro});
+
+  final TextEditingController controller;
+  final String? erro;
+
+  @override
+  State<CampoNomeCurso> createState() => _CampoNomeCursoState();
+}
+
+class _CampoNomeCursoState extends State<CampoNomeCurso> {
+  Timer? _atraso;
+  late String _anterior = widget.controller.text;
+  String? _escolhido;
+  List<SugestaoNomeCurso> _sugestoes = const [];
+  int _requisicao = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_aoDigitar);
+  }
+
+  @override
+  void dispose() {
+    _atraso?.cancel();
+    widget.controller.removeListener(_aoDigitar);
+    super.dispose();
+  }
+
+  void _aoDigitar() {
+    final texto = widget.controller.text;
+    if (texto == _anterior) return; // mudança só do cursor
+    _anterior = texto;
+    _atraso?.cancel();
+    if (texto.trim().length < 2 || texto == _escolhido) {
+      _requisicao++;
+      if (_sugestoes.isNotEmpty) setState(() => _sugestoes = const []);
+      return;
+    }
+    _atraso = Timer(const Duration(milliseconds: 300), () => _buscar(texto.trim()));
+  }
+
+  Future<void> _buscar(String texto) async {
+    final requisicao = ++_requisicao;
+    try {
+      final sugestoes = await cadastrosRepository.sugestoesNomeCurso(texto);
+      if (!mounted || requisicao != _requisicao) return;
+      setState(() => _sugestoes = [for (final s in sugestoes) if (s.nome != widget.controller.text.trim()) s]);
+    } on ApiException {
+      // Sem sugestões o cadastro segue normalmente: o nome é digitado à mão.
+      if (mounted && requisicao == _requisicao) setState(() => _sugestoes = const []);
+    }
+  }
+
+  void _escolher(SugestaoNomeCurso sugestao) {
+    _escolhido = sugestao.nome;
+    widget.controller.value = TextEditingValue(
+      text: sugestao.nome,
+      selection: TextSelection.collapsed(offset: sugestao.nome.length),
+    );
+    setState(() => _sugestoes = const []);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        CampoTexto(rotulo: 'Nome', controller: widget.controller, erro: widget.erro, maxLength: 100),
+        if (_sugestoes.isNotEmpty)
+          Container(
+            key: const Key('sugestoes-nome-curso'),
+            margin: const EdgeInsets.only(bottom: GJSpace.s4),
+            decoration: BoxDecoration(
+              color: GJColors.surfaceLowest,
+              borderRadius: GJRadius.borderMd,
+              border: Border.all(color: GJColors.surfaceHigh),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(GJSpace.s3, GJSpace.s3, GJSpace.s3, GJSpace.s1),
+                  child: Text('Nomes já usados no Guia Jovem (escolher é opcional)', style: GJTypography.caption()),
+                ),
+                for (final sugestao in _sugestoes)
+                  InkWell(
+                    key: Key('sugestao-nome-${sugestao.nome}'),
+                    onTap: () => _escolher(sugestao),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: GJSpace.s3, vertical: GJSpace.s2),
+                      child: Row(
+                        children: [
+                          const Icon(Symbols.menu_book, size: 18, color: GJColors.textSecondary),
+                          const SizedBox(width: GJSpace.s2),
+                          Expanded(child: Text(sugestao.nome, style: GJTypography.body())),
+                          Text(
+                            sugestao.totalUniversidades == 1 ? '1 universidade' : '${sugestao.totalUniversidades} universidades',
+                            style: GJTypography.bodySm(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
       ],
     );
@@ -322,7 +562,7 @@ class _FormularioCursoState extends State<FormularioCurso> {
             padding: const EdgeInsets.only(bottom: GJSpace.s4),
             child: Text('Universidade: ${curso.universidadeNome}', style: GJTypography.bodySm()),
           ),
-        CampoTexto(rotulo: 'Nome', controller: _nome, erro: _erros['nome'], maxLength: 100),
+        CampoNomeCurso(controller: _nome, erro: _erros['nome']),
         CampoTexto(rotulo: 'Área', controller: _area, erro: _erros['areaCurso'], dica: 'Ex.: Tecnologia', maxLength: 100),
         CampoSelecao<String>(
           rotulo: 'Grau',
