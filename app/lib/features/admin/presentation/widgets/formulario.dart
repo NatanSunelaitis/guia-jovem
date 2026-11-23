@@ -172,3 +172,32 @@ class RodapeFormulario extends StatelessWidget {
     );
   }
 }
+
+/// Ação de uma linha de tabela (Editar, Ofertas, Excluir): ícone com o
+/// rótulo visível ao passar o mouse e o mesmo rótulo como nome acessível; o
+/// item da linha (ex.: o nome do curso) vai como dica para o leitor de tela.
+class AcaoTabela extends StatelessWidget {
+  const AcaoTabela({super.key, required this.icone, required this.rotulo, required this.item, required this.onPressed});
+
+  final IconData icone;
+  final String rotulo;
+  final String item;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      enabled: onPressed != null,
+      label: rotulo,
+      hint: item,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: rotulo,
+        waitDuration: const Duration(milliseconds: 200),
+        excludeFromSemantics: true,
+        child: IconButton(icon: Icon(icone), onPressed: onPressed),
+      ),
+    );
+  }
+}

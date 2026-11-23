@@ -300,7 +300,18 @@ void main() {
   });
 
   group('Cursos', () {
-    testWidgets('lista as ofertas por campus, turno e vagas e cadastra uma oferta', (tester) async {
+    // Formulário do curso com a seção "Onde é oferecido".
+    final doisCampi = RespostaFalsa(envelope([_campus(), _campus(id: 21, nome: 'Campus Salto', principal: false)]));
+    Map<String, dynamic> cursoSalvo(int id, String nome) => envelope({'id': id, 'nome': nome, 'universidade': {'id': 7, 'nomeFantasia': 'Fatec Itu'}});
+    Finder vagas(int indice) => find.descendant(of: find.byKey(Key('oferta-vagas-$indice')), matching: find.byType(TextField));
+
+    Future<void> salvar(WidgetTester tester) async {
+      await tester.ensureVisible(find.text('Salvar'));
+      await tester.tap(find.text('Salvar'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('lista as ofertas e, pelo botão Ofertas, altera a existente e inclui outra no mesmo formulário', (tester) async {
       await _pumpPainel(
         tester,
         secao: 'cursos',
@@ -310,25 +321,178 @@ void main() {
                   {'cursoId': 40, 'campusId': 20, 'campusNome': 'Campus Itu', 'turno': 'Noturno', 'vagas': 40},
                 ]),
               ])),
-          'GET /universidades/7/gestao/campus': (_) =>
-              RespostaFalsa(envelope([_campus(), _campus(id: 21, nome: 'Campus Salto', principal: false)])),
+          'GET /universidades/7/gestao/campus': (_) => doisCampi,
+          'PATCH /cursos/40': (_) => RespostaFalsa(cursoSalvo(40, 'Análise e Desenvolvimento de Sistemas')),
+          'PATCH /cursos/40/ofertas/20': (_) => RespostaFalsa(envelope({})),
           'POST /cursos/40/ofertas': (_) => RespostaFalsa(envelope({}), status: 201),
         },
       );
 
-      expect(find.text('Análise e Desenvolvimento de Sistemas'), findsOneWidget);
       expect(find.text('Campus Itu · Noturno · 40 vagas'), findsOneWidget);
+      expect(find.byTooltip('Ofertas'), findsOneWidget);
 
-      await tester.tap(find.byTooltip('Ofertas de Análise e Desenvolvimento de Sistemas'));
+      await tester.tap(find.byKey(const Key('acao-ofertas-40')));
       await tester.pumpAndSettle();
-      await escolher(tester, const Key('oferta-campus'), 'Campus Salto');
-      await escolher(tester, const Key('oferta-turno'), 'Matutino');
-      await tester.enterText(campo('Vagas'), '30');
+      expect(tester.widget<TextField>(vagas(0)).controller!.text, '40');
+
+      await tester.enterText(vagas(0), '50');
+      await tester.ensureVisible(find.byKey(const Key('adicionar-oferta')));
+      await tester.tap(find.byKey(const Key('adicionar-oferta')));
+      await tester.pumpAndSettle();
+      await escolher(tester, const Key('oferta-campus-1'), 'Campus Salto');
+      await escolher(tester, const Key('oferta-turno-1'), 'Matutino');
+      await tester.enterText(vagas(1), '30');
+      await salvar(tester);
+
+      expect(requisicoes('PATCH', '/cursos/40/ofertas/20').single.corpo, {'turno': 'Noturno', 'vagas': 50});
+      expect(requisicoes('POST', '/cursos/40/ofertas').single.corpo, {'campusId': 21, 'turno': 'Matutino', 'vagas': 30});
+      expect(find.text('Curso atualizado com 2 ofertas.'), findsOneWidget);
+    });
+
+    testWidgets('remover uma oferta no formulário apaga a oferta ao salvar', (tester) async {
+      await _pumpPainel(
+        tester,
+        secao: 'cursos',
+        extras: {
+          'GET /universidades/7/gestao/cursos': (_) => RespostaFalsa(envelope([
+                _curso(ofertas: [
+                  {'cursoId': 40, 'campusId': 20, 'campusNome': 'Campus Itu', 'turno': 'Noturno', 'vagas': 40},
+                ]),
+              ])),
+          'PATCH /cursos/40': (_) => RespostaFalsa(cursoSalvo(40, 'Análise e Desenvolvimento de Sistemas')),
+          'DELETE /cursos/40/ofertas/20': (_) => RespostaFalsa(envelope({'sucesso': true})),
+        },
+      );
+
+      await tester.tap(find.byKey(const Key('acao-editar-40')));
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.byKey(const Key('remover-oferta-0')));
+      await tester.tap(find.byKey(const Key('remover-oferta-0')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('ofertas-vazias')), findsOneWidget);
+      await salvar(tester);
+
+      expect(requisicoes('DELETE', '/cursos/40/ofertas/20'), hasLength(1));
+      expect(find.textContaining('Curso atualizado sem oferta'), findsOneWidget);
+    });
+
+    testWidgets('novo curso com duas ofertas: cria o curso e depois cada oferta', (tester) async {
+      await _pumpPainel(
+        tester,
+        secao: 'cursos',
+        extras: {
+          'GET /universidades/7/gestao/campus': (_) => doisCampi,
+          'POST /universidades/7/cursos': (_) => RespostaFalsa(cursoSalvo(41, 'Gestão Empresarial'), status: 201),
+          'POST /cursos/41/ofertas': (_) => RespostaFalsa(envelope({}), status: 201),
+        },
+      );
+
+      await tester.tap(find.text('Novo curso'));
+      await tester.pumpAndSettle();
+      expect(find.text('Onde é oferecido'), findsOneWidget);
+      await tester.enterText(campo('Nome'), 'Gestão Empresarial');
+      await tester.ensureVisible(find.byKey(const Key('adicionar-oferta')));
+      await tester.tap(find.byKey(const Key('adicionar-oferta')));
+      await tester.pumpAndSettle();
+      await escolher(tester, const Key('oferta-campus-0'), 'Campus Itu');
+      await tester.enterText(vagas(0), '40');
+      await tester.ensureVisible(find.byKey(const Key('adicionar-oferta')));
+      await tester.tap(find.byKey(const Key('adicionar-oferta')));
+      await tester.pumpAndSettle();
+      await escolher(tester, const Key('oferta-campus-1'), 'Campus Salto');
+      await escolher(tester, const Key('oferta-turno-1'), 'Integral');
+      await salvar(tester);
+
+      expect((requisicoes('POST', '/universidades/7/cursos').single.corpo as Map)['nome'], 'Gestão Empresarial');
+      expect(requisicoes('POST', '/cursos/41/ofertas').map((r) => r.corpo).toList(), [
+        {'campusId': 20, 'turno': 'Matutino', 'vagas': 40},
+        {'campusId': 21, 'turno': 'Integral', 'vagas': null},
+      ]);
+      expect(find.text('Curso criado com 2 ofertas.'), findsOneWidget);
+    });
+
+    testWidgets('oferta incompleta não envia nada e mostra o erro na oferta', (tester) async {
+      await _pumpPainel(tester, secao: 'cursos', extras: {'GET /universidades/7/gestao/campus': (_) => doisCampi});
+
+      await tester.tap(find.text('Novo curso'));
+      await tester.pumpAndSettle();
+      await tester.enterText(campo('Nome'), 'Gestão Empresarial');
+      await tester.ensureVisible(find.byKey(const Key('adicionar-oferta')));
+      await tester.tap(find.byKey(const Key('adicionar-oferta')));
+      await tester.pumpAndSettle();
+      await salvar(tester);
+
+      expect(find.text('Escolha o campus'), findsOneWidget);
+      expect(requisicoes('POST', '/universidades/7/cursos'), isEmpty);
+    });
+
+    testWidgets('oferta que falha: o curso fica criado, o formulário avisa e salvar de novo só completa a oferta', (tester) async {
+      var ofertaFalha = true;
+      await _pumpPainel(
+        tester,
+        secao: 'cursos',
+        extras: {
+          'GET /universidades/7/gestao/campus': (_) => doisCampi,
+          'POST /universidades/7/cursos': (_) => RespostaFalsa(cursoSalvo(41, 'Gestão Empresarial'), status: 201),
+          'PATCH /cursos/41': (_) => RespostaFalsa(cursoSalvo(41, 'Gestão Empresarial')),
+          'POST /cursos/41/ofertas': (_) => ofertaFalha
+              ? erroDaApi('VALIDATION_ERROR', 'Vagas deve ser no máximo 10000')
+              : RespostaFalsa(envelope({}), status: 201),
+        },
+      );
+
+      await tester.tap(find.text('Novo curso'));
+      await tester.pumpAndSettle();
+      await tester.enterText(campo('Nome'), 'Gestão Empresarial');
+      await tester.ensureVisible(find.byKey(const Key('adicionar-oferta')));
+      await tester.tap(find.byKey(const Key('adicionar-oferta')));
+      await tester.pumpAndSettle();
+      await escolher(tester, const Key('oferta-campus-0'), 'Campus Salto');
+      await tester.enterText(vagas(0), '99999');
+      await salvar(tester);
+
+      // O formulário continua aberto, com o que foi digitado e o aviso claro.
+      expect(find.textContaining('O curso foi criado, mas 1 oferta não foi salva'), findsOneWidget);
+      expect(find.byKey(const Key('erro-oferta-0')), findsOneWidget);
+      expect(tester.widget<TextField>(vagas(0)).controller!.text, '99999');
+      expect(tester.widget<TextField>(campo('Nome')).controller!.text, 'Gestão Empresarial');
+
+      ofertaFalha = false;
+      await tester.enterText(vagas(0), '60');
+      await salvar(tester);
+
+      // Salvar de novo edita o curso criado (não cria outro) e grava a oferta.
+      expect(requisicoes('POST', '/universidades/7/cursos'), hasLength(1));
+      expect(requisicoes('PATCH', '/cursos/41'), hasLength(1));
+      expect(requisicoes('POST', '/cursos/41/ofertas').last.corpo, {'campusId': 21, 'turno': 'Matutino', 'vagas': 60});
+      expect(find.text('Curso criado com 1 oferta.'), findsOneWidget);
+    });
+
+    testWidgets('curso sem oferta: a tabela avisa e "Adicionar oferta" abre o formulário com uma oferta nova', (tester) async {
+      await _pumpPainel(tester, secao: 'cursos', extras: {'GET /universidades/7/gestao/campus': (_) => doisCampi});
+
+      expect(find.byKey(const Key('sem-oferta-40')), findsOneWidget);
+      expect(find.text('Sem oferta: não aparece em nenhum campus'), findsOneWidget);
+
       await tester.tap(find.text('Adicionar oferta'));
       await tester.pumpAndSettle();
+      expect(find.text('Editar curso'), findsOneWidget);
+      expect(find.byKey(const Key('oferta-campus-0')), findsOneWidget);
+    });
 
-      final corpo = requisicoes('POST', '/cursos/40/ofertas').single.corpo as Map;
-      expect(corpo, {'campusId': 21, 'turno': 'Matutino', 'vagas': 30});
+    testWidgets('sem campus cadastrado, a seção explica e leva ao cadastro de campus', (tester) async {
+      await _pumpPainel(tester, secao: 'cursos', extras: {'GET /universidades/7/gestao/campus': (_) => RespostaFalsa(envelope(<dynamic>[]))});
+
+      await tester.tap(find.text('Novo curso'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('ofertas-sem-campus')), findsOneWidget);
+      expect(find.byKey(const Key('adicionar-oferta')), findsNothing);
+
+      await tester.ensureVisible(find.text('Cadastrar campus'));
+      await tester.tap(find.text('Cadastrar campus'));
+      await tester.pumpAndSettle();
+      expect(find.text('Novo curso'), findsNothing);
+      expect(find.text('Novo campus'), findsOneWidget);
     });
 
     testWidgets('novo curso usa a universidade da conta, sem escolher', (tester) async {
@@ -382,7 +546,7 @@ void main() {
       expect(find.byKey(const Key('aviso-somente-leitura')), findsOneWidget);
       expect(find.textContaining('Disponível depois que o cadastro for aprovado'), findsOneWidget);
       expect(find.text('Novo curso'), findsNothing);
-      expect(find.byTooltip('Editar Análise e Desenvolvimento de Sistemas'), findsNothing);
+      expect(find.byKey(const Key('acao-editar-40')), findsNothing);
     });
   });
 

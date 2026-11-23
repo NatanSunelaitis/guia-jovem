@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/network/api_exception.dart';
-import '../../../core/theme/gj_colors.dart';
-import '../../../core/theme/gj_spacing.dart';
 import '../../../core/theme/gj_typography.dart';
-import '../../../shared/widgets/gj_button.dart';
 import '../../../shared/widgets/gj_data_table.dart';
 import '../../../shared/widgets/gj_empty_state.dart';
-import '../../../shared/widgets/gj_skeleton.dart';
 import '../../admin/domain/cadastros.dart';
 import '../../admin/presentation/secao_cursos.dart';
 import '../../admin/presentation/widgets/confirmacao_dialogs.dart';
@@ -17,12 +13,12 @@ import '../../perfil/presentation/widgets/secao_carregavel.dart';
 import '../data/painel_universidade_repository.dart';
 import '../domain/painel_universidade.dart';
 import 'widgets/faixa_situacao.dart';
-import '../../../shared/utils/plural.dart';
 import '../../../shared/widgets/gj_aviso.dart';
 
 /// T23.2 Cursos (RF19, RF20): os cursos da universidade com as ofertas por
 /// campus, turno e vagas. O formulário do curso é o mesmo do administrador
-/// (com a universidade fixa); as ofertas abrem no painel lateral.
+/// (com a universidade fixa) e já traz as ofertas: "Ofertas" e "Adicionar
+/// oferta" abrem o mesmo formulário.
 class SecaoCursosUniversidade extends StatefulWidget {
   const SecaoCursosUniversidade({super.key, required this.universidadeId, required this.acesso});
 
@@ -56,28 +52,21 @@ class _SecaoCursosUniversidadeState extends State<SecaoCursosUniversidade> {
         totalCampus: curso.ofertas.length,
       );
 
-  Future<void> _abrirFormulario([CursoGestao? curso]) async {
+  Future<void> _abrirFormulario([CursoGestao? curso, bool novaOferta = false]) async {
     final salvo = await abrirFormulario<CursoAdmin>(
       context,
       titulo: curso == null ? 'Novo curso' : 'Editar curso',
       formulario: FormularioCurso(
         universidadeId: widget.universidadeId,
         curso: curso == null ? null : _paraFormulario(curso),
+        novaOferta: novaOferta,
       ),
     );
-    if (salvo == null) return;
     if (!mounted) return;
-    ScaffoldMessenger.of(context).aviso(curso == null ? 'Curso criado. Agora cadastre as ofertas por campus.' : 'Curso atualizado.');
+    if (salvo != null) avisarCursoSalvo(ScaffoldMessenger.of(context), salvo, criado: curso == null);
+    // Recarrega mesmo sem "salvo": o curso pode ter sido gravado com alguma
+    // oferta falhando e o formulário fechado depois.
     _recarregar();
-  }
-
-  Future<void> _abrirOfertas(CursoGestao curso) async {
-    await abrirFormulario<void>(
-      context,
-      titulo: 'Ofertas de ${curso.nome}',
-      formulario: GerenciarOfertas(universidadeId: widget.universidadeId, curso: curso),
-    );
-    if (mounted) _recarregar();
   }
 
   Future<void> _excluir(CursoGestao curso) async {
@@ -122,26 +111,35 @@ class _SecaoCursosUniversidadeState extends State<SecaoCursosUniversidade> {
             Text(curso.areaCurso ?? '-', style: GJTypography.bodySm()),
             Text(curso.grau ?? '-', style: GJTypography.bodySm()),
             Text(curso.modalidade ?? '-', style: GJTypography.bodySm()),
-            Text(
-              curso.ofertas.isEmpty ? 'Sem ofertas' : curso.ofertas.map((o) => o.resumo).join('\n'),
-              style: GJTypography.bodySm(),
-            ),
+            if (curso.ofertas.isEmpty)
+              AvisoSemOferta(
+                key: Key('sem-oferta-${curso.id}'),
+                onAdicionar: edita ? () => _abrirFormulario(curso, true) : null,
+              )
+            else
+              Text(curso.ofertas.map((o) => o.resumo).join('\n'), style: GJTypography.bodySm()),
             if (edita)
               Row(
                 children: [
-                  IconButton(
-                    tooltip: 'Editar ${curso.nome}',
-                    icon: const Icon(Symbols.edit),
+                  AcaoTabela(
+                    key: Key('acao-editar-${curso.id}'),
+                    icone: Symbols.edit,
+                    rotulo: 'Editar',
+                    item: curso.nome,
                     onPressed: () => _abrirFormulario(curso),
                   ),
-                  IconButton(
-                    tooltip: 'Ofertas de ${curso.nome}',
-                    icon: const Icon(Symbols.location_on),
-                    onPressed: () => _abrirOfertas(curso),
+                  AcaoTabela(
+                    key: Key('acao-ofertas-${curso.id}'),
+                    icone: Symbols.location_on,
+                    rotulo: 'Ofertas',
+                    item: curso.nome,
+                    onPressed: () => _abrirFormulario(curso),
                   ),
-                  IconButton(
-                    tooltip: 'Excluir ${curso.nome}',
-                    icon: const Icon(Symbols.delete),
+                  AcaoTabela(
+                    key: Key('acao-excluir-${curso.id}'),
+                    icone: Symbols.delete,
+                    rotulo: 'Excluir',
+                    item: curso.nome,
                     onPressed: () => _excluir(curso),
                   ),
                 ],
@@ -173,208 +171,6 @@ class _SecaoCursosUniversidadeState extends State<SecaoCursosUniversidade> {
             onAcao: edita ? () => _abrirFormulario() : null,
           ),
           construir: _tabela,
-        ),
-      ],
-    );
-  }
-}
-
-/// Ofertas do curso por campus (RF20): lista com editar e remover, e o
-/// formulário para ofertar em outro campus da universidade.
-class GerenciarOfertas extends StatefulWidget {
-  const GerenciarOfertas({super.key, required this.universidadeId, required this.curso});
-
-  final int universidadeId;
-  final CursoGestao curso;
-
-  @override
-  State<GerenciarOfertas> createState() => _GerenciarOfertasState();
-}
-
-class _GerenciarOfertasState extends State<GerenciarOfertas> {
-  late List<OfertaCurso> _ofertas = widget.curso.ofertas;
-  late final Future<List<CampusGestao>> _campi = painelUniversidadeRepository.campus(widget.universidadeId);
-  final _vagas = TextEditingController();
-  int? _campusId;
-  String _turno = turnosOferta.first;
-
-  /// Oferta em edição (troca turno e vagas; o campus não muda).
-  OfertaCurso? _editando;
-  String? _erro;
-  bool _salvando = false;
-
-  @override
-  void dispose() {
-    _vagas.dispose();
-    super.dispose();
-  }
-
-  Future<void> _atualizarLista() async {
-    final cursos = await painelUniversidadeRepository.cursos(widget.universidadeId);
-    final curso = cursos.where((c) => c.id == widget.curso.id);
-    if (mounted) setState(() => _ofertas = curso.isEmpty ? const [] : curso.first.ofertas);
-  }
-
-  void _editar(OfertaCurso oferta) {
-    setState(() {
-      _editando = oferta;
-      _campusId = oferta.campusId;
-      _turno = turnosOferta.contains(oferta.turno) ? oferta.turno! : turnosOferta.first;
-      _vagas.text = oferta.vagas?.toString() ?? '';
-      _erro = null;
-    });
-  }
-
-  void _limpar() {
-    setState(() {
-      _editando = null;
-      _campusId = null;
-      _turno = turnosOferta.first;
-      _vagas.clear();
-      _erro = null;
-    });
-  }
-
-  Future<void> _salvar() async {
-    final textoVagas = _vagas.text.trim();
-    final vagas = textoVagas.isEmpty ? null : int.tryParse(textoVagas);
-    if (_campusId == null) {
-      setState(() => _erro = 'Escolha o campus');
-      return;
-    }
-    if (textoVagas.isNotEmpty && (vagas == null || vagas < 0)) {
-      setState(() => _erro = 'Informe as vagas com um número');
-      return;
-    }
-
-    setState(() {
-      _salvando = true;
-      _erro = null;
-    });
-    try {
-      if (_editando == null) {
-        await painelUniversidadeRepository.criarOferta(widget.curso.id, campusId: _campusId!, turno: _turno, vagas: vagas);
-      } else {
-        await painelUniversidadeRepository.atualizarOferta(widget.curso.id, _campusId!, turno: _turno, vagas: vagas);
-      }
-      await _atualizarLista();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).aviso(_editando == null ? 'Oferta cadastrada.' : 'Oferta atualizada.');
-      _limpar();
-    } on ApiException catch (erro) {
-      if (mounted) setState(() => _erro = mensagemDaApi(erro));
-    } finally {
-      if (mounted) setState(() => _salvando = false);
-    }
-  }
-
-  Future<void> _remover(OfertaCurso oferta) async {
-    final confirmou = await confirmarAcao(
-      context,
-      titulo: 'Remover oferta',
-      texto: '${widget.curso.nome} deixa de ser ofertado em ${oferta.campusNome}.',
-      rotuloConfirmar: 'Remover',
-      destrutiva: true,
-    );
-    if (!confirmou) return;
-    try {
-      await painelUniversidadeRepository.excluirOferta(widget.curso.id, oferta.campusId);
-      await _atualizarLista();
-      if (mounted) ScaffoldMessenger.of(context).aviso('Oferta removida.');
-      if (_editando?.campusId == oferta.campusId) _limpar();
-    } on ApiException catch (erro) {
-      if (mounted) setState(() => _erro = erro.message);
-    }
-  }
-
-  Widget _formulario(List<CampusGestao> campi) {
-    final ofertados = {for (final o in _ofertas) o.campusId};
-    final disponiveis = [for (final c in campi) if (_editando != null ? c.id == _editando!.campusId : !ofertados.contains(c.id)) c];
-    if (_editando == null && disponiveis.isEmpty) {
-      return Text('O curso já é ofertado em todos os campi.', style: GJTypography.bodySm());
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(_editando == null ? 'Nova oferta' : 'Editar oferta', style: GJTypography.h4()),
-        const SizedBox(height: GJSpace.s3),
-        CampoSelecao<int>(
-          key: const Key('oferta-campus'),
-          rotulo: 'Campus',
-          valor: _campusId,
-          enabled: _editando == null,
-          opcoes: {for (final c in disponiveis) c.id: c.nome},
-          onChanged: (valor) => setState(() => _campusId = valor),
-        ),
-        CampoSelecao<String>(
-          key: const Key('oferta-turno'),
-          rotulo: 'Turno',
-          valor: _turno,
-          opcoes: {for (final t in turnosOferta) t: t},
-          onChanged: (valor) => setState(() => _turno = valor ?? _turno),
-        ),
-        CampoTexto(rotulo: 'Vagas', controller: _vagas, keyboardType: TextInputType.number),
-        if (_erro != null) ...[
-          Text(_erro!, style: GJTypography.label(color: GJColors.error)),
-          const SizedBox(height: GJSpace.s3),
-        ],
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            if (_editando != null) TextButton(onPressed: _limpar, child: const Text('Cancelar edição')),
-            const SizedBox(width: GJSpace.s3),
-            GJButton(
-              label: _editando == null ? 'Adicionar oferta' : 'Salvar oferta',
-              loading: _salvando,
-              onPressed: _salvando ? null : _salvar,
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (_ofertas.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: GJSpace.s4),
-            child: Text('Este curso ainda não é ofertado em nenhum campus.', style: GJTypography.bodySm()),
-          ),
-        for (final oferta in _ofertas)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Symbols.location_on),
-            title: Text(oferta.campusNome),
-            subtitle: Text([oferta.turno ?? 'Turno não informado', if (oferta.vagas != null) contagem(oferta.vagas!, 'vaga', 'vagas')].join(' · ')),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(tooltip: 'Editar oferta em ${oferta.campusNome}', icon: const Icon(Symbols.edit), onPressed: () => _editar(oferta)),
-                IconButton(
-                  tooltip: 'Remover oferta em ${oferta.campusNome}',
-                  icon: const Icon(Symbols.delete),
-                  onPressed: () => _remover(oferta),
-                ),
-              ],
-            ),
-          ),
-        const Divider(height: GJSpace.s8),
-        FutureBuilder<List<CampusGestao>>(
-          future: _campi,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) return Text('Não foi possível carregar os campi.', style: GJTypography.bodySm());
-            if (!snapshot.hasData) return const GJSkeleton(height: GJSpace.s12);
-            return _formulario(snapshot.data!);
-          },
-        ),
-        const SizedBox(height: GJSpace.s6),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Fechar')),
         ),
       ],
     );

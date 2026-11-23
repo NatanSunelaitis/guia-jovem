@@ -37,6 +37,12 @@ class CadastrosRepository {
     return (json['data'] as List<dynamic>).map((item) => SugestaoNomeCurso.fromJson(item as Map<String, dynamic>)).toList();
   }
 
+  /// Áreas dos cursos já cadastrados, para a lista do campo Área.
+  Future<List<String>> areasCurso() async {
+    final json = await authApiClient.get('/cursos/areas');
+    return (json['data'] as List<dynamic>).cast<String>();
+  }
+
   Future<List<GrupoNomesParecidos>> nomesParecidos() async {
     final json = await authApiClient.get('/cursos/administracao/nomes-parecidos');
     return (json['data'] as List<dynamic>).map((item) => GrupoNomesParecidos.fromJson(item as Map<String, dynamic>)).toList();

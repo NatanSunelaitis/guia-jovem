@@ -199,7 +199,11 @@ void main() {
       await pumpPainelAdmin(tester, '/admin/cursos');
       expect(find.text('Análise e Desenvolvimento de Sistemas'), findsOneWidget);
       expect(find.text('Fatec Itu'), findsOneWidget);
-      expect(find.text('2'), findsOneWidget);
+      expect(find.text('2 campi'), findsOneWidget);
+      // Ações com rótulo visível ao passar o mouse.
+      expect(find.byTooltip('Editar'), findsOneWidget);
+      expect(find.byTooltip('Ofertas'), findsOneWidget);
+      expect(find.byTooltip('Excluir'), findsOneWidget);
 
       resposta = RespostaFalsa(paginaDe([]));
       await tester.enterText(find.byType(TextField).first, 'zzz');
@@ -261,7 +265,7 @@ void main() {
       expect(corpo['nome'], 'Análise e Desenvolvimento de Sistemas');
       expect(corpo['duracaoSemestres'], 6);
       expect(corpo['areaCurso'], isNull);
-      expect(find.text('Curso criado.'), findsOneWidget);
+      expect(find.textContaining('Curso criado sem oferta'), findsOneWidget);
     });
 
     testWidgets('nome do curso sugere os nomes já cadastrados, com a quantidade de universidades', (tester) async {
@@ -275,7 +279,7 @@ void main() {
       });
 
       await pumpPainelAdmin(tester, '/admin/cursos');
-      await tester.tap(find.byTooltip('Editar Análise e Desenvolvimento de Sistemas'));
+      await tester.tap(find.byKey(const Key('acao-editar-30')));
       await tester.pumpAndSettle();
       // Abrir o formulário com o nome atual não dispara sugestões.
       expect(requisicoes('GET', '/cursos/nomes'), isEmpty);
@@ -350,6 +354,35 @@ void main() {
       expect(find.text('Análise e Desenvolvimento de Sistemas'), findsOneWidget);
     });
 
+    testWidgets('Área: lista as áreas existentes, avisa a grafia parecida e aceita uma nova', (tester) async {
+      mockAuthApiRotas({
+        'GET /notificacoes': semNotificacoes,
+        'GET /cursos/administracao': RespostaFalsa(paginaDe([_curso()])),
+        'GET /cursos/areas': RespostaFalsa(envelope(['Saúde', 'Tecnologia'])),
+      });
+
+      await pumpPainelAdmin(tester, '/admin/cursos');
+      await tester.tap(find.byKey(const Key('acao-editar-30')));
+      await tester.pumpAndSettle();
+
+      // Áreas existentes como opções, com a do curso marcada.
+      expect(find.byKey(const Key('area-Saúde')), findsOneWidget);
+      expect(tester.widget<ChoiceChip>(find.byKey(const Key('area-Tecnologia'))).selected, isTrue);
+
+      await tester.enterText(campo('Área'), 'saude');
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('area-equivalente')), findsOneWidget);
+      expect(find.byKey(const Key('area-Tecnologia')), findsNothing);
+      await tester.tap(find.byKey(const Key('area-Saúde')));
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(campo('Área')).controller!.text, 'Saúde');
+      expect(find.byKey(const Key('area-equivalente')), findsNothing);
+
+      await tester.enterText(campo('Área'), 'Gastronomia');
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('area-nova')), findsOneWidget);
+    });
+
     testWidgets('editar envia o PATCH com os dados do formulário', (tester) async {
       mockAuthApiRotas({
         'GET /notificacoes': semNotificacoes,
@@ -358,7 +391,7 @@ void main() {
       });
 
       await pumpPainelAdmin(tester, '/admin/cursos');
-      await tester.tap(find.byTooltip('Editar Análise e Desenvolvimento de Sistemas'));
+      await tester.tap(find.byKey(const Key('acao-editar-30')));
       await tester.pumpAndSettle();
       expect(find.text('Universidade: Fatec Itu'), findsOneWidget);
 
@@ -368,7 +401,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect((requisicoes('PATCH', '/cursos/30').single.corpo as Map)['nome'], 'ADS');
-      expect(find.text('Curso atualizado.'), findsOneWidget);
+      expect(find.textContaining('Curso atualizado sem oferta'), findsOneWidget);
     });
 
     testWidgets('excluir pede confirmação; curso ofertado mostra o bloqueio da API', (tester) async {
@@ -380,7 +413,7 @@ void main() {
       });
 
       await pumpPainelAdmin(tester, '/admin/cursos');
-      await tester.tap(find.byTooltip('Excluir Análise e Desenvolvimento de Sistemas'));
+      await tester.tap(find.byKey(const Key('acao-excluir-30')));
       await tester.pumpAndSettle();
       expect(find.text('Excluir curso'), findsOneWidget);
       await confirmarNoDialogo(tester, 'Excluir');
