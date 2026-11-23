@@ -264,7 +264,7 @@ void main() {
           'id': 50,
           'universidadeId': 7,
           'nota': 4,
-          'comentario': 'https://www.exemplo.com.br/' + 'comentario-sem-espacos-' * 40,
+          'comentario': 'https://www.exemplo.com.br/${'comentario-sem-espacos-' * 40}',
           'criadoEm': '2026-11-16T12:00:00.000Z',
           'universidade': {'id': 7, 'nomeFantasia': 'Fatec Sorocaba', 'logoUrl': null},
         },
