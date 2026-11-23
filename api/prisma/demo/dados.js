@@ -3,6 +3,24 @@
  * universidades e dos campi usam o domínio reservado example.com (RFC 2606),
  * que não pertence a ninguém.
  *
+ * Exceção: a FATEC Sorocaba (Faculdade de Tecnologia de Sorocaba "José
+ * Crespo Gonzales", do Centro Paula Souza) é a ÚNICA instituição real. Os
+ * dados dela vêm de fontes oficiais, lidas em novembro de 2026:
+ * - site da Fatec Sorocaba: https://fatecsorocaba.cps.sp.gov.br/ (páginas
+ *   inicial, quem-somos, fale-conosco e a página de cada curso);
+ * - site do Centro Paula Souza: https://www.cps.sp.gov.br/fatec/vestibular/
+ *   (Vestibular Fatec, Provão Paulista e provas e gabaritos anteriores) e
+ *   https://www.cps.sp.gov.br/fatecs-oferecem-cerca-de-8-mil-vagas-para-ingresso-via-provao-paulista/.
+ * O site do Vestibular Fatec e o e-MEC não abriram para a pesquisa. Vagas
+ * por curso e nota do MEC não foram encontradas em fonte oficial e ficam em
+ * branco; o e-mail institucional também (o site só tem formulário). O CNPJ é
+ * o da mantenedora, o Centro Paula Souza (62.823.257/0001-09), que consta em
+ * listas oficiais do Estado (Tribunal de Justiça e Assembleia Legislativa de
+ * São Paulo), não nas páginas acima. Os cursos de Articulação da Formação
+ * Profissional Média e Superior (AMS) não foram cadastrados. As descrições
+ * dos cursos são gerais sobre cada área; a conta da universidade
+ * (fatec@example.com) e o nome do responsável são da demonstração.
+ *
  * Dados da apresentação (npm run db:demo). As instituições são fictícias,
  * com nomes plausíveis para a região de Sorocaba; os programas são os
  * nacionais e estaduais reais. Todo dado factual daqui (datas, vagas, notas,
@@ -21,6 +39,10 @@ const CONTAS = {
   alunos: [
     { chave: 'beatriz', nome: 'Beatriz Almeida', email: 'beatriz@demo.guiajovem.com.br' },
     { chave: 'lucas', nome: 'Lucas Pereira', email: 'lucas@demo.guiajovem.com.br' },
+    // Contas com a avaliação da FATEC Sorocaba e só ela, para avaliar outra
+    // instituição ao vivo.
+    { chave: 'natan', nome: 'Natan Sunelaitis', email: 'natan@demo.guiajovem.com.br' },
+    { chave: 'mayara', nome: 'Mayara Santos', email: 'mayara@demo.guiajovem.com.br' },
   ],
 };
 
@@ -37,6 +59,237 @@ const CONTAS = {
 //   Faculdade Votorantim (cadastrada antes) e o administrador encontra o
 //   caso no filtro "nomes parecidos".
 const CURSOS = {
+  automacaoIndustrial: `## O que você estuda
+
+Automação Industrial é um curso **tecnólogo** que forma o profissional que faz máquinas e linhas de produção funcionarem sozinhas, com sensores, controladores e programas.
+
+- **Eletricidade e eletrônica** aplicadas à indústria.
+- **Controladores lógicos programáveis (CLP)** e programação de máquinas.
+- **Sensores, atuadores e acionamentos** elétricos, pneumáticos e hidráulicos.
+- **Robótica** e sistemas de supervisão da produção.
+- **Redes industriais** e manutenção de equipamentos automatizados.
+- **Aulas práticas em laboratório** com montagem e testes de sistemas.
+
+## Onde pode trabalhar
+
+- Indústrias de qualquer setor, na automação e na manutenção das linhas de produção.
+- Empresas que projetam e instalam sistemas automatizados.
+- Fabricantes e revendas de equipamentos de automação, no suporte técnico.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de entender como as máquinas funcionam, de montar, testar e consertar, e tem facilidade com matemática e lógica.`,
+
+  eletronicaAutomotiva: `## O que você estuda
+
+Eletrônica Automotiva é um curso **tecnólogo** voltado aos sistemas elétricos e eletrônicos dos veículos, que hoje controlam do motor aos itens de segurança e conforto.
+
+- **Eletricidade e eletrônica** básica e digital.
+- **Sistemas de injeção eletrônica** e gerenciamento do motor.
+- **Sensores, módulos e redes de comunicação** dos veículos.
+- **Diagnóstico de falhas** com equipamentos de teste.
+- **Sistemas de segurança e conforto**, como freios ABS, airbag e climatização.
+- **Veículos híbridos e elétricos** e as novas tecnologias do setor.
+
+## Onde pode trabalhar
+
+- Montadoras e fabricantes de autopeças, em projeto, testes e qualidade.
+- Concessionárias e oficinas especializadas, no diagnóstico eletrônico.
+- Empresas de equipamentos de diagnóstico e de sistemas embarcados.
+
+## Perfil de quem escolhe o curso
+
+É indicado para quem gosta de carros e de tecnologia, tem curiosidade para descobrir a causa de um defeito e paciência para testar até encontrar a solução.`,
+
+  fabricacaoMecanica: `## O que você estuda
+
+Fabricação Mecânica é um curso **tecnólogo** que forma o profissional que planeja e acompanha a produção de peças e componentes mecânicos.
+
+- **Desenho técnico** e leitura de projetos.
+- **Processos de usinagem, soldagem e conformação** dos metais.
+- **Máquinas de comando numérico (CNC)** e programação da produção.
+- **Metrologia:** medição e controle de dimensões das peças.
+- **Materiais** usados na indústria e seus tratamentos.
+- **Planejamento e controle da produção** e qualidade.
+
+## Onde pode trabalhar
+
+- Indústrias metalúrgicas, de máquinas, autopeças e equipamentos.
+- Setores de produção, processos e qualidade das fábricas.
+- Ferramentarias e empresas que prestam serviços de usinagem.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de ver as coisas sendo construídas, tem atenção aos detalhes e se interessa pelo funcionamento das máquinas.`,
+
+  gestaoQualidade: `## O que você estuda
+
+Gestão da Qualidade é um curso **tecnólogo** que forma o profissional que organiza os processos de uma empresa para que produtos e serviços saiam sempre dentro do padrão esperado.
+
+- **Ferramentas da qualidade** e análise de problemas.
+- **Normas e sistemas de gestão**, como as da família ISO.
+- **Estatística** aplicada ao controle de processos.
+- **Auditorias** internas e de fornecedores.
+- **Melhoria contínua** e indicadores de desempenho.
+- **Gestão de pessoas e de projetos** de melhoria.
+
+## Onde pode trabalhar
+
+- Indústrias e empresas de serviços, nos setores de qualidade e de processos.
+- Consultorias que implantam sistemas de gestão e preparam empresas para certificações.
+- Órgãos e empresas de certificação e auditoria.
+
+## Perfil de quem escolhe o curso
+
+É indicado para quem é organizado, observador e gosta de encontrar a causa dos problemas e propor soluções, conversando com pessoas de diferentes áreas.`,
+
+  manufaturaAvancada: `## O que você estuda
+
+Manufatura Avançada é um curso **tecnólogo** ligado à chamada indústria 4.0, em que a produção usa dados, conexão entre máquinas e automação para ficar mais eficiente.
+
+- **Processos de fabricação** e planejamento da produção.
+- **Automação e robótica** aplicadas às linhas de produção.
+- **Internet das coisas** e conexão entre máquinas.
+- **Análise de dados** da produção e simulação de processos.
+- **Manufatura aditiva**, como a impressão 3D.
+- **Gestão da produção** e melhoria de processos.
+
+## Onde pode trabalhar
+
+- Indústrias que modernizam a produção com automação e coleta de dados.
+- Empresas de tecnologia que atendem a indústria.
+- Setores de engenharia de processos, produção e melhoria contínua.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem se interessa por tecnologia e por indústria ao mesmo tempo, gosta de computador e de máquinas e quer trabalhar com inovação na produção.`,
+
+  manutencaoAeronaves: `## O que você estuda
+
+Manutenção de Aeronaves é um curso **tecnólogo** que forma o profissional que planeja e executa a manutenção de aviões e helicópteros, seguindo as regras de segurança da aviação.
+
+- **Estruturas e materiais** aeronáuticos.
+- **Motores** a pistão e a reação.
+- **Sistemas elétricos, eletrônicos e hidráulicos** das aeronaves.
+- **Inspeções e manutenção** preventiva e corretiva.
+- **Regulamentação da aviação** e documentação técnica.
+- **Segurança de voo** e fatores humanos na manutenção.
+
+## Onde pode trabalhar
+
+- Oficinas de manutenção aeronáutica e companhias aéreas.
+- Fabricantes de aeronaves, peças e componentes.
+- Empresas de táxi aéreo, aviação agrícola e executiva.
+
+## Perfil de quem escolhe o curso
+
+É indicado para quem gosta de aviação, de mecânica e de trabalhar com muita responsabilidade, seguindo procedimentos com atenção a cada detalhe.`,
+
+  polimeros: `## O que você estuda
+
+Polímeros é um curso **tecnólogo** sobre os plásticos e as borrachas: como são feitos, como são transformados em produtos e como podem ser reciclados.
+
+- **Química** dos polímeros e propriedades dos materiais.
+- **Processos de transformação:** injeção, extrusão e sopro.
+- **Ensaios e análises** de laboratório.
+- **Moldes e equipamentos** da indústria de plásticos.
+- **Controle de qualidade** dos produtos.
+- **Reciclagem** e impacto ambiental dos materiais.
+
+## Onde pode trabalhar
+
+- Indústrias de plásticos, borrachas, embalagens e autopeças.
+- Laboratórios de análise e de desenvolvimento de materiais.
+- Empresas de reciclagem e de produtos sustentáveis.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de química e de laboratório e tem curiosidade sobre os materiais que estão em quase tudo o que usamos no dia a dia.`,
+
+  processosMetalurgicos: `## O que você estuda
+
+Processos Metalúrgicos é um curso **tecnólogo** que estuda os metais, da obtenção até a transformação em peças, e como melhorar suas propriedades.
+
+- **Ciência dos materiais** e estrutura dos metais.
+- **Fundição, soldagem e conformação** mecânica.
+- **Tratamentos térmicos** e de superfície.
+- **Ensaios mecânicos** e análise de falhas.
+- **Siderurgia** e produção de ligas metálicas.
+- **Controle de qualidade** dos processos.
+
+## Onde pode trabalhar
+
+- Siderúrgicas, fundições e indústrias metalúrgicas.
+- Fabricantes de autopeças, máquinas e equipamentos.
+- Laboratórios de ensaios e de controle de qualidade.
+
+## Perfil de quem escolhe o curso
+
+É indicado para quem gosta de química e de física aplicadas, de laboratório e de ambiente industrial.`,
+
+  projetosMecanicos: `## O que você estuda
+
+Projetos Mecânicos é um curso **tecnólogo** que forma o profissional que desenha e desenvolve máquinas, peças e equipamentos.
+
+- **Desenho técnico** e modelagem em programas de computador (CAD).
+- **Resistência dos materiais** e cálculo de componentes.
+- **Elementos de máquinas**, como engrenagens, eixos e rolamentos.
+- **Processos de fabricação** que o projeto precisa considerar.
+- **Simulação** de peças e conjuntos por computador.
+- **Projeto de dispositivos e equipamentos** para a indústria.
+
+## Onde pode trabalhar
+
+- Setores de engenharia e de projetos das indústrias.
+- Escritórios de projeto e desenvolvimento de produtos.
+- Fabricantes de máquinas, equipamentos e autopeças.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de desenhar, de imaginar como uma peça vai funcionar e tem facilidade com matemática e com programas de computador.`,
+
+  sistemasBiomedicos: `## O que você estuda
+
+Sistemas Biomédicos é um curso **tecnólogo** que une a tecnologia e a saúde: forma o profissional que cuida dos equipamentos usados em hospitais, clínicas e laboratórios.
+
+- **Eletrônica** aplicada a equipamentos médicos.
+- **Anatomia e fisiologia** básicas, para entender como os equipamentos atuam no corpo.
+- **Equipamentos de diagnóstico, de terapia e de laboratório.**
+- **Manutenção, calibração e segurança** dos equipamentos.
+- **Normas e regulamentação** da área da saúde.
+- **Gestão de tecnologia** em estabelecimentos de saúde.
+
+## Onde pode trabalhar
+
+- Hospitais e clínicas, na engenharia clínica e na gestão de equipamentos.
+- Fabricantes e distribuidores de equipamentos médico-hospitalares.
+- Empresas de manutenção e calibração de equipamentos.
+
+## Perfil de quem escolhe o curso
+
+É indicado para quem gosta de eletrônica e se interessa pela área da saúde, mas prefere trabalhar com a tecnologia por trás do atendimento.`,
+
+  gestaoEmpresarial: `## O que você estuda
+
+Gestão Empresarial é um curso **tecnólogo** que forma o profissional que ajuda a organizar e administrar empresas, das finanças às pessoas.
+
+- **Administração** e planejamento estratégico.
+- **Finanças, custos e contabilidade** básica.
+- **Marketing e vendas.**
+- **Gestão de pessoas** e comportamento nas organizações.
+- **Logística e operações.**
+- **Empreendedorismo** e criação de negócios.
+
+## Onde pode trabalhar
+
+- Empresas de qualquer setor, nas áreas administrativa, financeira e comercial.
+- Pequenos negócios, na gestão do dia a dia.
+- O próprio negócio, como empreendedor.
+
+## Perfil de quem escolhe o curso
+
+Combina com quem gosta de organizar, planejar e lidar com pessoas. No ensino a distância, pede disciplina para manter uma rotina de estudo.`,
+
   enfermagem: `## O que você estuda
 
 Enfermagem forma o profissional que cuida da saúde das pessoas em todas as fases da vida, da prevenção ao tratamento. A primeira parte do curso traz a base comum da área da saúde; depois vêm as disciplinas do cuidado, com muitas aulas práticas.
@@ -684,6 +937,44 @@ Cada instituição tem as próprias regras. Confira sempre o edital no site ofic
     ],
   },
   {
+    sigla: 'Vestibular Fatec',
+    nome: 'Vestibular Fatec',
+    tipo: 'ENTRADA',
+    descricao: `## O que é
+
+Processo seletivo das Faculdades de Tecnologia do Estado de São Paulo (Fatecs), mantidas pelo Centro Paula Souza. Dá acesso aos cursos superiores de tecnologia, que são gratuitos.
+
+As Fatecs têm unidades em várias cidades do estado e oferecem mais de 100 opções de cursos.
+
+## Quem pode participar
+
+- Os requisitos para a inscrição estão no edital de cada edição.
+
+## Como funciona
+
+- A inscrição é feita pelo site do Vestibular Fatec, no prazo do edital.
+- O candidato escolhe a unidade e o curso e faz a prova na data marcada.
+- Parte das vagas das Fatecs é preenchida pelo **Provão Paulista**.
+- As provas e os gabaritos das edições anteriores ficam na página do vestibular no site do Centro Paula Souza, e ajudam a treinar.
+
+## Passo a passo
+
+1. Escolha a unidade e o curso que interessam a você.
+2. Leia o edital da edição.
+3. Faça a inscrição no prazo, pelo site do Vestibular Fatec.
+4. Treine com as provas anteriores.
+5. Faça a prova e acompanhe o resultado e as convocações.
+
+As regras, as datas e as vagas mudam a cada edição. Confira sempre o edital no [site oficial do Vestibular Fatec](https://vestibular.fatec.sp.gov.br/).`,
+    comoFunciona: null,
+    requisitos: null,
+    linkOficial: 'https://vestibular.fatec.sp.gov.br/',
+    // A foto segue a regra dos demais programas (fotoPrograma): sem foto com
+    // o nome dele, vale a imagem cadastrada, aqui a foto de vestibular.
+    imagemUrl: 'assets/fotos/programas/vestibular.jpg',
+    eventos: [],
+  },
+  {
     sigla: 'FIES',
     nome: 'Fundo de Financiamento Estudantil',
     tipo: 'FINANCIAMENTO',
@@ -869,7 +1160,70 @@ As regras e as datas podem mudar a cada edição. Confira sempre o edital no [si
 // Instituições aprovadas. Endereços com ruas reais das cidades e números,
 // CEPs, telefones e CNPJs ilustrativos; sites e e-mails em example.com.
 // O "Sobre" é fictício, coerente com o porte e a cidade de cada uma.
+/**
+ * Descrição do curso com a linha do período informado pela instituição,
+ * quando ele não coube exatamente no turno da oferta.
+ */
+function comPeriodo(descricao, periodo, extra) {
+  return [descricao, extra, `Período informado pela instituição: ${periodo}.`].filter(Boolean).join('\n\n');
+}
+
 const UNIVERSIDADES = [
+  {
+    // Única instituição real da demonstração: ver o comentário do topo.
+    chave: 'fatec',
+    nomeFantasia: 'FATEC Sorocaba',
+    razaoSocial: 'Faculdade de Tecnologia de Sorocaba José Crespo Gonzales',
+    // CNPJ da mantenedora (Centro Paula Souza), não da unidade.
+    cnpj: '62823257000109',
+    natureza: 'P',
+    email: 'fatec@example.com',
+    responsavel: 'Secretaria Fatec Sorocaba',
+    descricao: `A Fatec Sorocaba "José Crespo Gonzales" é uma faculdade pública e gratuita do Centro Paula Souza. Criada em 1970, foi a primeira instituição pública de ensino superior de Sorocaba, e as primeiras turmas começaram em 1971 com um curso voltado à mecânica.
+
+Desde 1973 funciona no campus do Alto da Boa Vista, uma área ampla que inclui um trecho preservado de Mata Atlântica.
+
+Hoje oferece cursos superiores de tecnologia presenciais nas áreas de indústria, gestão e informação, além de Gestão Empresarial a distância.`,
+    telefonePrincipal: '(15) 3238-5266',
+    linkPagina: 'https://fatecsorocaba.cps.sp.gov.br/',
+    // Seção "Provas e gabaritos para os Cursos Tecnológicos" do Centro Paula Souza.
+    linkSimulados: 'https://www.cps.sp.gov.br/fatec/vestibular/',
+    campi: [
+      {
+        nome: 'Fatec Sorocaba',
+        principal: true,
+        telefoneFixo: '(15) 3238-5266',
+        endereco: {
+          logradouro: 'Avenida Engenheiro Carlos Reinaldo Mendes',
+          numero: '2015',
+          bairro: 'Alto da Boa Vista',
+          cidade: 'Sorocaba',
+          estado: 'SP',
+          cep: '18013280',
+        },
+      },
+    ],
+    // Vagas e nota do MEC não constam nas fontes oficiais lidas: ficam em
+    // branco. "Diurno" foi gravado como Matutino e "diurno ou noturno" como
+    // Noturno; o período do site vai no fim da descrição quando não coube.
+    cursos: [
+      { nome: 'Análise e Desenvolvimento de Sistemas', areaCurso: 'Tecnologia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: null, notaMec: null, descricao: comPeriodo(CURSOS.ads, 'diurno ou noturno', 'Duração informada pela instituição: 6 ou 8 semestres, conforme o período.'), ofertas: [{ campus: 0, turno: 'Noturno', vagas: null }] },
+      { nome: 'Automação Industrial', areaCurso: 'Engenharia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: comPeriodo(CURSOS.automacaoIndustrial, 'diurno'), ofertas: [{ campus: 0, turno: 'Matutino', vagas: null }] },
+      { nome: 'Eletrônica Automotiva', areaCurso: 'Engenharia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: CURSOS.eletronicaAutomotiva, ofertas: [{ campus: 0, turno: 'Noturno', vagas: null }] },
+      { nome: 'Fabricação Mecânica', areaCurso: 'Engenharia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: comPeriodo(CURSOS.fabricacaoMecanica, 'diurno ou noturno'), ofertas: [{ campus: 0, turno: 'Noturno', vagas: null }] },
+      { nome: 'Gestão da Qualidade', areaCurso: 'Negócios', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: comPeriodo(CURSOS.gestaoQualidade, 'diurno'), ofertas: [{ campus: 0, turno: 'Matutino', vagas: null }] },
+      { nome: 'Logística', areaCurso: 'Negócios', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: CURSOS.logistica, ofertas: [{ campus: 0, turno: 'Vespertino', vagas: null }] },
+      { nome: 'Manufatura Avançada', areaCurso: 'Engenharia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: comPeriodo(CURSOS.manufaturaAvancada, 'diurno'), ofertas: [{ campus: 0, turno: 'Matutino', vagas: null }] },
+      { nome: 'Manutenção de Aeronaves', areaCurso: 'Engenharia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: comPeriodo(CURSOS.manutencaoAeronaves, 'diurno'), ofertas: [{ campus: 0, turno: 'Matutino', vagas: null }] },
+      { nome: 'Polímeros', areaCurso: 'Engenharia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: comPeriodo(CURSOS.polimeros, 'noturno, com aulas aos sábados de manhã'), ofertas: [{ campus: 0, turno: 'Noturno', vagas: null }] },
+      { nome: 'Processos Metalúrgicos', areaCurso: 'Engenharia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: comPeriodo(CURSOS.processosMetalurgicos, 'do 1º ao 4º semestre diurno, 5º e 6º noturno'), ofertas: [{ campus: 0, turno: 'Matutino', vagas: null }] },
+      { nome: 'Projetos Mecânicos', areaCurso: 'Engenharia', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: comPeriodo(CURSOS.projetosMecanicos, 'diurno ou noturno'), ofertas: [{ campus: 0, turno: 'Noturno', vagas: null }] },
+      { nome: 'Sistemas Biomédicos', areaCurso: 'Saúde', grau: 'Tecnólogo', modalidade: 'Presencial', duracaoSemestres: 6, notaMec: null, descricao: CURSOS.sistemasBiomedicos, ofertas: [{ campus: 0, turno: 'Matutino', vagas: null }] },
+      { nome: 'Gestão Empresarial', areaCurso: 'Negócios', grau: 'Tecnólogo', modalidade: 'EAD', duracaoSemestres: 6, notaMec: null, descricao: comPeriodo(CURSOS.gestaoEmpresarial, 'a distância (EAD), com os exames feitos em uma unidade presencial'), ofertas: [{ campus: 0, turno: null, vagas: null }] },
+    ],
+    programas: { 'Vestibular Fatec': null, Provão: 'vagas das Fatecs pelo Provão Paulista' },
+    bolsas: [],
+  },
   {
     chave: 'univale',
     nomeFantasia: 'UniVale Sorocaba',
@@ -1255,6 +1609,29 @@ const AVALIACOES = [
   { aluno: 'lucas', universidade: 'univale', diasAtras: 33, nota: 4, comentario: 'Boa estrutura no Campus Campolim. A secretaria demorou para responder sobre o Fies.' },
   { aluno: 'lucas', universidade: 'uesp', diasAtras: 64, nota: 5, comentario: 'Entrei pelo SiSU. Universidade pública com ótimos professores e projetos de pesquisa desde o primeiro ano.' },
   { aluno: 'lucas', universidade: 'unitatui', diasAtras: 5, nota: 3, comentario: 'Curso de Nutrição bom, mas faltam horários de estágio para quem trabalha.' },
+  // As duas únicas avaliações da FATEC Sorocaba (média 4,5 com 2 avaliações).
+  {
+    aluno: 'natan',
+    universidade: 'fatec',
+    diasAtras: 20,
+    nota: 5,
+    comentario:
+      'Estudo Análise e Desenvolvimento de Sistemas no período noturno e consigo conciliar com o trabalho. O ensino é gratuito e o curso é bem voltado para a prática, com professores que trazem a vivência do mercado para a sala de aula. Recomendo para quem quer entrar na área de tecnologia.',
+  },
+  {
+    aluno: 'mayara',
+    universidade: 'fatec',
+    diasAtras: 35,
+    nota: 4,
+    comentario:
+      'Faculdade pública e de qualidade, com um curso que prepara bem para o mercado de trabalho. A rotina é puxada para quem trabalha durante o dia, mas os professores são acessíveis e ajudam bastante. Vale a pena prestar o vestibular.',
+  },
 ];
 
-module.exports = { CONTAS, CURSOS, PROGRAMAS, UNIVERSIDADES, UNIVERSIDADE_PENDENTE, UNIVERSIDADE_REPROVADA, AVALIACOES };
+/** Faculdades salvas na lista do aluno (as demais contas começam vazias). */
+const FACULDADES_SALVAS = [
+  { aluno: 'natan', universidade: 'fatec', diasAtras: 21 },
+  { aluno: 'mayara', universidade: 'fatec', diasAtras: 36 },
+];
+
+module.exports = { CONTAS, CURSOS, PROGRAMAS, UNIVERSIDADES, UNIVERSIDADE_PENDENTE, UNIVERSIDADE_REPROVADA, AVALIACOES, FACULDADES_SALVAS };
