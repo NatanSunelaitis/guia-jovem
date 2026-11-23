@@ -181,7 +181,7 @@ const SUGESTOES_PADRAO = 8;
  */
 async function sugerirNomes(prisma, { q, limite = SUGESTOES_PADRAO }) {
   const busca = normalizarNome(q);
-  const cursos = await repo.nomesAtivos(prisma, buildWhere({ q: q.replace(/s+/g, ' ').trim() }));
+  const cursos = await repo.nomesAtivos(prisma, buildWhere({ q: q.replace(/\s+/g, ' ').trim() }));
   return agruparPorNome(cursos)
     .filter((grupo) => grupo.chave.includes(busca))
     .sort(

@@ -209,6 +209,20 @@ describe('GET /api/v1/cursos/nomes (sugestão de nomes no cadastro)', () => {
     });
   });
 
+  it('busca o texto digitado como veio, só com os espaços repetidos juntados', async () => {
+    prisma.curso.findMany.mockResolvedValue([
+      { id: 1, nome: 'Análise e Desenvolvimento de Sistemas', areaCurso: 'Tecnologia', grau: 'Tecnólogo', universidadeId: 1 },
+    ]);
+
+    const resposta = await comAdmin(request(app).get('/api/v1/cursos/nomes?q=sistemas%20%20de'));
+
+    expect(prisma.curso.findMany.mock.calls[0][0].where.nome).toEqual({ contains: 'sistemas de' });
+    expect(resposta.body.data).toEqual([]);
+
+    const outra = await comAdmin(request(app).get('/api/v1/cursos/nomes?q=desenvolvimento%20de%20sistemas'));
+    expect(outra.body.data).toEqual([{ nome: 'Análise e Desenvolvimento de Sistemas', totalUniversidades: 1 }]);
+  });
+
   it('a universidade também recebe sugestões; aluno e visitante não', async () => {
     prisma.curso.findMany.mockResolvedValue(nomes);
 
